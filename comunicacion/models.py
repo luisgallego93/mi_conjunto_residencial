@@ -1,35 +1,53 @@
 from django.db import models
+from django.utils import timezone
+from usuarios.models import PerfilUsuario 
 
-class Solicitud(models.Model):
-    # Aquí defino las opciones fijas para que el usuario no escriba cualquier cosa
-    TIPOS_SOLICITUD = [
-        ('PQRS', 'Petición, Queja, Reclamo o Sugerencia'),
-        ('MANTENIMIENTO', 'Solicitud de Reparación'),
+class Comunicacion(models.Model):
+    # --- 1. DATOS PRINCIPALES ---
+    TIPOS = [
+        ('Peticion', 'Petición'), ('Queja', 'Queja'), ('Reclamo', 'Reclamo'),
+        ('Sugerencia', 'Sugerencia'), ('Mantenimiento', 'Mantenimiento'),
+        ('Seguridad', 'Seguridad'), ('Convivencia', 'Convivencia')
     ]
+    PRIORIDADES = [('Baja', 'Baja'), ('Media', 'Media'), ('Alta', 'Alta'), ('Urgente', 'Urgente')]
     
-    ESTADOS_SOLICITUD = [
-        ('Abierto', 'Abierto / Pendiente'),
-        ('En Proceso', 'En Revisión'),
-        ('Cerrado', 'Resuelto / Finalizado'),
-    ]
-
-    # He decidido añadir prioridades para clasificar la urgencia de los reportes
-    NIVELES_PRIORIDAD = [
-        ('Baja', 'Baja - Rutinario'),
-        ('Media', 'Media - Importante'),
-        ('Alta', 'Alta - Urgente'),
-    ]
-    
-    # Estos son los campos de mi tabla:
-    tipo = models.CharField(max_length=20, choices=TIPOS_SOLICITUD)
+    tipo = models.CharField(max_length=20, choices=TIPOS)
     titulo = models.CharField(max_length=100)
     descripcion = models.TextField()
-    fecha_creacion = models.DateTimeField(auto_now_add=True) # Se captura la fecha actual sola
+    prioridad = models.CharField(max_length=10, choices=PRIORIDADES, default='Media')
+
+    # --- 2. SOLICITANTE ---
+    solicitante = models.ForeignKey(PerfilUsuario, on_delete=models.CASCADE)
+
+    # --- 3. UBICACIÓN ---
+    ZONAS = [('Apartamento', 'Apartamento'), ('Zona Comun', 'Zona Común'), ('Parqueadero', 'Parqueadero'), ('Porteria', 'Portería')]
+    zona_afectada = models.CharField(max_length=20, choices=ZONAS, default='Apartamento')
+    ubicacion_especifica = models.CharField(max_length=100, blank=True)
+
+    # --- 4. GESTIÓN E INTERNOS ---
+    AREAS = [('Admin', 'Administración'), ('Mantenimiento', 'Mantenimiento'), ('Seguridad', 'Seguridad'), ('Aseo', 'Aseo')]
+    area_responsable = models.CharField(max_length=20, choices=AREAS, default='Admin')
+    asignado_a = models.CharField(max_length=100, blank=True)
     
-    # Uso 'choices' para que en mi panel aparezca una lista desplegable
-    prioridad = models.CharField(max_length=10, choices=NIVELES_PRIORIDAD, default='Media')
-    estado = models.CharField(max_length=20, choices=ESTADOS_SOLICITUD, default='Abierto')
+    ESTADOS = [
+        ('Abierto', 'Abierto'), ('En Proceso', 'En Proceso'), 
+        ('Pendiente Residente', 'Pendiente Residente'), ('Resuelto', 'Resuelto'), ('Cerrado', 'Cerrado')
+    ]
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='Abierto')
+
+    # --- 5. CONTROL DE TIEMPOS ---
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_limite = models.DateField(null=True, blank=True)
+    fecha_cierre = models.DateTimeField(null=True, blank=True)
+
+    # --- 6. EVIDENCIAS Y SEGUIMIENTO ---
+    imagen_evidencia = models.ImageField(upload_to='comunicaciones/evidencias/', null=True, blank=True)
+    observaciones_internas = models.TextField(blank=True)
+    respuesta_residente = models.TextField(blank=True)
 
     def __str__(self):
-        # Esta función me ayuda a que el registro se vea con su prioridad y título en el panel
-        return f"[{self.prioridad}] {self.tipo}: {self.titulo}"
+        return f"{self.tipo}: {self.titulo} - {self.solicitante.nombre_completo}"
+
+    class Meta:
+        verbose_name = "Comunicación / PQRS"
+        verbose_name_plural = "Comunicaciones / PQRS"

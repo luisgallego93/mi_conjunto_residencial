@@ -1,13 +1,33 @@
 from django.contrib import admin
-from .models import Solicitud # Aquí importo el modelo que acabo de crear
+from .models import Comunicacion
 
-@admin.register(Solicitud)
-class SolicitudAdmin(admin.ModelAdmin):
-    # Aquí elijo qué columnas quiero ver en mi tabla principal
-    list_display = ('prioridad', 'tipo', 'titulo', 'fecha_creacion', 'estado')
-    
-    # Añado filtros a la derecha para que yo pueda buscar rápido por urgencia o tipo
-    list_filter = ('prioridad', 'tipo', 'estado')
-    
-    # También agrego un buscador por si tengo muchas solicitudes
-    search_fields = ('titulo', 'descripcion')
+@admin.register(Comunicacion)
+class ComunicacionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'tipo', 'get_solicitante', 'prioridad', 'estado', 'area_responsable', 'fecha_creacion')
+    list_filter = ('estado', 'tipo', 'prioridad', 'area_responsable')
+    search_fields = ('titulo', 'solicitante__nombre_completo', 'solicitante__documento')
+
+    fieldsets = (
+        ('Datos de la Solicitud', {
+            'fields': ('tipo', 'titulo', 'descripcion', 'prioridad')
+        }),
+        ('Información del Solicitante', {
+            'fields': ('solicitante',)
+        }),
+        ('Ubicación del Problema', {
+            'fields': ('zona_afectada', 'ubicacion_especifica')
+        }),
+        ('Gestión y Asignación', {
+            'fields': ('area_responsable', 'asignado_a', 'estado')
+        }),
+        ('Control de Tiempos', {
+            'fields': ('fecha_limite', 'fecha_cierre')
+        }),
+        ('Evidencias y Seguimiento', {
+            'fields': ('imagen_evidencia', 'respuesta_residente', 'observaciones_internas')
+        }),
+    )
+
+    def get_solicitante(self, obj):
+        return obj.solicitante.nombre_completo
+    get_solicitante.short_description = 'Residente'
