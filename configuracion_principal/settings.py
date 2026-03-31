@@ -10,10 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -31,15 +35,22 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'dashboard',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'reservas',
+        'reservas',
     'comunicacion',
     'usuarios',
+    'finanzas',
+    'visitantes',
+    'correspondencia',
+    'comunicaciones',
+    'notificaciones.apps.NotificacionesConfig'
+    
 ]
 
 
@@ -58,10 +69,12 @@ ROOT_URLCONF = 'configuracion_principal.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # --- ESTA LÍNEA ES LA CLAVE ---
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -123,3 +136,26 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# ... (todo el resto del código del archivo) ...
+
+# --- CONFIGURACIÓN PARA ARCHIVOS MULTIMEDIA (PDF, IMÁGENES) ---
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ... (Todo tu código anterior) ...
+
+# --- CONFIGURACIÓN PARA ARCHIVOS MULTIMEDIA (PDF, IMÁGENES) ---
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# --- CONFIGURACIÓN DE ENVÍO DE CORREO (AÑADIR AQUÍ) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'luisgallegop93@gmail.com' 
+EMAIL_HOST_PASSWORD = 'Cielo-Azul-99#Mx' # Tu clave de 16 letras de Google
+DEFAULT_FROM_EMAIL = 'Skala Gestión Integral <tu-correo@gmail.com>'

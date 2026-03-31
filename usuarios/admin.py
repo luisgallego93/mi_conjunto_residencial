@@ -1,28 +1,24 @@
 from django.contrib import admin
-from .models import PerfilUsuario
+from .models import PerfilUsuario, Apartamento
+
+@admin.register(Apartamento)
+class ApartamentoAdmin(admin.ModelAdmin):
+    # Definimos qué columnas ver y cuál será el enlace principal
+    list_display = ('id', 'mostrar_identificador', 'torre', 'piso', 'residente_principal')
+    
+    # Hacemos que el enlace principal sea nuestro nuevo identificador formateado
+    list_display_links = ('mostrar_identificador',)
+    
+    list_filter = ('torre', 'piso')
+    search_fields = ('numero', 'torre')
+
+    # Función para mostrar un nombre claro en la lista (evita el "mi" o "do")
+    @admin.display(description="Apartamento")
+    def mostrar_identificador(self, obj):
+        return f"Apartamento {obj.numero}"
 
 @admin.register(PerfilUsuario)
 class PerfilUsuarioAdmin(admin.ModelAdmin):
-    # Así organizo las columnas de la lista principal
-    list_display = ('documento', 'nombre_completo', 'torre', 'apartamento', 'rol', 'activo')
-    search_fields = ('documento', 'nombre_completo', 'apartamento')
-    list_filter = ('rol', 'torre', 'activo')
-
-    # orden
-    fieldsets = (
-        ('Datos Básicos', {
-            'fields': ('user', 'rol', 'activo')
-        }),
-        ('Datos Personales', {
-            'fields': ('documento', 'nombre_completo', 'telefono', 'email_personal')
-        }),
-        ('Datos Residenciales', {
-            'fields': ('torre', 'apartamento', 'tipo_ocupacion', 'fecha_ingreso')
-        }),
-        ('Contacto de Emergencia', {
-            'fields': ('emergencia_nombre', 'emergencia_telefono', 'emergencia_parentesco')
-        }),
-        ('Configuración y Otros', {
-            'fields': ('recibir_notificaciones', 'permitir_acceso_portal', 'observaciones')
-        }),
-    )
+    list_display = ('nombre_completo', 'documento', 'rol', 'activo')
+    list_filter = ('rol', 'activo')
+    search_fields = ('nombre_completo', 'documento')

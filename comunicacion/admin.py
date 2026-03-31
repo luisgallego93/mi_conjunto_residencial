@@ -3,31 +3,18 @@ from .models import Comunicacion
 
 @admin.register(Comunicacion)
 class ComunicacionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tipo', 'get_solicitante', 'prioridad', 'estado', 'area_responsable', 'fecha_creacion')
-    list_filter = ('estado', 'tipo', 'prioridad', 'area_responsable')
-    search_fields = ('titulo', 'solicitante__nombre_completo', 'solicitante__documento')
+    # Esto quita el selector manual del formulario
+    exclude = ('solicitante',) 
 
-    fieldsets = (
-        ('Datos de la Solicitud', {
-            'fields': ('tipo', 'titulo', 'descripcion', 'prioridad')
-        }),
-        ('Información del Solicitante', {
-            'fields': ('solicitante',)
-        }),
-        ('Ubicación del Problema', {
-            'fields': ('zona_afectada', 'ubicacion_especifica')
-        }),
-        ('Gestión y Asignación', {
-            'fields': ('area_responsable', 'asignado_a', 'estado')
-        }),
-        ('Control de Tiempos', {
-            'fields': ('fecha_limite', 'fecha_cierre')
-        }),
-        ('Evidencias y Seguimiento', {
-            'fields': ('imagen_evidencia', 'respuesta_residente', 'observaciones_internas')
-        }),
-    )
+    # Esto organiza las columnas que viste en tus imágenes
+    list_display = ('tipo', 'titulo', 'mostrar_residente', 'estado', 'prioridad', 'fecha_creacion')
 
-    def get_solicitante(self, obj):
+    def save_model(self, request, obj, form, change):
+        # Si la PQRS es nueva, el sistema le asigna el usuario que está logueado
+        if not change:
+            obj.solicitante = request.user.perfilusuario
+        super().save_model(request, obj, form, change)
+
+    def mostrar_residente(self, obj):
         return obj.solicitante.nombre_completo
-    get_solicitante.short_description = 'Residente'
+    mostrar_residente.short_description = 'Residente'

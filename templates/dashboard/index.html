@@ -1,0 +1,46 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white p-4">
+            <h2 class="fw-bold">{{ pqrs_abiertos }}</h2>
+            <p class="mb-0">PQRS Abiertos</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white p-4">
+            <h2 class="fw-bold">{{ reservas_hoy.count|default:0 }}</h2>
+            <p class="mb-0">Reservas Hoy</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white p-4">
+            <h2 class="fw-bold">{{ total_morosidad }}</h2>
+            <p class="mb-0">Cuentas Pendientes</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white p-4">
+            <h2 class="fw-bold">{{ visitantes_hoy }}</h2>
+            <p class="mb-0">Visitantes Hoy</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card p-4">
+            <h4 class="text-secondary">📢 Últimos Comunicados</h4>
+            <hr>
+            {% for c in ultimos_comunicados %}
+                <div class="p-2 border-bottom">
+                    <strong>{{ c.titulo }}</strong> - <small class="text-muted">{{ c.fecha_publicacion|date:"d/m/Y" }}</small>
+                </div>
+            {% empty %}
+                <p class="text-muted">No hay comunicados para mostrar.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
