@@ -26,6 +26,7 @@ class Visitante(models.Model):
     documento = models.CharField(max_length=20, verbose_name="Documento/ID")
     tipo_visitante = models.CharField(max_length=20, choices=TIPOS, default='Ocasional')
     motivo_visita = models.CharField(max_length=100, blank=True, help_text="Ej: Reparación, Entrega paquete")
+    foto_visitante = models.ImageField(upload_to='visitantes/', null=True, blank=True, verbose_name="Fotografía")
 
     # Destino
     apartamento_destino = models.ForeignKey(Apartamento, on_delete=models.CASCADE)

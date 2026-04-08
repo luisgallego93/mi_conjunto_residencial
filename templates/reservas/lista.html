@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Reservas - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Calendario de Reservas</h2>
+    <a href="{% url 'reservas:crear_reserva' %}" class="btn btn-sm btn-success shadow-sm">
+        <i class="bi bi-calendar-plus"></i> Ingresar Reserva
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-white">
+        <h6 class="m-0 fw-bold text-success">Zonas Comunes Apartadas</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover w-100" cellspacing="0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Zona</th>
+                        <th>Residente</th>
+                        <th>Horario</th>
+                        <th>Estado</th>
+                        <th>Pago</th>
+                        <th>Gestión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in reservas %}
+                    <tr>
+                        <td>{{ res.fecha|date:"d M Y" }}</td>
+                        <td class="fw-bold">{{ res.get_zona_comun_display|default:res.zona_comun }}</td>
+                        <td>{{ res.solicitante.nombre_completo|default:"-" }}</td>
+                        <td>{{ res.hora_inicio|time:"H:i" }} - {{ res.hora_fin|time:"H:i" }}</td>
+                        <td>
+                            {% if res.estado_reserva == 'Aprobado' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> {{ res.estado_reserva }}</span>
+                            {% elif res.estado_reserva == 'Rechazado' %}
+                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> {{ res.estado_reserva }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> {{ res.estado_reserva }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if res.estado_pago %}
+                                <span class="text-success"><i class="bi bi-check"></i> Pagado</span>
+                            {% else %}
+                                <span class="text-danger fw-bold">Pte.</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if res.estado_reserva == 'Pendiente' %}
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#gestionModal{{ res.id }}">
+                                    <i class="bi bi-gear"></i> Gestionar
+                                </button>
+                                
+                                <!-- Modal -->
+                                <div class="modal fade" id="gestionModal{{ res.id }}" tabindex="-1" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title">Gestionar Reserva</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body text-start">
+                                        <p>¿Aprobar y registrar pago para la reserva de <strong>{{ res.solicitante.nombre_completo }}</strong> en <strong>{{ res.get_zona_comun_display|default:res.zona_comun }}</strong> el <strong>{{ res.fecha|date:"d/M/Y" }}</strong>?</p>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <form action="{% url 'reservas:gestionar_reserva' res.id %}" method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="accion" value="rechazar">
+                                            <button type="submit" class="btn btn-danger">Rechazar</button>
+                                        </form>
+                                        <form action="{% url 'reservas:gestionar_reserva' res.id %}" method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="accion" value="aprobar">
+                                            <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Aprobar y Pago Confirmado</button>
+                                        </form>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted small">Cerrado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No hay reservas vigentes registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

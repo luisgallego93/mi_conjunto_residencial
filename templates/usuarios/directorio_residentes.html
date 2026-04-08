@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Directorio de Residentes - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Directorio de Perfiles</h2>
+    <a href="#" class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#notImplementedModal">
+        <i class="bi bi-person-plus"></i> Nuevo Residente
+    </a>
+</div>
+
+<div class="card shadow mb-4 border-top-0 border-start border-4 border-primary">
+    <div class="card-header py-3 bg-white">
+        <h6 class="m-0 fw-bold text-primary">Residentes, Administradores y Personal</h6>
+    </div>
+    <div class="card-body">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+            {% for r in residentes %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 bg-light">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h5 class="card-title fw-bold text-primary mb-0">{{ r.nombre_completo }}</h5>
+                            {% if r.activo %}
+                                <span class="badge bg-success rounded-pill align-self-start">Activo</span>
+                            {% else %}
+                                <span class="badge bg-danger rounded-pill align-self-start">Inactivo</span>
+                            {% endif %}
+                        </div>
+                        <h6 class="card-subtitle mb-3 text-muted">{{ r.rol }} - {{ r.tipo_ocupacion }}</h6>
+                        
+                        <p class="card-text small mb-1"><i class="bi bi-person-badge text-secondary"></i> {{ r.documento }}</p>
+                        <p class="card-text small mb-1"><i class="bi bi-telephone text-secondary"></i> {{ r.telefono }}</p>
+                        <p class="card-text small mb-3"><i class="bi bi-envelope text-secondary"></i> {{ r.email_personal|default:"No registrado" }}</p>
+                        
+                        <hr class="my-2">
+                        <div class="small fw-bold text-danger mb-1">Contacto de Emergencia</div>
+                        {% if r.emergencia_nombre %}
+                            <p class="card-text small mb-0">{{ r.emergencia_nombre }} ({{ r.emergencia_parentesco }})</p>
+                            <p class="card-text small mb-0"><i class="bi bi-telephone"></i> {{ r.emergencia_telefono }}</p>
+                        {% else %}
+                            <p class="card-text small text-muted fst-italic mb-0">Sin definir</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-white border-0 py-3 text-center">
+                        <a href="{% url 'admin:usuarios_perfilusuario_change' r.id %}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-pencil-square"></i> Editar Ficha (Admin)
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-5">
+                <p>Módulo de residentes vacío. Agrega a los inquilinos y propietarios desde tu panel central.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Dummy -->
+<div class="modal fade" id="notImplementedModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Registrar Usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Para esta versión inicial, te recomendamos seguir matriculando la seguridad de tus usuarios y sus contraseñas nativas a través del panel de control de Django.</p>
+      </div>
+      <div class="modal-footer">
+        <a href="/admin/usuarios/perfilusuario/add/" target="_blank" class="btn btn-primary">Ir a Django Admin</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

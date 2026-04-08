@@ -1,9 +1,20 @@
 from django.contrib import admin
-from django.urls import path
-from dashboard import views as dash_views # Asegúrate que apunte a DASHBOARD
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', dash_views.index, name='dashboard'), # Página principal
-    path('informes/', dash_views.informes, name='informes'), # Página de informes
+    
+    # Login and authentication URLs
+    path('accounts/', include('django.contrib.auth.urls')),
+    
+    # App URLs
+    path('pqrs/', include('comunicacion.urls')),
+    path('reservas/', include('reservas.urls')),
+    path('finanzas/', include('finanzas.urls')),
+    path('visitantes/', include('visitantes.urls')),
+    path('correspondencia/', include('correspondencia.urls')),
+    path('directorio/', include('usuarios.urls')),
+    
+    # Dashboard URLs loaded correctly using include
+    path('', include('dashboard.urls')),
 ]

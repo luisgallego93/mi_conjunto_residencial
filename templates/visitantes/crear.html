@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuevo Ingreso - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Registrar Ingreso a Portería</h2>
+    <a href="{% url 'visitantes:lista_visitantes' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <i class="bi bi-arrow-left"></i> Volver a Bitácora
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4 border-start border-4 border-primary">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 fw-bold text-primary">Detalle del Visitante</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Documento</label>
+                            {{ form.documento }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nombre Completo</label>
+                            {{ form.nombre }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Tipo de Visitante</label>
+                            {{ form.tipo_visitante }}
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Motivo (Opcional)</label>
+                            {{ form.motivo_visita }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-primary">Apto Destino</label>
+                            {{ form.apartamento_destino }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-primary">Voz de Autorización</label>
+                            {{ form.autorizado_por }}
+                            <small class="text-muted">¿Quién confirmó la entrada por citófono?</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">Vehículo</label>
+                            {{ form.tipo_vehiculo }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">Placa</label>
+                            {{ form.placa }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">Documento Fotográfico</label>
+                            {{ form.foto_visitante }}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-door-open-fill"></i> Autorizar Ingreso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-        'reservas',
+    'django.contrib.humanize',
+    'reservas',
     'comunicacion',
     'usuarios',
     'finanzas',
@@ -50,7 +51,6 @@ INSTALLED_APPS = [
     'correspondencia',
     'comunicaciones',
     'notificaciones.apps.NotificacionesConfig'
-    
 ]
 
 
@@ -144,12 +144,10 @@ import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# ... (Todo tu código anterior) ...
-
-# --- CONFIGURACIÓN PARA ARCHIVOS MULTIMEDIA (PDF, IMÁGENES) ---
-import os
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# --- CONFIGURACIÓN DE AUTENTICACIÓN ---
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard:index'
+LOGOUT_REDIRECT_URL = 'login'
 
 # --- CONFIGURACIÓN DE ENVÍO DE CORREO (AÑADIR AQUÍ) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -158,4 +156,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'luisgallegop93@gmail.com' 
 EMAIL_HOST_PASSWORD = 'Cielo-Azul-99#Mx' # Tu clave de 16 letras de Google
-DEFAULT_FROM_EMAIL = 'Skala Gestión Integral <tu-correo@gmail.com>'
+DEFAULT_FROM_EMAIL = 'Mi Conjunto Gestión Integral <tu-correo@gmail.com>'

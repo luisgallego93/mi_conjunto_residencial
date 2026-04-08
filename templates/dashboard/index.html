@@ -1,45 +1,157 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard - Mi Conjunto Gestión{% endblock %}
 
 {% block content %}
-<div class="row g-3">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white p-4">
-            <h2 class="fw-bold">{{ pqrs_abiertos }}</h2>
-            <p class="mb-0">PQRS Abiertos</p>
+<!-- Welcome Row -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Centro de Monitoreo Gerencial</h1>
+    <a href="{% url 'dashboard:informes' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+            class="bi bi-download fa-sm text-white-50"></i> Generar Reporte PDF</a>
+</div>
+
+<!-- Key Performance Indicators Row -->
+<div class="row">
+
+    <!-- Dinero en Mora -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-4 border-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs fw-bold text-danger text-uppercase mb-1">
+                            Cartera en Mora Vencida</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">$ {{ gran_total_mora|intcomma }}</div>
+                        <small class="text-muted">{{ cuentas_pendientes_count }} facturas por cobrar</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-wallet fs-2 text-danger opacity-50"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white p-4">
-            <h2 class="fw-bold">{{ reservas_hoy.count|default:0 }}</h2>
-            <p class="mb-0">Reservas Hoy</p>
+
+    <!-- Censo / CRM -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-4 border-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs fw-bold text-info text-uppercase mb-1">Censo Poblacional</div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="h5 mb-0 mr-3 fw-bold text-gray-800">{{ residentes_activos }} Hab.</div>
+                            </div>
+                        </div>
+                        <small class="text-muted">En {{ aptos_registrados }} apartamentos reales</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fs-2 text-info opacity-50"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-danger text-white p-4">
-            <h2 class="fw-bold">{{ total_morosidad }}</h2>
-            <p class="mb-0">Cuentas Pendientes</p>
+
+    <!-- PQRS Abiertas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-4 border-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs fw-bold text-warning text-uppercase mb-1">
+                            PQRS Abiertas / En Proceso</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">{{ pqrs_abiertos }} Casos</div>
+                        <small class="text-muted">Evita problemas legales</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-triangle fs-2 text-warning opacity-50"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white p-4">
-            <h2 class="fw-bold">{{ visitantes_hoy }}</h2>
-            <p class="mb-0">Visitantes Hoy</p>
+
+    <!-- Portería -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-4 border-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                            Novedades Portería</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">Operativa</div>
+                        <small class="text-muted">Visitas adentros: {{ visitantes_sitio }} | Paquetes: {{ paquetes_porteria }}</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-shield-lock fs-2 text-success opacity-50"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card p-4">
-            <h4 class="text-secondary">📢 Últimos Comunicados</h4>
-            <hr>
-            {% for c in ultimos_comunicados %}
-                <div class="p-2 border-bottom">
-                    <strong>{{ c.titulo }}</strong> - <small class="text-muted">{{ c.fecha_publicacion|date:"d/m/Y" }}</small>
+<!-- Detailed Metrics Row -->
+<div class="row">
+    <!-- Progress Bars -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Estado de Avance Operativo (Vista de Pájaro)</h6>
+            </div>
+            <div class="card-body">
+                <h4 class="small fw-bold">Eficiencia PQRS Asignadas <span class="float-end">70%</span></h4>
+                <div class="progress mb-4">
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: 70%" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-            {% empty %}
-                <p class="text-muted">No hay comunicados para mostrar.</p>
-            {% endfor %}
+                
+                <h4 class="small fw-bold">Recaudo Estimado del Mes <span class="float-end">40%</span></h4>
+                <div class="progress mb-4">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: 40%" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                
+                <h4 class="small fw-bold">Ocupación / Inmuebles Habitados <span class="float-end">85%</span></h4>
+                <div class="progress mb-4">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                
+                <h4 class="small fw-bold">Reservas de Zonas Comunes Aprobadas <span class="float-end">Completo!</span></h4>
+                <div class="progress">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Accesos Directos (Menú Inteligente)</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="alert alert-primary bg-primary text-white border-0 py-4 shadow-sm" role="alert">
+                        <i class="bi bi-stars fs-1"></i><br>
+                        <h5 class="fw-bold mt-2">¡Bienvenido a Mi Conjunto!</h5>
+                        <p class="mb-0 small">Estás visualizando el entorno directivo y gerencial del conjunto residencial. Todo opera en la nube con trazabilidad al 100%.</p>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{% url 'finanzas:generar_facturacion' %}" class="btn btn-outline-danger">
+                        <i class="bi bi-file-earmark-spreadsheet"></i> Lanzar Deudas
+                    </a>
+                    <a href="{% url 'correspondencia:recibir_paquete' %}" class="btn btn-outline-info">
+                        <i class="bi bi-box"></i> Nuevo Paquete
+                    </a>
+                    <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn btn-outline-warning">
+                        <i class="bi bi-envelope"></i> Reportar Falla
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Control de Acceso - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Bitácora de Control de Acceso</h2>
+    <a href="{% url 'visitantes:registrar_visitante' %}" class="btn btn-sm btn-primary shadow-sm">
+        <i class="bi bi-person-plus-fill"></i> Registrar Ingreso
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-white d-flex justify-content-between align-items-center">
+        <h6 class="m-0 fw-bold text-success">Registro en Tiempo Real</h6>
+        <input type="text" id="filtroVisitantes" class="form-control form-control-sm w-25" placeholder="Buscar por apartamento, visitante o placa...">
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle w-100" id="tablaVisitantes" cellspacing="0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Visitante / Doc</th>
+                        <th>Destino</th>
+                        <th>Tipo</th>
+                        <th>Ingreso</th>
+                        <th>Salida</th>
+                        <th>Estado</th>
+                        <th>Acción Rápida</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in visitantes %}
+                    <tr class="{% if p.estado == 'Dentro' %}table-warning{% endif %}">
+                        <td>
+                            <div class="fw-bold">{{ p.nombre }}</div>
+                            <div class="small text-muted">{{ p.documento }}</div>
+                        </td>
+                        <td class="fw-bold text-primary">{{ p.apartamento_destino }}</td>
+                        <td>{{ p.tipo_visitante }}</td>
+                        <td>{{ p.hora_ingreso_real|date:"d M, H:i"|default:"-" }}</td>
+                        <td>{{ p.hora_salida_real|date:"d M, H:i"|default:"-" }}</td>
+                        <td>
+                            {% if p.estado == 'Dentro' %}
+                                <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-clock-history"></i> En Sitio</span>
+                            {% elif p.estado == 'Salió' %}
+                                <span class="badge bg-secondary px-2 py-1">Salió</span>
+                            {% else %}
+                                <span class="badge bg-info px-2 py-1">{{ p.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if p.estado == 'Dentro' %}
+                                <form action="{% url 'visitantes:registrar_salida' p.id %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Salida</button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted"><i class="bi bi-check2-all"></i> Salió</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No hay visitantes.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('filtroVisitantes').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#tablaVisitantes tbody tr');
+        rows.forEach(row => {
+            if (row.innerText.toLowerCase().includes(value)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Recibir Paquete - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Recepción de Correspondencia</h2>
+    <a href="{% url 'correspondencia:lista_paquetes' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <i class="bi bi-arrow-left"></i> Volver al Inventario
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4 border-start border-4 border-info">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 fw-bold text-info">Detalle del Envío entrante</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold text-primary">Apartamento Destino</label>
+                            {{ form.apartamento }}
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold">Destinatario (Nombre en el paquete)</label>
+                            {{ form.destinatario }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Empresa Transportadora / Origen</label>
+                            {{ form.transportadora }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Número de Guía</label>
+                            {{ form.guia }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Información Adicional (Observaciones)</label>
+                            {{ form.observaciones }}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-end align-items-center">
+                        <span class="text-muted small me-3"><i class="bi bi-clock"></i> El sistema registrará tu usuario y la hora actual automáticamente al guardar.</span>
+                        <button type="submit" class="btn btn-info text-white font-weight-bold btn-lg px-4"><i class="bi bi-inbox-fill"></i> Sellar Recibido</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

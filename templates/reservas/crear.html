@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Reserva - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Agendar Nueva Reserva</h2>
+    <a href="{% url 'reservas:lista_reservas' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <i class="bi bi-arrow-left"></i> Volver al Listado
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4 border-start border-4 border-success">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 fw-bold text-success">Formulario de Agendamiento</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Residente Solicitante</label>
+                            {{ form.solicitante }}
+                            {% if form.solicitante.errors %}<div class="text-danger small">{{ form.solicitante.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Zona Común</label>
+                            {{ form.zona_comun }}
+                            {% if form.zona_comun.errors %}<div class="text-danger small">{{ form.zona_comun.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Fecha Resevada</label>
+                            {{ form.fecha }}
+                            {% if form.fecha.errors %}<div class="text-danger small">{{ form.fecha.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Hora Inicial</label>
+                            {{ form.hora_inicio }}
+                            {% if form.hora_inicio.errors %}<div class="text-danger small">{{ form.hora_inicio.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Hora Final</label>
+                            {{ form.hora_fin }}
+                            {% if form.hora_fin.errors %}<div class="text-danger small">{{ form.hora_fin.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Número de Asistentes</label>
+                            {{ form.asistentes }}
+                            {% if form.asistentes.errors %}<div class="text-danger small">{{ form.asistentes.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Motivo (Opcional)</label>
+                            {{ form.motivo }}
+                            {% if form.motivo.errors %}<div class="text-danger small">{{ form.motivo.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-calendar-check"></i> Agendar Reserva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

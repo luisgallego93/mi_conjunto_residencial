@@ -1,42 +1,48 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
 
-# Importamos los modelos de tus otras apps para alimentar el Dashboard
-# Si alguna app no existe aún, el 'try' evitará que el sistema se rompa
-try:
-    from comunicaciones.models import PQRS, Comunicado
-except ImportError:
-    PQRS = Comunicado = None
-
-try:
-    from reservas.models import Reserva
-except ImportError:
-    Reserva = None
-
-try:
-    from finanzas.models import CuentaCobro
-except ImportError:
-    CuentaCobro = None
+# Corrección de Importaciones
+from comunicacion.models import Comunicacion
+from reservas.models import Reserva
+from finanzas.models import CuentaCobro, Multa
+from visitantes.models import Visitante
+from correspondencia.models import Paquete
+from usuarios.models import Apartamento, PerfilUsuario
 
 @login_required
 def index(request):
-    hoy = timezone.now().date()
+    # Finanzas
+    cuentas_pendientes = CuentaCobro.objects.filter(estado='Pendiente')
+    total_deuda_admin = sum(c.valor_base for c in cuentas_pendientes)
+    multas_pendientes = Multa.objects.filter(aplicada_en_cobro=False)
+    total_deuda_multas = sum(m.valor for m in multas_pendientes)
+    gran_total_mora = total_deuda_admin + total_deuda_multas
+    
+    # Operativo
+    pqrs_abiertos = Comunicacion.objects.filter(estado__in=['Abierto', 'En Proceso']).count()
+    reservas_pendientes = Reserva.objects.filter(estado_reserva='Pendiente').count()
+    
+    # Portería
+    visitantes_sitio = Visitante.objects.filter(estado='Dentro').count()
+    paquetes_porteria = Paquete.objects.filter(estado__in=['Recibido', 'Notificado']).count()
+    
+    # Censo
+    aptos_registrados = Apartamento.objects.count()
+    residentes_activos = PerfilUsuario.objects.filter(activo=True).count()
     
     context = {
-        'pqrs_abiertos': PQRS.objects.filter(estado='Abierto').count() if PQRS else 0,
-        'reservas_hoy': Reserva.objects.filter(fecha=hoy) if Reserva else [],
-        'total_morosidad': CuentaCobro.objects.filter(estado='Pendiente').count() if CuentaCobro else 0,
-        'ultimos_comunicados': Comunicado.objects.all().order_by('-fecha_publicacion')[:3] if Comunicado else [],
+        'gran_total_mora': gran_total_mora,
+        'cuentas_pendientes_count': cuentas_pendientes.count(),
+        'pqrs_abiertos': pqrs_abiertos,
+        'reservas_pendientes': reservas_pendientes,
+        'visitantes_sitio': visitantes_sitio,
+        'paquetes_porteria': paquetes_porteria,
+        'aptos_registrados': aptos_registrados,
+        'residentes_activos': residentes_activos,
     }
-    # Apuntamos a la carpeta dashboard dentro de templates
     return render(request, 'dashboard/index.html', context)
 
 @login_required
 def informes(request):
-    total_pqrs = PQRS.objects.count() if PQRS else 0
-    context = {
-        'total_pqrs': total_pqrs,
-        'efectividad': 85.0, # Valor estático inicial para pruebas
-    }
-    return render(request, 'dashboard/informes.html', context)
+    # Vista en blanco para futuros desarrollos
+    return render(request, 'dashboard/informes.html')

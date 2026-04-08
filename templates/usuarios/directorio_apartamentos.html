@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventario de Inmuebles - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Censo de Apartamentos</h2>
+</div>
+
+<div class="card shadow mb-4 border-top-0 border-start border-4 border-info">
+    <div class="card-header py-3 bg-white">
+        <h6 class="m-0 fw-bold text-info">Inventario General de Bienes Privados</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle w-100" cellspacing="0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Torre</th>
+                        <th>Apto</th>
+                        <th>Piso/Nivel</th>
+                        <th>Ocupación Actual</th>
+                        <th>Contacto Principal</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for apto in apartamentos %}
+                    <tr class="{% if not apto.residente_principal %}table-danger{% endif %}">
+                        <td class="fw-bold">Torre {{ apto.torre }}</td>
+                        <td class="fw-bold text-primary">{{ apto.numero }}</td>
+                        <td>Piso {{ apto.piso }}</td>
+                        <td>
+                            {% if apto.residente_principal %}
+                                {% if apto.residente_principal.tipo_ocupacion == 'Propietario' %}
+                                    <span class="badge bg-success">Habitado Propietario</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Arrendado</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-danger"><i class="bi bi-house-exclamation"></i> Desocupado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if apto.residente_principal %}
+                                <div class="fw-bold">{{ apto.residente_principal.nombre_completo }}</div>
+                                <div class="small text-muted"><i class="bi bi-telephone"></i> {{ apto.residente_principal.telefono }}</div>
+                            {% else %}
+                                <span class="text-danger small fst-italic">Sin ficha residente vinculada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'admin:usuarios_apartamento_change' apto.id %}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-gear"></i> Enlazar Residente</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No hay apartamentos censados en la base de datos.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

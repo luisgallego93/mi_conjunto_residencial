@@ -1,67 +1,29 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
+
+{% block title %}Informes - Mi Conjunto Gestión{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-secondary fw-bold">📊 Centro de Informes - Skala Gestión</h2>
-        <button onclick="window.print()" class="btn btn-outline-dark">🖨️ Generar PDF / Imprimir</button>
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="h3 mb-2 text-gray-800">Centro de Informes</h2>
+            <p class="text-muted">Generación y exportación de reportes gerenciales para la administración y asamblea.</p>
+        </div>
     </div>
-
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">Indicadores de Convivencia</h5>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Total PQRS registradas:</span>
-                        <span class="fw-bold">{{ total_pqrs }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Tasa de respuesta:</span>
-                        <span class="text-success fw-bold">{{ efectividad|floatformat:1 }}%</span>
-                    </div>
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ efectividad }}%"></div>
-                    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5 text-center">
+                    <i class="bi bi-file-earmark-pdf text-primary mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-secondary fw-semibold">Módulo de Informes en Desarrollo</h4>
+                    <p class="text-muted mt-3 mx-auto" style="max-width: 500px;">
+                        Aquí podrás generar informes parametrizados por fechas de PQRS, Cartera, Reservas y Convivencia. Actualmente esta funcionalidad está programada para la próxima iteración.
+                    </p>
+                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline-primary mt-3">Volver al Dashboard</a>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-danger">Reporte de Cartera Pendiente</h5>
-                    <hr>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Concepto</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for c in cuentas %}
-                                <tr>
-                                    <td>Cuenta #{{ c.id }}</td>
-                                    <td><span class="badge bg-warning text-dark">{{ c.estado }}</span></td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="2" class="text-center text-muted">Sin deudas registradas.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-4">
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">⬅️ Volver al Dashboard</a>
     </div>
 </div>
 {% endblock %}

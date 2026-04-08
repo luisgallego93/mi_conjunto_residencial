@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Multa - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800"><i class="bi bi-file-earmark-text text-danger"></i> Radicar Sanción/Multa</h2>
+    <a href="{% url 'finanzas:cartera' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <i class="bi bi-arrow-left"></i> Volver a Cartera
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4 border-start border-4 border-danger">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 fw-bold text-danger">Detalle de la Infracción</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Apartamento Infractor</label>
+                            {{ form.apartamento }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tipo de Sanción</label>
+                            {{ form.tipo }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Motivo Corto</label>
+                            {{ form.descripcion }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-danger">Valor Base de Multa ($)</label>
+                            {{ form.valor }}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-danger btn-lg"><i class="bi bi-save"></i> Imponer y Facturar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
