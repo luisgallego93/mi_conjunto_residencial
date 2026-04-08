@@ -50,7 +50,40 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'admin:usuarios_apartamento_change' apto.id %}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-gear"></i> Enlazar Residente</a>
+                            <button class="btn btn-sm btn-outline-info fw-bold" data-bs-toggle="modal" data-bs-target="#vincularModal{{ apto.id }}">
+                                <i class="bi bi-person-lines-fill"></i> Asignar Ficha
+                            </button>
+                            
+                            <!-- Modal Asignar Residente -->
+                            <div class="modal fade" id="vincularModal{{ apto.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="{% url 'usuarios:vincular_residente' apto.id %}" method="post">
+                                            {% csrf_token %}
+                                            <div class="modal-header bg-info text-dark">
+                                                <h5 class="modal-title fw-bold"><i class="bi bi-link-45deg"></i> Asignar Residente Principal</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Seleccione el perfil que será responsable del <strong>Apartamento {{ apto.numero }} (Torre {{ apto.torre }})</strong>.</p>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">Buscar Residente:</label>
+                                                    <select name="residente_id" class="form-select w-100" required>
+                                                        <option value="">Seleccione a la persona...</option>
+                                                        {% for r in todos_residentes %}
+                                                            <option value="{{ r.id }}">{{ r.nombre_completo }} ({{ r.documento }})</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-info fw-bold text-dark">Vincular</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

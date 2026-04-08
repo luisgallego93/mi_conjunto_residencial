@@ -34,5 +34,6 @@ def entregar_paquete(request, paquete_id):
             paquete.estado = 'Entregado'
             paquete.fecha_entrega = timezone.now()
             paquete.quien_recoge = quien_recoge
+            paquete.entregado_por = request.user
             paquete.save()
     return redirect('correspondencia:lista_paquetes')

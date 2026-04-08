@@ -6,6 +6,7 @@ class Apartamento(models.Model):
     torre = models.CharField(max_length=10, verbose_name="Torre / Bloque")
     numero = models.CharField(max_length=10, verbose_name="Número de Apartamento")
     piso = models.PositiveIntegerField(verbose_name="Piso")
+    codigo_pago = models.CharField(max_length=20, unique=True, blank=True, null=True, help_text="Ej: 14501", verbose_name="Código Bancario CSV")
     
     # Relación con el residente (opcional)
     residente_principal = models.ForeignKey(

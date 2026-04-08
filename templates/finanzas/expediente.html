@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Expediente Cartera - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Expediente de Cobranza: Apto {{ apto.numero }}</h2>
+    <a href="{% url 'finanzas:cartera' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <i class="bi bi-arrow-left"></i> Volver a Cartera Master
+    </a>
+</div>
+
+<div class="row">
+    <!-- Panel Izquierdo: Resumen Financiero y Perfil -->
+    <div class="col-lg-4">
+        <!-- Tarjeta de Deuda -->
+        <div class="card shadow mb-4 border-start border-4 border-danger">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 fw-bold text-danger">Estado Financiero</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h3 class="text-danger fw-bold">$ {{ total_deuda|intcomma }}</h3>
+                    <div class="badge bg-danger">En Mora Activa</div>
+                </div>
+                <hr>
+                <div class="small fw-bold text-muted mb-2">Desglose Facturas Pendientes:</div>
+                <ul class="list-group list-group-flush small mb-3">
+                    {% for f in facturas %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Admin {{ f.mes_referencia }}/{{ f.anio }}</span>
+                            <span class="text-danger">$ {{ f.valor_base|intcomma }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted px-0">Sin facturas corrientes</li>
+                    {% endfor %}
+                </ul>
+                <div class="small fw-bold text-muted mb-2">Desglose Multas:</div>
+                <ul class="list-group list-group-flush small">
+                    {% for m in multas %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Sanción: {{ m.tipo }}</span>
+                            <span class="text-danger">$ {{ m.valor|intcomma }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted px-0">Sin multas cargadas</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Residente -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 fw-bold text-primary">Información del Contacto</h6>
+            </div>
+            <div class="card-body">
+                {% if apto.residente_principal %}
+                    <p class="mb-1 fw-bold fs-5">{{ apto.residente_principal.nombre_completo }}</p>
+                    <p class="mb-1 text-muted"><i class="bi bi-person-badge"></i> {{ apto.residente_principal.tipo_ocupacion }}</p>
+                    <p class="mb-1"><i class="bi bi-telephone"></i> <a href="tel:{{ apto.residente_principal.telefono }}">{{ apto.residente_principal.telefono }}</a></p>
+                    <p class="mb-1"><i class="bi bi-envelope"></i> {{ apto.residente_principal.email_personal }}</p>
+                    <hr>
+                    <p class="mb-1 fw-bold text-danger"><i class="bi bi-heart-pulse"></i> Contacto Emergencia:</p>
+                    <p class="mb-0 small">{{ apto.residente_principal.emergencia_nombre }} ({{ apto.residente_principal.emergencia_telefono }})</p>
+                {% else %}
+                    <div class="alert alert-secondary">No hay residente principal parametrizado en la Ficha del apartamento.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Derecho: Gestiones y Anotaciones CRM -->
+    <div class="col-lg-8">
+        <!-- Formulario Inyección de Novedad -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-primary text-white">
+                <h6 class="m-0 fw-bold"><i class="bi bi-pencil-square"></i> Registrar Nueva Gestión de Cobro</h6>
+            </div>
+            <div class="card-body bg-light">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Canal / Medio de Gestión</label>
+                            <select name="tipo_gestion" class="form-select" required>
+                                <option value="Llamada Telefonica">Llamada Telefonica</option>
+                                <option value="WhatsApp / Mensaje">WhatsApp / Mensaje de Texto</option>
+                                <option value="Carta Notificatoria">Envió Carta en Físico/Email</option>
+                                <option value="Acuerdo de Pago">Acuerdo de Pago Presencial</option>
+                                <option value="Visita">Visita Domiciliaria al Apto</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Soporte Evidencia (Opcional)</label>
+                            <input type="file" name="evidencia" class="form-control" accept=".pdf,image/*">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Describa la Conversación / Resultados</label>
+                        <textarea class="form-control" name="observaciones" rows="2" placeholder="Ej: Se compromete a pagar mañana. / No contesta llamadas." required></textarea>
+                    </div>
+                    
+                    <div class="card border-warning mb-3">
+                        <div class="card-body py-2">
+                            <div class="form-check form-switch fw-bold text-dark">
+                              <input class="form-check-input" type="checkbox" id="acuerdoSwitch" name="acuerdo_pago">
+                              <label class="form-check-label" for="acuerdoSwitch">
+                                ¿Se cerró un Promesa / Acuerdo de Pago Fijo con el residente?
+                              </label>
+                            </div>
+                            <div class="mt-2" id="divFechaAcuerdo" style="display:none;">
+                                <label class="form-label small">Fecha Límite Ofertada:</label>
+                                <input type="date" name="fecha_compromiso" class="form-control form-control-sm w-50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary fw-bold px-4"><i class="bi bi-floppy"></i> Guardar Bitácora</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Hilo o Timeline de Anotaciones -->
+        <h5 class="fw-bold text-gray-800 mb-3"><i class="bi bi-clock-history"></i> Historial de Cobranza</h5>
+        
+        <div class="timeline-container">
+            {% for an in historial %}
+            <div class="card shadow-sm mb-3 border-start border-4 border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-box-arrow-in-right"></i> {{ an.tipo_gestion }}
+                        </h6>
+                        <span class="badge bg-secondary">{{ an.fecha_registro|date:"d M, Y H:i" }}</span>
+                    </div>
+                    <p class="mb-2 text-muted fst-italic">"{{ an.observaciones }}"</p>
+                    
+                    {% if an.acuerdo_pago %}
+                    <div class="alert alert-warning py-1 mb-2 d-inline-block small border-warning">
+                        <strong><i class="bi bi-calendar-event"></i> Promesa Pago:</strong> {{ an.fecha_compromiso|date:"d M Y"|default:"Sin Fecha" }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <small class="text-muted"><i class="bi bi-person"></i> Operador: {{ an.gestor.get_full_name|default:an.gestor.username }}</small>
+                        {% if an.evidencia %}
+                        <a href="{{ an.evidencia.url }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill"><i class="bi bi-paperclip"></i> Evidencia Adjunta</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <div class="alert alert-light text-center border text-muted">
+                    <i class="bi bi-inbox fs-2"></i><br>
+                    Aún no se ha registrado ninguna labor de cobranza para este deudor.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('acuerdoSwitch').addEventListener('change', function() {
+        document.getElementById('divFechaAcuerdo').style.display = this.checked ? 'block' : 'none';
+        const dateInput = document.querySelector('input[name="fecha_compromiso"]');
+        if(this.checked) dateInput.required = true;
+        else { dateInput.required = false; dateInput.value = ''; }
+    });
+</script>
+{% endblock %}

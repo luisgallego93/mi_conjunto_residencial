@@ -49,8 +49,8 @@ INSTALLED_APPS = [
     'finanzas',
     'visitantes',
     'correspondencia',
-    'comunicaciones',
-    'notificaciones.apps.NotificacionesConfig'
+    'notificaciones.apps.NotificacionesConfig',
+    'documentos',
 ]
 
 

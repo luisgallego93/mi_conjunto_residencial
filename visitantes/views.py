@@ -6,12 +6,22 @@ from .forms import VisitanteForm
 
 @login_required
 def lista_visitantes(request):
+    """
+    Controlador Principal del Módulo de Portería.
+    Renderiza el listado histórico y en vivo de los visitantes que han ingresado al Conjunto.
+    Filtra los registros ordenándolos desde los más recientes hasta los más antiguos.
+    """
     # Hoy y los que aún están adentro desde ayer
     visitantes = Visitante.objects.all().order_by('-hora_ingreso_real', '-fecha_programada')
     return render(request, 'visitantes/lista.html', {'visitantes': visitantes})
 
 @login_required
 def registrar_visitante(request):
+    """
+    Procesa el formulario de entrada de un nuevo visitante/domiciliario.
+    Captura los datos del formulario, inyecta la hora exacta del servidor como 'hora_ingreso_real'
+    y define al usuario logueado (ej. el Guarda en turno) como el registrador autorizado.
+    """
     if request.method == 'POST':
         form = VisitanteForm(request.POST, request.FILES)
         if form.is_valid():

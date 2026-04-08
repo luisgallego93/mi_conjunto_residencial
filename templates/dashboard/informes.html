@@ -1,28 +1,126 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
-{% block title %}Informes - Mi Conjunto Gestión{% endblock %}
+{% block title %}Reportes Gerenciales y Mora - Mi Conjunto{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="h3 mb-2 text-gray-800">Centro de Informes</h2>
-            <p class="text-muted">Generación y exportación de reportes gerenciales para la administración y asamblea.</p>
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Analítica de Cartera (Edades de Mora)</h1>
+    <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="window.print()">
+        <i class="bi bi-printer fa-sm text-white-50"></i> Imprimir Reporte
+    </button>
+</div>
+
+<!-- Tarjetas Resumen Salud Cartera -->
+<div class="row">
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="card border-start border-4 border-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                            Apartamentos Totalmente Al Día</div>
+                        <div class="h3 mb-0 fw-bold text-gray-800">{{ aptos_al_dia }} <span class="fs-6 fw-normal text-muted">de {{ total_aptos }}</span></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-emoji-smile fs-1 text-success opacity-50"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-5 text-center">
-                    <i class="bi bi-file-earmark-pdf text-primary mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-secondary fw-semibold">Módulo de Informes en Desarrollo</h4>
-                    <p class="text-muted mt-3 mx-auto" style="max-width: 500px;">
-                        Aquí podrás generar informes parametrizados por fechas de PQRS, Cartera, Reservas y Convivencia. Actualmente esta funcionalidad está programada para la próxima iteración.
-                    </p>
-                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline-primary mt-3">Volver al Dashboard</a>
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="card border-start border-4 border-danger shadow h-100 py-2 bg-light">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs fw-bold text-danger text-uppercase mb-1">
+                            Residentes con Saldo Vencido (Morosos)</div>
+                        <div class="h3 mb-0 fw-bold text-danger">{{ deudores_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-octagon fs-1 text-danger opacity-50"></i>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Panel Desglose Edades de Mora -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-dark text-white">
+        <h6 class="m-0 fw-bold"><i class="bi bi-bar-chart-steps"></i> Desglose por Edad de Vencimiento de Cartera (Cuentas Administración)</h6>
+    </div>
+    <div class="card-body p-4">
+        <div class="row text-center">
+            
+            <!-- Canasta 30 Dias -->
+            <div class="col-lg mb-4">
+                <div class="card border-0 shadow-sm h-100" style="background-color: #fef9c3;">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-dark mb-1">Corriente (0 - 30 Días)</h6>
+                        <small class="text-muted d-block mb-3">Retrasos Cortos</small>
+                        <h4 class="fw-bold text-warning-emphasis mb-2">$ {{ mora_30.dinero|intcomma }}</h4>
+                        <div class="badge bg-warning text-dark">{{ mora_30.cantidad }} Facturas</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Canasta 60 Dias -->
+            <div class="col-lg mb-4">
+                <div class="card border-0 shadow-sm h-100" style="background-color: #ffedd5;">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-dark mb-1">Preventivo (31 - 60 Días)</h6>
+                        <small class="text-muted d-block mb-3">Requerimiento Verbal</small>
+                        <h4 class="fw-bold text-orange mb-2" style="color: #ea580c;">$ {{ mora_60.dinero|intcomma }}</h4>
+                        <div class="badge bg-warning text-dark" style="background-color: #f97316 !important; color: white !important;">{{ mora_60.cantidad }} Facturas</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canasta 90 Dias -->
+            <div class="col-lg mb-4">
+                <div class="card border-0 shadow-sm h-100" style="background-color: #fee2e2;">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-dark mb-1">Crítica (61 - 90 Días)</h6>
+                        <small class="text-muted d-block mb-3">Pre-Jurídico</small>
+                        <h4 class="fw-bold text-danger mb-2">$ {{ mora_90.dinero|intcomma }}</h4>
+                        <div class="badge bg-danger">{{ mora_90.cantidad }} Facturas</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Canasta 120 Dias -->
+            <div class="col-lg mb-4">
+                <div class="card border-0 shadow-sm h-100 bg-danger text-white">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-1 text-white">Pérdida (91 - 120 Días)</h6>
+                        <small class="text-light opacity-75 d-block mb-3">Cobro Jurídico</small>
+                        <h4 class="fw-bold mb-2">$ {{ mora_120.dinero|intcomma }}</h4>
+                        <div class="badge bg-white text-danger">{{ mora_120.cantidad }} Facturas</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mas de 120 Dias -->
+            <div class="col-lg mb-4">
+                <div class="card border-0 shadow-sm h-100 bg-dark text-white">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-1 text-white">Incobrable (> 120 Días)</h6>
+                        <small class="text-light opacity-75 d-block mb-3">Demanda Activa</small>
+                        <h4 class="fw-bold mb-2">$ {{ mas_120.dinero|intcomma }}</h4>
+                        <div class="badge bg-white text-dark">{{ mas_120.cantidad }} Facturas</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <hr>
+        <div class="text-center mt-3">
+            <p class="text-muted small mb-0"><i class="bi bi-info-circle"></i> Los valores expresados arriba corresponden exclusivamente al capital base de las expensas comunes (Administración) organizados por antigüedad real según ciclo de facturación.</p>
         </div>
     </div>
 </div>

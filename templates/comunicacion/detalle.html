@@ -24,9 +24,54 @@
                 {% if pqrs.adjunto %}
                 <hr>
                 <div class="mb-2">
-                    <strong>Archivo Adjunto:</strong> <a href="{{ pqrs.adjunto.url }}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-paperclip"></i> Ver adjunto</a>
+                    <strong>Archivo Adjunto Inicial:</strong> <a href="{{ pqrs.adjunto.url }}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-paperclip"></i> Ver adjunto</a>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- Hilo de Respuestas -->
+        <h5 class="fw-bold text-secondary mb-3 mt-4"><i class="bi bi-chat-right-text"></i> Interacciones y Respuestas</h5>
+        
+        {% for r in pqrs.respuestas.all %}
+        <div class="card shadow-sm mb-3 border-0 border-start border-4 {% if r.autor == request.user %}border-primary ms-5{% else %}border-info me-5 bg-light{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold text-dark"><i class="bi bi-person-circle"></i> {{ r.autor.get_full_name|default:r.autor.username }}</span>
+                    <span class="text-muted small">{{ r.fecha_creacion|date:"d M, H:i" }}</span>
+                </div>
+                <hr class="my-2">
+                <p class="mb-2">{{ r.mensaje|linebreaks }}</p>
+                {% if r.evidencia %}
+                 <a href="{{ r.evidencia.url }}" target="_blank" class="badge bg-warning text-dark text-decoration-none">
+                     <i class="bi bi-camera"></i> Ver Evidencia Adjunta
+                 </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-light text-muted border text-center">
+            Aún no hay respuestas en este caso de PQRS.
+        </div>
+        {% endfor %}
+
+        <!-- Formulario para Nueva Respuesta -->
+        <div class="card shadow-sm mt-4 border-0 bg-light">
+            <div class="card-body">
+                <h6 class="fw-bold"><i class="bi bi-reply"></i> Escribir una Respuesta</h6>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="responder">
+                    <textarea class="form-control mb-2" name="mensaje" rows="3" placeholder="Escribe tu comentario o respuesta al caso..." required></textarea>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <label class="form-label small text-muted mb-0"><i class="bi bi-paperclip"></i> Evidencia (Opcional)</label>
+                            <input class="form-control form-control-sm" type="file" name="evidencia" accept="image/*,.pdf">
+                        </div>
+                        <button type="submit" class="btn btn-primary fw-bold px-4"><i class="bi bi-send"></i> Enviar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -53,14 +98,16 @@
                 <p><strong>Estado Actual:</strong> <span class="badge bg-primary fs-6">{{ pqrs.estado }}</span></p>
                 <form method="post">
                     {% csrf_token %}
+                    <input type="hidden" name="action" value="cambiar_estado">
                     <label class="form-label fw-bold mt-2">Actualizar Estado:</label>
                     <div class="input-group">
                         <select name="estado" class="form-select">
+                            <option value="Abierto" {% if pqrs.estado == 'Abierto' %}selected{% endif %}>Abierto</option>
                             <option value="En Proceso" {% if pqrs.estado == 'En Proceso' %}selected{% endif %}>En Proceso</option>
                             <option value="Resuelto" {% if pqrs.estado == 'Resuelto' %}selected{% endif %}>Resuelto</option>
                             <option value="Cerrado" {% if pqrs.estado == 'Cerrado' %}selected{% endif %}>Cerrado</option>
                         </select>
-                        <button class="btn btn-success" type="submit">Actualizar</button>
+                        <button class="btn btn-success" type="submit">Guardar</button>
                     </div>
                 </form>
             </div>

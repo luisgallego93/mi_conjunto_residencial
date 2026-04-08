@@ -8,6 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
     
     <style>
         body {
@@ -18,7 +23,7 @@
 
         .sidebar {
             width: 250px;
-            background-color: #343a40;
+            background-color: #0f172a; /* Slate Premium Dark */
             color: #fff;
             min-height: 100vh;
             flex-shrink: 0;
@@ -38,6 +43,12 @@
 
         .sidebar .nav-link i {
             margin-right: 10px;
+        }
+        
+        .sidebar .text-muted {
+            color: #94a3b8 !important;
+            letter-spacing: 1.5px;
+            font-weight: bold;
         }
 
         .content-wrapper {
@@ -103,6 +114,11 @@
                     <i class="bi bi-building"></i> Inmuebles
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'documentos:lista' %}" class="nav-link {% if request.resolver_match.app_name == 'documentos' %}active{% endif %}">
+                    <i class="bi bi-file-earmark-pdf"></i> Documentos
+                </a>
+            </li>
             <li class="nav-item mt-3">
                 <span class="nav-link text-muted"><small>PORTERÍA</small></span>
             </li>
@@ -131,7 +147,7 @@
             </li>
             <li class="nav-item">
                 <a href="{% url 'finanzas:cartera' %}" class="nav-link {% if request.resolver_match.app_name == 'finanzas' %}active{% endif %}">
-                    <i class="bi bi-cash-stack"></i> Finanzas
+                    <i class="bi bi-cash-stack"></i> Cartera y Finanzas
                 </a>
             </li>
         </ul>
@@ -162,15 +178,6 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            {% if messages %}
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endfor %}
-            {% endif %}
-
             {% block content %}
             {% endblock %}
         </main>
@@ -178,6 +185,16 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery JS (Select2 requirement) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
     <script>
         // Toggle de la barra lateral para móviles (Simple)
         const sidebarToggle = document.body.querySelector('#sidebarToggle');
@@ -193,6 +210,52 @@
                 }
             });
         }
+
+        // Inicializar Select2 en los campos con clase form-select
+        $(document).ready(function() {
+            $('.form-select').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: "Seleccione una opción",
+                allowClear: true
+            });
+            
+            // Inicializar DataTables globalmente en las tablas
+            $('.table').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
+                },
+                pageLength: 10,
+                responsive: true
+            });
+        });
+
+        // Alertas Dinámicas Premium con SweetAlert2 Toasts
+        {% if messages %}
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+        
+        $(document).ready(function() {
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    Toast.fire({icon: 'error', title: '{{ message }}'})
+                {% elif message.tags == 'success' %}
+                    Toast.fire({icon: 'success', title: '{{ message }}'})
+                {% else %}
+                    Toast.fire({icon: 'info', title: '{{ message }}'})
+                {% endif %}
+            {% endfor %}
+        });
+        {% endif %}
     </script>
     {% block extra_js %}{% endblock %}
 </body>

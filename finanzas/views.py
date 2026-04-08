@@ -1,11 +1,16 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db.models import Sum
+from django.http import HttpResponse
+import csv
+import io
 from collections import defaultdict
 
 from .models import CuentaCobro, Multa
+from usuarios.models import Apartamento
+from .forms import MultaForm
 from usuarios.models import Apartamento
 from .forms import MultaForm
 
@@ -130,4 +135,116 @@ def notificar_morosos(request):
             
     messages.info(request, f"Función Simulada: Se habrían enviado {enviados} correos a los morosos con emails registrados en su Ficha.")
     return redirect('finanzas:cartera')
+
+@login_required
+def descargar_plantilla_pagos(request):
+    """
+    Exporta un archivo CSV simple para ser llenado por la administración o cargado desde el banco.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="plantilla_pagos_banco.csv"'
+    
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(['codigo_pago', 'valor_depositado'])
+    
+    return response
+
+@login_required
+def cargar_pagos_csv(request):
+    """
+    Lee un archivo CSV subido por el usuario y cruza la información para registrar pagos 
+    automáticamente en masa.
+    """
+    if request.method == 'POST' and request.FILES.get('archivo_csv'):
+        archivo = request.FILES['archivo_csv']
+        
+        if not archivo.name.endswith('.csv'):
+            messages.error(request, "Solo se admiten archivos con formato CSV.")
+            return redirect('finanzas:cartera')
+            
+        try:
+            # Procesar el archivo en memoria
+            decoded_file = archivo.read().decode('utf-8')
+            io_string = io.StringIO(decoded_file)
+            reader = csv.DictReader(io_string, delimiter=';')
+            
+            pagos_aplicados = 0
+            errores = 0
+            
+            for row in reader:
+                cod_pago = row.get('codigo_pago', '').strip()
+                val_deposito = row.get('valor_depositado', '').strip()
+                
+                if cod_pago:
+                    try:
+                        apto = Apartamento.objects.get(codigo_pago__iexact=cod_pago)
+                        
+                        # Liquidar facturas
+                        facturas = CuentaCobro.objects.filter(apartamento=apto, estado='Pendiente')
+                        if facturas.exists():
+                            facturas.update(estado='Pagado')
+                            pagos_aplicados += 1
+                            
+                        # Liquidar multas
+                        multas = Multa.objects.filter(apartamento=apto, aplicada_en_cobro=False)
+                        if multas.exists():
+                            multas.update(aplicada_en_cobro=True)
+                            
+                    except Apartamento.DoesNotExist:
+                        errores += 1
+            
+            if errores > 0:
+                messages.warning(request, f"Archivo procesado: Se liquidaron deudas en {pagos_aplicados} inmuebles. Sin embargo, no se encontraron {errores} apartamentos.")
+            else:
+                messages.success(request, f"Éxito: Se aplicaron todos los pagos a {pagos_aplicados} apartamentos listados.")
+                
+        except Exception as e:
+            messages.error(request, f"Error al leer el archivo: verifique que sea un CSV válido. Error interno: {e}")
+            
+    return redirect('finanzas:cartera')
+
+@login_required
+def expediente_cobranza(request, apartamento_id):
+    from .models import GestionCartera, CuentaCobro, Multa
+    
+    apto = get_object_or_404(Apartamento, id=apartamento_id)
+    
+    # 1. Traer Deudas Activas
+    facturas_pendientes = CuentaCobro.objects.filter(apartamento=apto, estado='Pendiente').order_by('-anio', '-mes_referencia')
+    multas_pendientes = Multa.objects.filter(apartamento=apto, aplicada_en_cobro=False).order_by('-fecha_suceso')
+    
+    total_deuda = sum(f.valor_base for f in facturas_pendientes) + sum(m.valor for m in multas_pendientes)
+    
+    # 2. Historial de Gestión
+    historial = GestionCartera.objects.filter(apartamento=apto).select_related('gestor').order_by('-fecha_registro')
+    
+    # 3. Procesar Nueva Anotación (POST)
+    if request.method == 'POST':
+        tipo = request.POST.get('tipo_gestion')
+        obs = request.POST.get('observaciones')
+        acuerdo = request.POST.get('acuerdo_pago') == 'on'
+        fecha_comp = request.POST.get('fecha_compromiso')
+        evidencia = request.FILES.get('evidencia')
+        
+        GestionCartera.objects.create(
+            apartamento=apto,
+            tipo_gestion=tipo,
+            observaciones=obs,
+            acuerdo_pago=acuerdo,
+            fecha_compromiso=fecha_comp if fecha_comp else None,
+            estado_acuerdo='Pendiente' if acuerdo else None,
+            evidencia=evidencia,
+            gestor=request.user
+        )
+        messages.success(request, "Gestión de Cartera registrada exitosamente en el expediente.")
+        return redirect('finanzas:expediente_cobranza', apartamento_id=apto.id)
+        
+    context = {
+        'apto': apto,
+        'facturas': facturas_pendientes,
+        'multas': multas_pendientes,
+        'total_deuda': total_deuda,
+        'historial': historial
+    }
+    return render(request, 'finanzas/expediente.html', context)
 

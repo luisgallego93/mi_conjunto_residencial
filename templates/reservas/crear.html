@@ -4,6 +4,8 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <h2 class="h3 mb-0 text-gray-800">Agendar Nueva Reserva</h2>
     <a href="{% url 'reservas:lista_reservas' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
         <i class="bi bi-arrow-left"></i> Volver al Listado
@@ -35,8 +37,8 @@
 
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Fecha Resevada</label>
-                            {{ form.fecha }}
+                            <label class="form-label fw-bold">Fecha Reservada</label>
+                            <input type="text" name="fecha" id="id_fecha" class="form-control" required placeholder="Selecciona una fecha">
                             {% if form.fecha.errors %}<div class="text-danger small">{{ form.fecha.errors }}</div>{% endif %}
                         </div>
                         <div class="col-md-4">
@@ -73,4 +75,34 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Datos inyectados desde Django
+        const fechasOcupadas = JSON.parse('{{ fechas_ocupadas|safe }}');
+        
+        let fp = flatpickr("#id_fecha", {
+            minDate: "today",
+            dateFormat: "Y-m-d",
+        });
+
+        const zonaSelect = document.querySelector("select[name='zona_comun']");
+        
+        zonaSelect.addEventListener("change", function() {
+            let zonaSeleccionada = this.value;
+            fp.clear();
+            if (zonaSeleccionada && fechasOcupadas[zonaSeleccionada]) {
+                fp.set('disable', [
+                    function(date) {
+                        let dateString = date.getFullYear() + "-" + 
+                                         String(date.getMonth() + 1).padStart(2, '0') + "-" + 
+                                         String(date.getDate()).padStart(2, '0');
+                        return fechasOcupadas[zonaSeleccionada].includes(dateString);
+                    }
+                ]);
+            } else {
+                fp.set('disable', []);
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -30,6 +30,14 @@
                         </div>
                         <h6 class="card-subtitle mb-3 text-muted">{{ r.rol }} - {{ r.tipo_ocupacion }}</h6>
                         
+                        {% if r.apartamentos_asignados.exists %}
+                        <div class="mb-2">
+                            {% for apto in r.apartamentos_asignados.all %}
+                                <span class="badge bg-secondary"><i class="bi bi-building"></i> Apto {{ apto.numero }} (T{{ apto.torre }})</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
                         <p class="card-text small mb-1"><i class="bi bi-person-badge text-secondary"></i> {{ r.documento }}</p>
                         <p class="card-text small mb-1"><i class="bi bi-telephone text-secondary"></i> {{ r.telefono }}</p>
                         <p class="card-text small mb-3"><i class="bi bi-envelope text-secondary"></i> {{ r.email_personal|default:"No registrado" }}</p>
@@ -44,11 +52,49 @@
                         {% endif %}
                     </div>
                     <div class="card-footer bg-white border-0 py-3 text-center">
-                        <a href="{% url 'admin:usuarios_perfilusuario_change' r.id %}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
-                            <i class="bi bi-pencil-square"></i> Editar Ficha (Admin)
-                        </a>
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#editarPerfilModal{{ r.id }}">
+                            <i class="bi bi-pencil-square"></i> Editar Ficha Directo
+                        </button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Modal Editar Perfil -->
+            <div class="modal fade" id="editarPerfilModal{{ r.id }}" tabindex="-1" aria-labelledby="editarPerfilLabel{{ r.id }}" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form action="{% url 'usuarios:editar_residente' r.id %}" method="post">
+                      {% csrf_token %}
+                      <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="editarPerfilLabel{{ r.id }}"><i class="bi bi-person-lines-fill"></i> Actualizar Ficha de {{ r.nombre_completo }}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Teléfono de Contacto</label>
+                            <input type="text" name="telefono" class="form-control" value="{{ r.telefono }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Correo (Email Registrado)</label>
+                            <input type="email" name="email_personal" class="form-control" value="{{ r.email_personal|default:'' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold mt-3 text-danger"><i class="bi bi-heart-pulse"></i> DATOS DE EMERGENCIA</label>
+                            <hr class="mt-0 mb-2">
+                            <label class="form-label small">Nombre del Acudiente</label>
+                            <input type="text" name="emergencia_nombre" class="form-control form-control-sm mb-2" value="{{ r.emergencia_nombre }}">
+                            
+                            <label class="form-label small">Teléfono</label>
+                            <input type="text" name="emergencia_telefono" class="form-control form-control-sm" value="{{ r.emergencia_telefono }}">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                      </div>
+                  </form>
+                </div>
+              </div>
             </div>
             {% empty %}
             <div class="col-12 text-center text-muted py-5">

@@ -36,7 +36,10 @@
                             <div class="fw-bold">{{ p.nombre }}</div>
                             <div class="small text-muted">{{ p.documento }}</div>
                         </td>
-                        <td class="fw-bold text-primary">{{ p.apartamento_destino }}</td>
+                        <td>
+                            <div class="fw-bold text-primary">{{ p.apartamento_destino }}</div>
+                            <div class="small text-info fw-bold"><i class="bi bi-shield-check"></i> Gestor: {{ p.registrado_por.username|default:"Sistema" }}</div>
+                        </td>
                         <td>{{ p.tipo_visitante }}</td>
                         <td>{{ p.hora_ingreso_real|date:"d M, H:i"|default:"-" }}</td>
                         <td>{{ p.hora_salida_real|date:"d M, H:i"|default:"-" }}</td>

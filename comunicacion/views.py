@@ -27,11 +27,28 @@ def ver_pqrs(request, pqrs_id):
     pqrs = get_object_or_404(Comunicacion, id=pqrs_id)
     
     if request.method == 'POST':
-        nuevo_estado = request.POST.get('estado')
-        if nuevo_estado in ['Resuelto', 'Cerrado', 'En Proceso']:
-            pqrs.estado = nuevo_estado
-            pqrs.save()
-            messages.success(request, f"Estado actualizado a {nuevo_estado}.")
-            return redirect('comunicacion:ver_pqrs', pqrs_id=pqrs.id)
+        action = request.POST.get('action')
+        
+        if action == 'cambiar_estado':
+            nuevo_estado = request.POST.get('estado')
+            if nuevo_estado in ['Resuelto', 'Cerrado', 'En Proceso']:
+                pqrs.estado = nuevo_estado
+                pqrs.save()
+                messages.success(request, f"Estado actualizado a {nuevo_estado}.")
+                
+        elif action == 'responder':
+            from .models import RespuestaPQRS
+            mensaje = request.POST.get('mensaje')
+            evidencia = request.FILES.get('evidencia')
+            if mensaje:
+                RespuestaPQRS.objects.create(
+                    comunicacion=pqrs,
+                    mensaje=mensaje,
+                    autor=request.user,
+                    evidencia=evidencia
+                )
+                messages.success(request, "Su respuesta ha sido registrada en el hilo de conversacion.")
+        
+        return redirect('comunicacion:ver_pqrs', pqrs_id=pqrs.id)
             
     return render(request, 'comunicacion/detalle.html', {'pqrs': pqrs})

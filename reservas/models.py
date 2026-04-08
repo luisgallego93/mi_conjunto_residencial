@@ -30,6 +30,7 @@ class Reserva(models.Model):
     valor = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     deposito = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     estado_pago = models.BooleanField(default=False, verbose_name="¿Está pagado?")
+    comprobante_pago = models.ImageField(upload_to='reservas/pagos/', null=True, blank=True, verbose_name="Recibo o Comprobante de Transacción")
     requiere_aseo = models.BooleanField(default=False)
     inventario_entregado = models.BooleanField(default=False)
 

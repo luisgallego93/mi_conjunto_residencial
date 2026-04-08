@@ -1,6 +1,7 @@
 from django.db import models
 from usuarios.models import Apartamento
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 class CuentaCobro(models.Model):
     MESES = [(str(i).zfill(2), str(i).zfill(2)) for i in range(1, 13)]
@@ -23,6 +24,10 @@ class CuentaCobro(models.Model):
         verbose_name_plural = "Cuentas de Cobro"
 
 class Multa(models.Model):
+    """
+    Modelo para registrar sanciones económicas aplicadas a los apartamentos
+    por incumplimiento del reglamento de propiedad horizontal.
+    """
     TIPOS = [
         ('Convivencia', 'Convivencia'), 
         ('Ruido', 'Ruido'), 
@@ -44,3 +49,42 @@ class Multa(models.Model):
     class Meta:
         verbose_name = "Multa"
         verbose_name_plural = "Multas"
+
+class GestionCartera(models.Model):
+    """
+    CRM / Bitácora de seguimiento de cobranza para cada Apartamento con deuda.
+    """
+    TIPOS = [
+        ('Llamada Telefonica', 'Llamada Telefonica'),
+        ('Carta Notificatoria', 'Carta Notificatoria'),
+        ('WhatsApp / Mensaje', 'WhatsApp / Mensaje'),
+        ('Acuerdo de Pago', 'Acuerdo de Pago Presencial'),
+        ('Visita', 'Visita Domiciliaria'),
+        ('Otro', 'Otro')
+    ]
+    
+    apartamento = models.ForeignKey(Apartamento, on_delete=models.CASCADE, related_name="gestiones_cartera")
+    tipo_gestion = models.CharField(max_length=50, choices=TIPOS)
+    observaciones = models.TextField(verbose_name="Observaciones o Acuerdo", blank=True)
+    
+    acuerdo_pago = models.BooleanField(default=False, verbose_name="¿Generó Acuerdo de Pago?")
+    fecha_compromiso = models.DateField(null=True, blank=True, verbose_name="Fecha Compromiso de Pago")
+    
+    ESTADOS = [
+        ('Pendiente', 'Acuerdo Pendiente de Fecha'),
+        ('Cumplido', 'Acuerdo Cumplido Exitosamente'),
+        ('No Cumplido', 'Incumplió Promesa')
+    ]
+    estado_acuerdo = models.CharField(max_length=20, choices=ESTADOS, blank=True, null=True)
+    
+    evidencia = models.FileField(upload_to='finanzas/gestiones/', null=True, blank=True)
+    gestor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Gestor / Auxiliar de Cobranza")
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Gestión: {self.tipo_gestion} - Apto {self.apartamento.numero}"
+
+    class Meta:
+        verbose_name = "Gestión de Cartera"
+        verbose_name_plural = "Gestiones de Cartera"
+        ordering = ['-fecha_registro']

@@ -12,15 +12,39 @@ def lista_reservas(request):
 @login_required
 def crear_reserva(request):
     if request.method == 'POST':
-        form = ReservaForm(request.POST)
+        form = ReservaForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Reserva creada con éxito.")
-            return redirect('reservas:lista_reservas')
+            reserva = form.save(commit=False)
+            
+            superposicion = Reserva.objects.filter(
+                zona_comun=reserva.zona_comun, 
+                fecha=reserva.fecha
+            ).exclude(estado_reserva='Rechazado').exists()
+            
+            if superposicion:
+                messages.error(request, "Error: Ese día ya se encuentra reservado para ese espacio. Sólo se permite un grupo por día.")
+            else:
+                reserva.estado_reserva = 'Pendiente'
+                reserva.save()
+                messages.success(request, "Pre-reserva generada. Realice el pago o suba comprobante para su aprobación final.")
+                return redirect('reservas:lista_reservas')
     else:
         form = ReservaForm()
         
-    return render(request, 'reservas/crear.html', {'form': form})
+    import json
+    ocupadas_qs = Reserva.objects.exclude(estado_reserva='Rechazado')
+    fechas_ocupadas = {}
+    for r in ocupadas_qs:
+        zona = r.zona_comun
+        fecha_str = r.fecha.strftime('%Y-%m-%d')
+        if zona not in fechas_ocupadas:
+            fechas_ocupadas[zona] = []
+        fechas_ocupadas[zona].append(fecha_str)
+        
+    return render(request, 'reservas/crear.html', {
+        'form': form, 
+        'fechas_ocupadas': json.dumps(fechas_ocupadas)
+    })
 
 @login_required
 def gestionar_reserva(request, reserva_id):
@@ -37,3 +61,13 @@ def gestionar_reserva(request, reserva_id):
         reserva.save()
     return redirect('reservas:lista_reservas')
 
+@login_required
+def subir_comprobante(request, reserva_id):
+    reserva = get_object_or_404(Reserva, id=reserva_id)
+    if request.method == 'POST':
+        archivo = request.FILES.get('comprobante_pago')
+        if archivo:
+            reserva.comprobante_pago = archivo
+            reserva.save()
+            messages.info(request, "El comprobante de pago fue subido y esta en revision.")
+    return redirect('reservas:lista_reservas')

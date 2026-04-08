@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
-from usuarios.models import PerfilUsuario 
+from usuarios.models import PerfilUsuario
+from django.contrib.auth.models import User 
 
 class Comunicacion(models.Model):
     # --- 1. DATOS PRINCIPALES ---
@@ -53,4 +54,14 @@ class Comunicacion(models.Model):
     class Meta:
         verbose_name = "Comunicación / PQRS"
         verbose_name_plural = "Comunicaciones / PQRS"
-        ordering = ['-fecha_creacion'] # Las más recientes aparecen primero
+        ordering = ['-fecha_creacion']
+
+class RespuestaPQRS(models.Model):
+    comunicacion = models.ForeignKey(Comunicacion, on_delete=models.CASCADE, related_name='respuestas')
+    mensaje = models.TextField(verbose_name="Cuerpo de la Respuesta")
+    autor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Autor de Respuesta", related_name="respuestas_pqrs_enviadas")
+    evidencia = models.ImageField(upload_to='comunicaciones/respuestas/', null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Respuesta a {self.comunicacion.titulo} - {self.fecha_creacion.strftime('%d/%m/%Y')} "

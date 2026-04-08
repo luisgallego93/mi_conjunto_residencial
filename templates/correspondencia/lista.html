@@ -41,8 +41,19 @@
                                     <div class="fw-bold text-primary">{{ p.apartamento }}</div>
                                     <div class="small text-muted">{{ p.destinatario }}</div>
                                 </td>
-                                <td>{{ p.fecha_recepcion|date:"d M, H:i" }}</td>
-                                <td>{{ p.fecha_entrega|date:"d M, H:i"|default:"-" }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ p.fecha_recepcion|date:"d M, H:i" }}</div>
+                                    <div class="small text-info fw-bold"><i class="bi bi-person-badge"></i> {{ p.recibido_por.username|default:"Sistema" }}</div>
+                                </td>
+                                <td>
+                                    {% if p.fecha_entrega %}
+                                        <div class="fw-bold">{{ p.fecha_entrega|date:"d M, H:i" }}</div>
+                                        <div class="small text-success fw-bold"><i class="bi bi-person-check-fill"></i> {{ p.entregado_por.username|default:"-" }}</div>
+                                        <div class="small text-muted"><i class="bi bi-box-arrow-right"></i> {{ p.quien_recoge }}</div>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if p.estado == 'Entregado' %}
                                         <span class="badge bg-success px-2 py-1"><i class="bi bi-check-all"></i> Entregado</span>

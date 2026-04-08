@@ -14,6 +14,7 @@ urlpatterns = [
     path('visitantes/', include('visitantes.urls')),
     path('correspondencia/', include('correspondencia.urls')),
     path('directorio/', include('usuarios.urls')),
+    path('documentos/', include('documentos.urls')),
     
     # Dashboard URLs loaded correctly using include
     path('', include('dashboard.urls')),

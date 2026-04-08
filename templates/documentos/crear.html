@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Subir Documento - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Cargar Archivo PDF</h2>
+    <a href="{% url 'documentos:lista' %}" class="btn btn-sm btn-secondary shadow-sm">
+        <i class="bi bi-arrow-left"></i> Volver a Lista
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 col-md-8 mx-auto">
+        <div class="card shadow border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-bold text-primary">Detalles del Documento</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    
+                    <hr class="mt-4 mb-3">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary fw-bold text-white shadow-sm">
+                            <i class="bi bi-cloud-arrow-up"></i> Guardar Documento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

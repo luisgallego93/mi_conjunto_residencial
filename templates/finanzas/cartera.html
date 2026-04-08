@@ -5,17 +5,50 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Estado de Cuenta Consolidado</h2>
-    <div class="d-flex gap-2">
+    <h2 class="h3 mb-0 text-gray-800">Cartera y Cobranzas</h2>
+    <div>
+        <button class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#cargarCsvModal">
+            <i class="bi bi-cloud-arrow-up"></i> Cargar Pagos (CSV)
+        </button>
+        <button class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#facturacionModal">
+            <i class="bi bi-magic"></i> Facturación Masiva
+        </button>
         <a href="{% url 'finanzas:registrar_multa' %}" class="btn btn-sm btn-outline-danger shadow-sm">
             <i class="bi bi-file-earmark-text"></i> Nueva Multa
         </a>
-        <button type="button" class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#facturacionModal">
-            <i class="bi bi-magic"></i> Facturación Masiva
-        </button>
         <a href="{% url 'finanzas:notificar_morosos' %}" class="btn btn-sm btn-danger shadow-sm">
             <i class="bi bi-envelope"></i> Notificar Morosos
         </a>
+    </div>
+</div>
+
+<!-- Modal para CSV de Bancos -->
+<div class="modal fade" id="cargarCsvModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{% url 'finanzas:cargar_pagos_csv' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-cloud-arrow-up"></i> Carga Masiva Bancaria</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Sube el archivo plano <code>.csv</code> con los pagos reportados. El sistema dará de baja la deuda completa (Administración + Multas) de los apartamentos listados.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Archivo CSV:</label>
+                        <input type="file" name="archivo_csv" class="form-control" accept=".csv" required>
+                    </div>
+                    <div class="alert alert-warning small">
+                        <strong>Formato Requerido:</strong> El archivo debe tener dos columnas tituladas exactamente <code>torre</code> y <code>apartamento</code>.
+                        <a href="{% url 'finanzas:plantilla_pagos' %}" class="alert-link ms-2"><i class="bi bi-download"></i> Descargar Plantilla de Ejemplo</a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold">Procesar Archivo</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -87,7 +120,10 @@
                         <td class="fw-semibold text-danger">$ {{ item.total|intcomma }}</td>
                         <td><span class="badge bg-danger">Mora Activa</span></td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#pagoModal{{ item.apartamento.id }}">
+                            <a href="{% url 'finanzas:expediente_cobranza' item.apartamento.id %}" class="btn btn-sm btn-outline-warning text-dark fw-bold" title="Expediente de Cobranza">
+                                <i class="bi bi-person-lines-fill"></i> Expediente
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#pagoModal{{ item.apartamento.id }}" title="Recibir Pago">
                                 <i class="bi bi-currency-dollar"></i> Recibir
                             </button>
                             

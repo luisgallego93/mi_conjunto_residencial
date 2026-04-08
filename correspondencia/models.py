@@ -24,6 +24,7 @@ class Paquete(models.Model):
     # Entrega al Residente
     estado = models.CharField(max_length=20, choices=ESTADOS, default='Recibido')
     fecha_entrega = models.DateTimeField(null=True, blank=True)
+    entregado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes_entregados')
     quien_recoge = models.CharField(max_length=100, blank=True, help_text="Nombre de quien retira el paquete")
     observaciones = models.TextField(blank=True)
 
