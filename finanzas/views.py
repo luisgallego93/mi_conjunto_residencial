@@ -478,12 +478,13 @@ def mi_estado_cuenta(request):
         messages.error(request, "Tu usuario no tiene un perfil de residente asociado.")
         return redirect('dashboard:index')
 
-    apartamento = PerfilUsuario.objects.get(user=request.user).apartamentos_asignados.first()
-    
-    if not apartamento:
-        # Intentamos buscar si es el residente_principal de algún apto directamente
-        from usuarios.models import Apartamento as AptoModel
-        apartamento = AptoModel.objects.filter(residente_principal=perfil).first()
+    apartamento = None
+    from usuarios.models import Apartamento as AptoModel
+    from django.db.models import Q
+    # Buscar por nueva arquitectura (propietario o inquilino) o por campo legado
+    apartamento = AptoModel.objects.filter(
+        Q(propietario=perfil) | Q(inquilino=perfil) | Q(residente_principal=perfil)
+    ).first()
 
     if not apartamento:
         messages.warning(request, "No tienes un apartamento asignado. Contacta a la administración.")

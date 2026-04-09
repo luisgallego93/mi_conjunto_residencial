@@ -5,7 +5,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h3 mb-0 text-gray-800">Directorio de Perfiles</h2>
-    <a href="#" class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#notImplementedModal">
+    <a href="#" class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#registrarModal">
         <i class="bi bi-person-plus"></i> Nuevo Residente
     </a>
 </div>
@@ -105,21 +105,95 @@
     </div>
 </div>
 
-<!-- Modal Dummy -->
-<div class="modal fade" id="notImplementedModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Registrar Usuario</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>Para esta versión inicial, te recomendamos seguir matriculando la seguridad de tus usuarios y sus contraseñas nativas a través del panel de control de Django.</p>
-      </div>
-      <div class="modal-footer">
-        <a href="/admin/usuarios/perfilusuario/add/" target="_blank" class="btn btn-primary">Ir a Django Admin</a>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
+<!-- Modal Registrar Nuevo Residente (Flujo Unificado) -->
+<div class="modal fade" id="registrarModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <form action="{% url 'usuarios:registrar_residente' %}" method="post">
+        {% csrf_token %}
+        <div class="modal-header text-white" style="background: linear-gradient(135deg,#4e73df,#224abe);">
+          <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Registrar Nuevo Residente</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+
+          <!-- Aviso de credenciales -->
+          <div class="alert alert-info border-0 rounded-3 mb-4" style="background:#e8f0fe;">
+            <i class="bi bi-info-circle-fill me-2 text-primary"></i>
+            <strong>¿Cómo inicia sesión el residente?</strong><br>
+            <span class="small">Su <strong>número de cédula (CC)</strong> será tanto su usuario como su contraseña inicial. Al ingresar por primera vez se le pedirá cambiarla.</span>
+          </div>
+
+          <div class="row g-3">
+            <!-- Nombre -->
+            <div class="col-md-8">
+              <label class="form-label fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+              <input type="text" name="nombre_completo" class="form-control" placeholder="Ej: Juan Pérez García" required>
+            </div>
+            <!-- Tipo de Persona -->
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Tipo de Persona <span class="text-danger">*</span></label>
+              <select name="tipo_ocupacion" class="form-select">
+                <option value="Propietario">🏠 Propietario</option>
+                <option value="Arrendatario">🔑 Inquilino</option>
+              </select>
+            </div>
+            <!-- Cédula -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Número de Cédula (CC) <span class="text-danger">*</span></label>
+              <input type="text" name="documento" class="form-control form-control-lg fw-bold text-primary" placeholder="Ej: 1234567890" required>
+              <div class="form-text"><i class="bi bi-key-fill text-warning"></i> Este número es su <strong>usuario</strong> y <strong>contraseña inicial</strong>.</div>
+            </div>
+            <!-- Teléfono -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Teléfono / Celular</label>
+              <input type="text" name="telefono" class="form-control" placeholder="Ej: 3001234567">
+            </div>
+            <!-- Email -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Correo Electrónico</label>
+              <input type="email" name="email" class="form-control" placeholder="correo@ejemplo.com">
+            </div>
+            <!-- Rol de sistema (solo para no-residentes) -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Rol en el Sistema</label>
+              <select name="rol" class="form-select">
+                <option value="RESIDENTE">Residente</option>
+                <option value="VIGILANCIA">Vigilancia / Portería</option>
+                <option value="ADMIN_CONJUNTO">Administrador del Conjunto</option>
+              </select>
+            </div>
+
+            <!-- Separador -->
+            <div class="col-12"><hr class="my-1"></div>
+
+            <!-- Asignar Apartamento (opcional) -->
+            <div class="col-12">
+              <label class="form-label fw-bold">Asignar Apartamento <span class="text-muted small fw-normal">(Opcional — se puede hacer después)</span></label>
+              <select name="apto_id" class="form-select">
+                <option value="">— Seleccionar Apartamento —</option>
+                {% for apto in todos_apartamentos %}
+                  <option value="{{ apto.id }}">
+                    Torre {{ apto.torre }} · Apto {{ apto.numero }}
+                    {% if apto.propietario %} [P: {{ apto.propietario.nombre_completo }}]{% endif %}
+                    {% if apto.inquilino %} [I: {{ apto.inquilino.nombre_completo }}]{% endif %}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">El sistema asignará al residente como Propietario o Inquilino según el "Tipo de Persona" seleccionado arriba.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5">
+            <i class="bi bi-check-circle me-1"></i>Crear y Registrar
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

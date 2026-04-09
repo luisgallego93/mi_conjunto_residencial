@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Completar mi Perfil - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-5">
+            <div class="card-header bg-primary py-4 text-center border-0">
+                <h3 class="text-white fw-bold mb-1">¡Bienvenido a tu Comunidad Digital!</h3>
+                <p class="text-white-50 small mb-0">Por favor, completa tu ficha de censo para habilitar todas las funciones del portal.</p>
+            </div>
+            
+            <div class="card-body p-4 p-md-5">
+                <form method="post" id="wizardForm">
+                    {% csrf_token %}
+                    
+                    <!-- SECCIÓN 1: DATOS DE CONTACTO -->
+                    <div class="mb-5">
+                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-4">
+                            <i class="bi bi-person-badge-fill me-2"></i>1. Verifica tus Datos de Contacto
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6 text-center">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="text-xs text-uppercase text-muted mb-1">Tu Apartamento</div>
+                                    <div class="h5 mb-0 fw-bold">
+                                        {% if apartamento %}
+                                            Apto {{ apartamento.numero }} - Torre {{ apartamento.torre }}
+                                        {% else %}
+                                            <span class="text-danger">Pendiente de asignación</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="text-xs text-uppercase text-muted mb-1">Tu Rol</div>
+                                    <div class="h5 mb-0 fw-bold text-primary">{{ perfil.tipo_ocupacion }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Teléfono Celular</label>
+                                <input type="text" name="telefono" class="form-control form-control-lg" value="{{ perfil.telefono }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Email Personal</label>
+                                <input type="email" name="email_personal" class="form-control form-control-lg" value="{{ perfil.email_personal }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: CONTACTO DE EMERGENCIA -->
+                    <div class="mb-5">
+                        <h5 class="fw-bold text-danger border-bottom pb-2 mb-4">
+                            <i class="bi bi-heart-pulse-fill me-2"></i>2. Contacto de Emergencia
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Nombre Completo</label>
+                                <input type="text" name="emergencia_nombre" class="form-control" value="{{ perfil.emergencia_nombre }}" placeholder="Ej: Maria Perez" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Teléfono</label>
+                                <input type="text" name="emergencia_telefono" class="form-control" value="{{ perfil.emergencia_telefono }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 3: CENSO POBLACIONAL -->
+                    <div class="mb-5">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+                            <h5 class="fw-bold text-success mb-0">
+                                <i class="bi bi-people-fill me-2"></i>3. Censo Familiar (Habitantes)
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addOcupante()">
+                                <i class="bi bi-plus-circle me-1"></i>Añadir Familiar
+                            </button>
+                        </div>
+                        
+                        <p class="small text-muted mb-3">Registra a las personas que viven contigo en el apartamento (hijos, padres, hermanos, etc.) para el control de acceso.</p>
+                        
+                        <div id="ocupantesContainer">
+                            <!-- Los ocupantes se añadirán aquí dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 4: SEGURIDAD -->
+                    <div class="mb-5">
+                        <h5 class="fw-bold text-dark border-bottom pb-2 mb-4">
+                            <i class="bi bi-shield-lock-fill me-2"></i>4. Actualiza tu Contraseña
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Nueva Contraseña</label>
+                                <input type="password" name="pass1" class="form-control" placeholder="Mínimo 8 caracteres">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Confirmar Contraseña</label>
+                                <input type="password" name="pass2" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-text mt-3">
+                            <i class="bi bi-info-circle"></i> Tu contraseña actual es tu número de documento. Te recomendamos cambiarla por seguridad.
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-5">
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold shadow">
+                            <i class="bi bi-check-circle-fill me-2"></i>Finalizar Registro y Entrar al Portal
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="ocupanteTemplate">
+    <div class="row g-2 mb-3 animate__animated animate__fadeIn">
+        <div class="col-md-7">
+            <input type="text" name="ocu_nombre" class="form-control" placeholder="Nombre completo del familiar">
+        </div>
+        <div class="col-md-4">
+            <select name="ocu_parentesco" class="form-select">
+                <option value="">Parentesco...</option>
+                <option value="Esposa/o">Esposa/o</option>
+                <option value="Hijo/a">Hijo/a</option>
+                <option value="Madre/Padre">Madre/Padre</option>
+                <option value="Hermano/a">Hermano/a</option>
+                <option value="Otro">Otro</option>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-outline-danger w-100" onclick="this.parentElement.parentElement.remove()">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+</template>
+
+<script>
+    function addOcupante() {
+        const container = document.getElementById('ocupantesContainer');
+        const template = document.getElementById('ocupanteTemplate');
+        const clone = template.content.cloneNode(true);
+        container.appendChild(clone);
+    }
+
+    // Añadir una fila por defecto
+    {% if not apartamento.habitantes.exists %}
+    document.addEventListener('DOMContentLoaded', function() {
+        addOcupante();
+    });
+    {% endif %}
+</script>
+
+<style>
+    .card-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.1);
+    }
+</style>
+{% endblock %}

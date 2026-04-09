@@ -18,67 +18,79 @@
                     <tr>
                         <th>Torre</th>
                         <th>Apto</th>
-                        <th>Piso/Nivel</th>
-                        <th>Ocupación Actual</th>
-                        <th>Contacto Principal</th>
+                        <th>Estado Inmueble</th>
+                        <th>Propietario Legal</th>
+                        <th>Inquilino / Residente Actual</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for apto in apartamentos %}
-                    <tr class="{% if not apto.residente_principal %}table-danger{% endif %}">
+                {% for apto in apartamentos %}
+                    <tr class="{% if not apto.propietario and not apto.inquilino %}table-danger{% endif %}">
                         <td class="fw-bold">Torre {{ apto.torre }}</td>
                         <td class="fw-bold text-primary">{{ apto.numero }}</td>
-                        <td>Piso {{ apto.piso }}</td>
                         <td>
-                            {% if apto.residente_principal %}
-                                {% if apto.residente_principal.tipo_ocupacion == 'Propietario' %}
-                                    <span class="badge bg-success">Habitado Propietario</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">Arrendado</span>
-                                {% endif %}
+                            {% if apto.inquilino %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-people"></i> Arrendado</span>
+                            {% elif apto.propietario %}
+                                <span class="badge bg-success"><i class="bi bi-house-check"></i> Habitado Propietario</span>
                             {% else %}
-                                <span class="badge bg-danger"><i class="bi bi-house-exclamation"></i> Desocupado</span>
+                                <span class="badge bg-danger"><i class="bi bi-house-exclamation"></i> Vacío / Sin Datos</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if apto.residente_principal %}
-                                <div class="fw-bold">{{ apto.residente_principal.nombre_completo }}</div>
-                                <div class="small text-muted"><i class="bi bi-telephone"></i> {{ apto.residente_principal.telefono }}</div>
+                            {% if apto.propietario %}
+                                <div class="fw-bold">{{ apto.propietario.nombre_completo }}</div>
+                                <div class="small text-muted"><i class="bi bi-telephone"></i> {{ apto.propietario.telefono }}</div>
+                                <a href="{% url 'usuarios:desvincular_residente' apto.id 'propietario' %}" class="text-danger small text-decoration-none"><i class="bi bi-x-circle"></i> Quitar</a>
                             {% else %}
-                                <span class="text-danger small fst-italic">Sin ficha residente vinculada</span>
+                                <span class="text-muted small fst-italic">Sin propietario</span>
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-info fw-bold" data-bs-toggle="modal" data-bs-target="#vincularModal{{ apto.id }}">
-                                <i class="bi bi-person-lines-fill"></i> Asignar Ficha
+                            {% if apto.inquilino %}
+                                <div class="fw-bold text-info">{{ apto.inquilino.nombre_completo }}</div>
+                                <div class="small text-muted"><i class="bi bi-telephone"></i> {{ apto.inquilino.telefono }}</div>
+                                <a href="{% url 'usuarios:desvincular_residente' apto.id 'inquilino' %}" class="text-danger small text-decoration-none"><i class="bi bi-x-circle"></i> Quitar</a>
+                            {% else %}
+                                <span class="text-muted small fst-italic">Sin inquilino</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#vincularModal{{ apto.id }}">
+                                <i class="bi bi-person-plus-fill"></i> Asignar
                             </button>
-                            
-                            <!-- Modal Asignar Residente -->
+
+                            <!-- Modal Asignar por Cédula -->
                             <div class="modal fade" id="vincularModal{{ apto.id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
-                                    <div class="modal-content">
+                                    <div class="modal-content border-0 shadow-lg">
                                         <form action="{% url 'usuarios:vincular_residente' apto.id %}" method="post">
                                             {% csrf_token %}
-                                            <div class="modal-header bg-info text-dark">
-                                                <h5 class="modal-title fw-bold"><i class="bi bi-link-45deg"></i> Asignar Residente Principal</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            <div class="modal-header bg-info text-white">
+                                                <h5 class="modal-title fw-bold">
+                                                    <i class="bi bi-link-45deg me-1"></i>
+                                                    Asignar a Apto {{ apto.numero }} · Torre {{ apto.torre }}
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                             </div>
-                                            <div class="modal-body">
-                                                <p>Seleccione el perfil que será responsable del <strong>Apartamento {{ apto.numero }} (Torre {{ apto.torre }})</strong>.</p>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Buscar Residente:</label>
-                                                    <select name="residente_id" class="form-select w-100" required>
-                                                        <option value="">Seleccione a la persona...</option>
-                                                        {% for r in todos_residentes %}
-                                                            <option value="{{ r.id }}">{{ r.nombre_completo }} ({{ r.documento }})</option>
-                                                        {% endfor %}
-                                                    </select>
+                                            <div class="modal-body p-4">
+                                                <div class="alert alert-light border small mb-3">
+                                                    <i class="bi bi-info-circle text-info me-1"></i>
+                                                    El sistema asignará al residente como <strong>Propietario</strong> o <strong>Inquilino</strong> automáticamente según su tipo registrado.
+                                                </div>
+                                                <label class="form-label fw-bold">Número de Cédula del Residente</label>
+                                                <input type="text" name="cedula_buscar" class="form-control form-control-lg fw-bold text-primary"
+                                                       placeholder="Ej: 1234567890" required autofocus>
+                                                <div class="form-text mt-1">
+                                                    <i class="bi bi-search me-1"></i>Ingrese la cédula exacta. Si el residente no está registrado, créelo primero en el Directorio.
                                                 </div>
                                             </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="submit" class="btn btn-info fw-bold text-dark">Vincular</button>
+                                            <div class="modal-footer bg-light">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                <button type="submit" class="btn btn-info fw-bold px-4 text-white">
+                                                    <i class="bi bi-save me-1"></i>Vincular
+                                                </button>
                                             </div>
                                         </form>
                                     </div>
@@ -86,7 +98,7 @@
                             </div>
                         </td>
                     </tr>
-                    {% empty %}
+                {% empty %}
                     <tr>
                         <td colspan="6" class="text-center text-muted py-4">No hay apartamentos censados en la base de datos.</td>
                     </tr>

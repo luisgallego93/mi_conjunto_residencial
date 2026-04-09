@@ -1,14 +1,41 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.db.models import Q
 from .models import Paquete
 from .forms import PaqueteForm
 
+def _get_apartamento_del_usuario(user):
+    """Helper: retorna el apartamento del usuario, buscando por nueva arquitectura y legado."""
+    try:
+        from usuarios.models import Apartamento, PerfilUsuario
+        perfil = user.perfilusuario
+        return Apartamento.objects.filter(
+            Q(propietario=perfil) | Q(inquilino=perfil) | Q(residente_principal=perfil)
+        ).first()
+    except Exception:
+        return None
+
 @login_required
 def lista_paquetes(request):
-    # Paquetes ordenados por los que están "Recibido" primero, luego historial.
-    paquetes = Paquete.objects.all().order_by('estado', '-fecha_recepcion')
-    return render(request, 'correspondencia/lista.html', {'paquetes': paquetes})
+    # Detectar si es residente
+    es_residente = hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'RESIDENTE'
+
+    if es_residente:
+        # Solo muestra paquetes de su apartamento
+        apartamento = _get_apartamento_del_usuario(request.user)
+        if apartamento:
+            paquetes = Paquete.objects.filter(apartamento=apartamento).order_by('estado', '-fecha_recepcion')
+        else:
+            paquetes = Paquete.objects.none()
+    else:
+        # Admins y vigilancia ven todo
+        paquetes = Paquete.objects.all().order_by('estado', '-fecha_recepcion')
+
+    return render(request, 'correspondencia/lista.html', {
+        'paquetes': paquetes,
+        'es_residente': es_residente,
+    })
 
 @login_required
 def recibir_paquete(request):

@@ -10,8 +10,15 @@ import json
 
 @login_required
 def lista_reservas(request):
-    reservas = Reserva.objects.all().order_by('-fecha').select_related('solicitante')
-    
+    es_residente = hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'RESIDENTE'
+
+    if es_residente:
+        # El residente solo ve SUS reservas
+        perfil = request.user.perfilusuario
+        reservas = Reserva.objects.filter(solicitante=perfil).order_by('-fecha').select_related('solicitante')
+    else:
+        reservas = Reserva.objects.all().order_by('-fecha').select_related('solicitante')
+
     # --- Contexto para el Calendario Mensual ---
     hoy = date.today()
     mes_actual = hoy.month
@@ -23,7 +30,7 @@ def lista_reservas(request):
     
     cal = calendar.monthcalendar(anio_actual, mes_actual)
     
-    # Enriquecer reservas del mes con nombre + apartamento del solicitante
+    # Enriquecer reservas del mes (el calendar muestra disponibilidad general)
     reservas_mes = Reserva.objects.filter(
         fecha__year=anio_actual,
         fecha__month=mes_actual
@@ -35,7 +42,6 @@ def lista_reservas(request):
         if dia not in reservas_por_dia:
             reservas_por_dia[dia] = []
         
-        # Obtener el número de apartamento del solicitante
         apto_num = '—'
         if r.solicitante:
             apto = r.solicitante.apartamentos_asignados.first()
@@ -58,12 +64,15 @@ def lista_reservas(request):
         'mes_actual': mes_actual,
         'hoy_dia': hoy.day,
         'reservas_por_dia': reservas_por_dia,
+        'es_residente': es_residente,
     })
 
 
 @login_required
 def crear_reserva(request):
-    # Garantizar que las tarifas por defecto existan en BD con los nuevos IDs
+    es_res = hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'RESIDENTE'
+
+    # Tarifas por defecto
     zonas_default = [
         {'zona': 'salon', 'valor': 80000, 'deposito_garantia': 50000, 
          'descripcion': 'Capacidad máx. 80 personas. Horario: 8am - 11pm. Incluye sillas y mesas.'},
@@ -75,7 +84,6 @@ def crear_reserva(request):
     for zd in zonas_default:
         TarifaZona.objects.get_or_create(zona=zd['zona'], defaults=zd)
 
-    # Cargar tarifas como lista (evita problemas de encoding con caracteres especiales en claves JS)
     tarifas_list = [
         {'zona': t.zona, 'valor': int(t.valor), 'deposito': int(t.deposito_garantia), 'descripcion': t.descripcion}
         for t in TarifaZona.objects.filter(activa=True)
@@ -86,21 +94,24 @@ def crear_reserva(request):
         if form.is_valid():
             reserva = form.save(commit=False)
             
+            # Auto-asignar solicitante si es residente
+            if es_res:
+                reserva.solicitante = request.user.perfilusuario
+            
             superposicion = Reserva.objects.filter(
                 zona_comun=reserva.zona_comun, 
                 fecha=reserva.fecha
             ).exclude(estado_reserva='Rechazado').exists()
             
             if superposicion:
-                messages.error(request, "Error: Ese día ya se encuentra reservado para ese espacio. Sólo se permite un grupo por día.")
+                messages.error(request, "Error: Ese día ya se encuentra reservado. Sólo se permite un grupo por día.")
             else:
-                # Autoasignar el valor de la tarifa vigente
                 try:
                     tarifa = TarifaZona.objects.get(zona=reserva.zona_comun)
                     reserva.valor = tarifa.valor
                     reserva.deposito = tarifa.deposito_garantia
                 except TarifaZona.DoesNotExist:
-                    pass  # Si no hay tarifa configurada, queda en 0
+                    pass
                 
                 reserva.estado_reserva = 'Pendiente'
                 reserva.save()
@@ -117,11 +128,24 @@ def crear_reserva(request):
         if zona not in fechas_ocupadas:
             fechas_ocupadas[zona] = []
         fechas_ocupadas[zona].append(fecha_str)
+
+    # Datos del residente para mostrar en el formulario
+    perfil_residente = request.user.perfilusuario if es_res else None
+    from django.db.models import Q
+    apto_residente = None
+    if perfil_residente:
+        from usuarios.models import Apartamento as AptoModel
+        apto_residente = AptoModel.objects.filter(
+            Q(propietario=perfil_residente) | Q(inquilino=perfil_residente) | Q(residente_principal=perfil_residente)
+        ).first()
         
     return render(request, 'reservas/crear.html', {
         'form': form,
         'fechas_ocupadas': json.dumps(fechas_ocupadas),
         'tarifas': json.dumps(tarifas_list, ensure_ascii=False),
+        'es_residente': es_res,
+        'perfil_residente': perfil_residente,
+        'apto_residente': apto_residente,
     })
 
 
@@ -157,8 +181,14 @@ def subir_comprobante(request, reserva_id):
 def tarifario(request):
     """
     Panel de gestión del Tarifario de Zonas Comunes.
-    Muestra las tarifas actuales y permite editarlas inline.
+    Solo accesible para Administradores — los residentes son redirigidos.
     """
+    # Residentes no pueden ver el tarifario
+    if hasattr(request.user, 'perfilusuario'):
+        if request.user.perfilusuario.rol == 'RESIDENTE':
+            messages.warning(request, "No tienes acceso a esta sección.")
+            return redirect('reservas:lista_reservas')
+
     tarifas = TarifaZona.objects.all()
     
     # Si no existen las tarifas base, crearlas con los valores por defecto

@@ -4,10 +4,14 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Gestión de Correspondencia</h2>
+    <h2 class="h3 mb-0 text-gray-800">
+        {% if es_residente %}Mi Correspondencia{% else %}Gestión de Correspondencia{% endif %}
+    </h2>
+    {% if not es_residente %}
     <a href="{% url 'correspondencia:recibir_paquete' %}" class="btn btn-sm btn-info text-white shadow-sm fw-bold">
         <i class="bi bi-box-seam"></i> Recibir Paquete
     </a>
+    {% endif %}
 </div>
 
 <div class="row">
@@ -62,7 +66,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if p.estado == 'Recibido' or p.estado == 'Notificado' %}
+                                    {% if not es_residente and p.estado == 'Recibido' or not es_residente and p.estado == 'Notificado' %}
                                         <button type="button" class="btn btn-sm btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#entregaModal{{ p.id }}">
                                             <i class="bi bi-send-check"></i> Entregar
                                         </button>
@@ -92,6 +96,8 @@
                                             </div>
                                           </div>
                                         </div>
+                                    {% elif p.estado == 'Recibido' or p.estado == 'Notificado' %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pendiente de entrega</span>
                                     {% else %}
                                         <span class="text-muted small">Finalizado</span>
                                     {% endif %}

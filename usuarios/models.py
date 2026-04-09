@@ -8,31 +8,46 @@ class Apartamento(models.Model):
     piso = models.PositiveIntegerField(verbose_name="Piso")
     codigo_pago = models.CharField(max_length=20, unique=True, blank=True, null=True, help_text="Ej: 14501", verbose_name="Código Bancario CSV")
     
-    # Relación con el residente (opcional)
+    # NUEVA ARQUITECTURA (Dualidad Propietario/Inquilino)
+    propietario = models.ForeignKey(
+        'PerfilUsuario', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="propiedades_asignadas",
+        verbose_name="Propietario Legal"
+    )
+    inquilino = models.ForeignKey(
+        'PerfilUsuario', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="arrendamientos_asignados",
+        verbose_name="Inquilino / Arrendatario"
+    )
+
+    # CAMPO LEGADO (Para compatibilidad con módulos antiguos)
     residente_principal = models.ForeignKey(
         'PerfilUsuario', 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True, 
         related_name="apartamentos_asignados",
-        verbose_name="Residente Principal"
+        verbose_name="Residente Principal (LEGACY)"
     )
 
     def __str__(self):
-        # Esto corregirá los nombres extraños ("mi", "do") en el Admin
         return f"Apto {self.numero} (Torre {self.torre})"
 
     class Meta:
         verbose_name = "Apartamento"
         verbose_name_plural = "Apartamentos"
-        # Ordenamos por torre y luego por número para que el Admin sea legible
         ordering = ['torre', 'numero']
         unique_together = ('torre', 'numero')
 
 
 # --- 2. ENTIDAD: PERFIL DE USUARIO (La Persona) ---
 class PerfilUsuario(models.Model):
-    # --- Vínculo con el sistema ---
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Usuario de Sistema")
     
     ROLES = [
@@ -43,6 +58,7 @@ class PerfilUsuario(models.Model):
     ]
     rol = models.CharField(max_length=20, choices=ROLES, default='RESIDENTE')
     activo = models.BooleanField(default=True, verbose_name="Cuenta Activa")
+    primer_ingreso = models.BooleanField(default=True, verbose_name="¿Es su primer ingreso?")
 
     # --- Datos Personales ---
     documento = models.CharField(max_length=20, unique=True, verbose_name="Número de Documento")
@@ -76,3 +92,20 @@ class PerfilUsuario(models.Model):
         verbose_name = "Ficha de Usuario"
         verbose_name_plural = "Fichas de Usuarios"
         ordering = ['nombre_completo']
+
+
+# --- 3. ENTIDAD: OCUPANTE (Censo Poblacional) ---
+class Ocupante(models.Model):
+    apartamento = models.ForeignKey(Apartamento, on_delete=models.CASCADE, related_name="habitantes")
+    nombre_completo = models.CharField(max_length=150)
+    documento = models.CharField(max_length=20, blank=True)
+    parentesco = models.CharField(max_length=50, help_text="Ej: Esposa, Hijo, Madre")
+    telefono = models.CharField(max_length=15, blank=True)
+    es_menor_edad = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.nombre_completo} ({self.parentesco}) - Apto {self.apartamento.numero}"
+
+    class Meta:
+        verbose_name = "Ocupante"
+        verbose_name_plural = "Censo: Ocupantes"

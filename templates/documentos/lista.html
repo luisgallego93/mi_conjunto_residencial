@@ -5,9 +5,11 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h3 mb-0 text-gray-800">Repositorio de Documentos</h2>
+    {% if puede_subir %}
     <a href="{% url 'documentos:subir' %}" class="btn btn-sm btn-primary shadow-sm fw-bold">
         <i class="bi bi-cloud-arrow-up"></i> Subir Documento
     </a>
+    {% endif %}
 </div>
 
 <div class="row mb-4">

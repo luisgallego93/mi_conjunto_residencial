@@ -10,6 +10,14 @@
     </a>
 </div>
 
+{% if es_residente and apartamento_residente %}
+<div class="alert alert-info border-0 rounded-3 mb-4">
+    <i class="bi bi-house-check-fill me-2"></i>
+    Registrando visita para: <strong>Apto {{ apartamento_residente.numero }} — Torre {{ apartamento_residente.torre }}</strong>.
+    La autorización quedará a tu nombre automáticamente.
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-lg-8">
         <div class="card shadow mb-4 border-start border-4 border-primary">
@@ -42,6 +50,8 @@
                         </div>
                     </div>
 
+                    {% if not es_residente %}
+                    <!-- Solo portería/admin ve y edita estos campos -->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-primary">Apto Destino</label>
@@ -68,10 +78,19 @@
                             {{ form.foto_visitante }}
                         </div>
                     </div>
+                    {% else %}
+                    <!-- Residente: solo puede subir foto del visitante -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Documento Fotográfico (Opcional)</label>
+                        {{ form.foto_visitante }}
+                    </div>
+                    {% endif %}
 
                     <hr>
                     <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-door-open-fill"></i> Autorizar Ingreso</button>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-door-open-fill"></i> Autorizar Ingreso
+                        </button>
                     </div>
                 </form>
             </div>
