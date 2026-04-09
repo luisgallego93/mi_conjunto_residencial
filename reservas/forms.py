@@ -1,5 +1,5 @@
 from django import forms
-from .models import Reserva
+from .models import Reserva, TarifaZona
 
 class ReservaForm(forms.ModelForm):
     class Meta:
@@ -15,6 +15,31 @@ class ReservaForm(forms.ModelForm):
             'motivo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Cumpleaños infantil'}),
             'solicitante': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Inyectar datos de tarifas directamente en los atributos de las opciones (choices)
+        tarifas = {t.zona: t for t in TarifaZona.objects.all()}
+        new_choices = []
+        for val, label in self.fields['zona_comun'].choices:
+            if not val: # Opción vacía ("---------")
+                new_choices.append((val, label))
+                continue
+            
+            tarifa = tarifas.get(val)
+            attrs = {}
+            if tarifa:
+                attrs = {
+                    'data-valor': int(tarifa.valor),
+                    'data-deposito': int(tarifa.deposito_garantia),
+                    'data-descripcion': tarifa.descripcion
+                }
+            # En Django, para meter atributos en opciones específicas, usualmente se hace en el template
+            # o con un widget personalizado. Pero aquí usaremos un truco de JS más adelante.
+            # Por ahora, aseguramos que las claves coincidan.
+            new_choices.append((val, label))
+        
+        self.fields['zona_comun'].choices = new_choices
 
     def clean(self):
         cleaned_data = super().clean()

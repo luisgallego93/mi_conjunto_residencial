@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Tarifario de Zonas Comunes - Mi Conjunto{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 mb-1 text-gray-800">Tarifario de Zonas Comunes</h2>
+        <p class="text-muted mb-0 small"><i class="bi bi-info-circle"></i> Los precios aquí configurados se aplican automáticamente al agendar nuevas reservas.</p>
+    </div>
+    <a href="{% url 'reservas:lista_reservas' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <i class="bi bi-arrow-left"></i> Volver a Reservas
+    </a>
+</div>
+
+<!-- Tarjetas de resumen visual -->
+<div class="row mb-4">
+    {% for tarifa in tarifas %}
+    <div class="col-lg-4 mb-3">
+        {% if tarifa.zona == 'Salón' %}
+            {% with bkg="#064e3b" icon="bi-house" %}
+            <div class="card border-0 shadow text-white h-100" style="background: linear-gradient(135deg, {{ bkg }}, #065f46);">
+            {% endwith %}
+        {% elif tarifa.zona == 'BBQ' %}
+            <div class="card border-0 shadow text-white h-100" style="background: linear-gradient(135deg, #78350f, #92400e);">
+        {% else %}
+            <div class="card border-0 shadow text-white h-100" style="background: linear-gradient(135deg, #164e63, #0e7490);">
+        {% endif %}
+    <div class="card-body text-center py-4">
+        {% if tarifa.zona == 'Salón' %}
+            <i class="bi bi-house display-4 mb-3 opacity-75"></i>
+        {% elif tarifa.zona == 'BBQ' %}
+            <i class="bi bi-fire display-4 mb-3 opacity-75"></i>
+        {% else %}
+            <i class="bi bi-water display-4 mb-3 opacity-75"></i>
+        {% endif %}
+                <h5 class="fw-bold mb-1">{{ tarifa.get_zona_display }}</h5>
+                <div class="display-5 fw-bold mb-1">${{ tarifa.valor|intcomma }}</div>
+                <small class="opacity-75">Reserva sujeta a reglamento</small>
+                <div class="mt-3">
+                    <span class="badge {% if tarifa.activa %}bg-success{% else %}bg-danger{% endif %} px-3">
+                        {% if tarifa.activa %}<i class="bi bi-check-circle"></i> Disponible{% else %}<i class="bi bi-x-circle"></i> Inactiva{% endif %}
+                    </span>
+                </div>
+                {% if tarifa.descripcion %}
+                <p class="small opacity-75 mt-2 mb-0">{{ tarifa.descripcion }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Formularios de edición -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-dark text-white">
+        <h6 class="m-0 fw-bold"><i class="bi bi-pencil-square me-2"></i>Actualizar Tarifario — Gestión Administrativa</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for tarifa in tarifas %}
+            <div class="col-lg-4 mb-4">
+                <div class="card border shadow-sm h-100">
+                    <div class="card-header py-2 bg-white">
+                        <h6 class="m-0 fw-bold">
+                            {% if tarifa.zona == 'Salón' %}<i class="bi bi-house text-success me-1"></i>
+                            {% elif tarifa.zona == 'BBQ' %}<i class="bi bi-fire text-warning me-1"></i>
+                            {% else %}<i class="bi bi-water text-info me-1"></i>{% endif %}
+                            {{ tarifa.get_zona_display }}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'reservas:editar_tarifa' tarifa.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Tarifa de Uso</label>
+                                <div class="input-group">
+                                    <span class="input-group-text fw-bold">$</span>
+                                    <input type="number" name="valor" class="form-control fw-bold fs-5"
+                                           value="{{ tarifa.valor|floatformat:0 }}" min="0" step="1000" required>
+                                </div>
+                            </div>
+                            <input type="hidden" name="deposito_garantia" value="0">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Descripción / Condiciones</label>
+                                <textarea name="descripcion" class="form-control" rows="2">{{ tarifa.descripcion }}</textarea>
+                            </div>
+                            <div class="mb-3 d-flex align-items-center gap-2">
+                                <input class="form-check-input mt-0" type="checkbox" name="activa" id="activa_{{ tarifa.id }}" {% if tarifa.activa %}checked{% endif %}>
+                                <label class="form-check-label fw-bold" for="activa_{{ tarifa.id }}">Disponible para reservas</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold">
+                                <i class="bi bi-floppy2"></i> Guardar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">Cargando tarifas por primera vez... <a href="{% url 'reservas:tarifario' %}">Refrescar</a></div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

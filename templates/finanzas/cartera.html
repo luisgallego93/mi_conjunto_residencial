@@ -7,17 +7,23 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h3 mb-0 text-gray-800">Cartera y Cobranzas</h2>
     <div>
-        <button class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#cargarCsvModal">
-            <i class="bi bi-cloud-arrow-up"></i> Cargar Pagos (CSV)
-        </button>
         <button class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#facturacionModal">
             <i class="bi bi-magic"></i> Facturación Masiva
+        </button>
+        <button class="btn btn-sm btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#eliminarPeriodoModal">
+            <i class="bi bi-trash3"></i> Eliminar Periodo
+        </button>
+        <button class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#cargarCsvModal">
+            <i class="bi bi-cloud-arrow-up"></i> Cargar Pagos (CSV)
         </button>
         <a href="{% url 'finanzas:registrar_multa' %}" class="btn btn-sm btn-outline-danger shadow-sm">
             <i class="bi bi-file-earmark-text"></i> Nueva Multa
         </a>
         <a href="{% url 'finanzas:notificar_morosos' %}" class="btn btn-sm btn-danger shadow-sm">
             <i class="bi bi-envelope"></i> Notificar Morosos
+        </a>
+        <a href="{% url 'finanzas:mi_estado_cuenta' %}" class="btn btn-sm btn-info shadow-sm text-white">
+            <i class="bi bi-journal-check"></i> Mis Movimientos
         </a>
     </div>
 </div>
@@ -58,13 +64,25 @@
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs fw-bold text-danger text-uppercase mb-1">
-                            Dinero Total en Mora</div>
+                        <div class="text-xs fw-bold text-danger text-uppercase mb-1">Cartera en Mora</div>
                         <div class="h5 mb-0 fw-bold text-gray-800">$ {{ total_mora|intcomma }}</div>
+                        <div class="small text-muted mt-1">Plazo vencido — meses anteriores</div>
                     </div>
-                    <div class="col-auto">
-                        <i class="bi bi-cash-coin fs-2 text-gray-300"></i>
+                    <div class="col-auto"><i class="bi bi-cash-coin fs-2 text-danger opacity-50"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-4 border-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs fw-bold text-warning text-uppercase mb-1">Facturas Vigentes</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">$ {{ total_vigente|intcomma }}</div>
+                        <div class="small text-muted mt-1">{{ aptos_vigentes }} apto(s) — aún en plazo</div>
                     </div>
+                    <div class="col-auto"><i class="bi bi-clock-history fs-2 text-warning opacity-50"></i></div>
                 </div>
             </div>
         </div>
@@ -91,7 +109,6 @@
                         <th>Residente / Contacto</th>
                         <th>Detalle de la Deuda</th>
                         <th>Total Consolidado</th>
-                        <th>Estado</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -99,53 +116,117 @@
                     {% for item in resumen_cartera %}
                     <tr>
                         <td>
-                            <div class="fw-bold">Apto {{ item.apartamento.numero }}</div>
+                            <div class="fw-bold fs-5">Apto {{ item.apartamento.numero }}</div>
                             <div class="small text-muted">Torre {{ item.apartamento.torre }}</div>
                         </td>
                         <td>
                             {% if item.apartamento.residente_principal %}
                                 <div class="fw-bold">{{ item.apartamento.residente_principal.nombre_completo }}</div>
-                                <div class="small text-muted"><i class="bi bi-telephone"></i> {{ item.apartamento.residente_principal.telefono }}</div>
+                                <div class="small text-muted mb-1"><i class="bi bi-telephone"></i> {{ item.apartamento.residente_principal.telefono }}</div>
+                                <div class="text-xs text-primary">{{ item.apartamento.residente_principal.email_personal|default:"" }}</div>
                             {% else %}
                                 <span class="text-secondary fst-italic">Sin asignar</span>
                             {% endif %}
                         </td>
                         <td>
-                            <ul class="mb-0 list-unstyled small">
-                                {% for detalle in item.detalles %}
-                                    <li><i class="bi bi-dot text-danger"></i> {{ detalle }}</li>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for det in item.detalles %}
+                                    <div class="px-3 py-2 border rounded bg-white shadow-sm flex-grow-1" style="min-width: 130px;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small fw-bold text-muted">{{ det.periodo }}</span>
+                                            {% if det.en_mora %}
+                                                <span class="badge bg-danger p-1" style="font-size: 0.65rem;">Mora</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark p-1" style="font-size: 0.65rem;">Plazo</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="fw-bold text-dark">
+                                            $ {{ det.saldo|intcomma }}
+                                            {% if det.tipo == 'Multa' %}<small class="text-danger">*</small>{% endif %}
+                                        </div>
+                                    </div>
                                 {% endfor %}
-                            </ul>
+                            </div>
                         </td>
-                        <td class="fw-semibold text-danger">$ {{ item.total|intcomma }}</td>
-                        <td><span class="badge bg-danger">Mora Activa</span></td>
-                        <td>
-                            <a href="{% url 'finanzas:expediente_cobranza' item.apartamento.id %}" class="btn btn-sm btn-outline-warning text-dark fw-bold" title="Expediente de Cobranza">
-                                <i class="bi bi-person-lines-fill"></i> Expediente
-                            </a>
-                            <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#pagoModal{{ item.apartamento.id }}" title="Recibir Pago">
-                                <i class="bi bi-currency-dollar"></i> Recibir
-                            </button>
+                        <td class="text-end">
+                            <div class="text-xs text-uppercase text-muted">Saldo Pendiente</div>
+                            <div class="h5 mb-0 fw-bold {% if item.total_mora > 0 %}text-danger{% else %}text-warning{% endif %}">
+                                $ {{ item.total|intcomma }}
+                            </div>
+                            <div class="small text-muted">{{ item.detalles|length }} factura(s) / multas</div>
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group shadow-sm">
+                                <a href="{% url 'finanzas:expediente_cobranza' item.apartamento.id %}" class="btn btn-sm btn-outline-primary" title="Ver Historial">
+                                    <i class="bi bi-file-earmark-person"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-sm btn-success fw-bold" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#pagoModal{{ item.apartamento.id }}"
+                                        title="Recibir Pago">
+                                    <i class="bi bi-cash"></i> Recibir
+                                </button>
+                            </div>
                             
                             <!-- Modal Pago -->
                             <div class="modal fade" id="pagoModal{{ item.apartamento.id }}" tabindex="-1" aria-hidden="true">
-                              <div class="modal-dialog">
-                                <div class="modal-content">
+                              <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg">
                                   <div class="modal-header bg-success text-white">
-                                    <h5 class="modal-title"><i class="bi bi-cash-coin"></i> Confirmar Recaudo</h5>
+                                    <h5 class="modal-title"><i class="bi bi-cash-coin me-2"></i>Pago: Apto {{ item.apartamento.numero }}</h5>
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                   </div>
-                                  <div class="modal-body text-start">
-                                    <p>¿Confirma haber recibido en banco/caja el pago por <strong>$ {{ item.total|intcomma }}</strong> de parte del apartamento <strong>{{ item.apartamento.numero }}</strong>?</p>
-                                    <small class="text-muted">Esta acción saldará todas sus multas y facturas de administración atrasadas.</small>
-                                  </div>
-                                  <div class="modal-footer">
-                                    <form action="{% url 'finanzas:recibir_pago' item.apartamento.id %}" method="post">
-                                        {% csrf_token %}
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Sí, Recibí el Dinero</button>
-                                    </form>
-                                  </div>
+                                  <form action="{% url 'finanzas:recibir_pago' item.apartamento.id %}" method="post">
+                                    {% csrf_token %}
+                                    <div class="modal-body text-start p-4">
+                                        <div class="p-3 bg-light rounded-3 mb-4 text-center border">
+                                            <div class="text-xs text-uppercase text-muted mb-1">Total a Recaudar</div>
+                                            <div class="h3 mb-0 fw-bold text-success">$ {{ item.total|intcomma }}</div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold small text-muted text-uppercase">Método de Recaudo</label>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <input type="radio" class="btn-check" name="tipo_pago" value="total" 
+                                                           id="radioTotal{{ item.apartamento.id }}" checked
+                                                           onchange="document.getElementById('divAbono{{ item.apartamento.id }}').style.display = 'none'">
+                                                    <label class="btn btn-outline-success w-100 py-3 fw-bold" for="radioTotal{{ item.apartamento.id }}">
+                                                        <i class="bi bi-check-all d-block fs-4 mb-1"></i>Pago Total
+                                                    </label>
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="radio" class="btn-check" name="tipo_pago" value="abono" 
+                                                           id="radioAbono{{ item.apartamento.id }}"
+                                                           onchange="document.getElementById('divAbono{{ item.apartamento.id }}').style.display = 'block'">
+                                                    <label class="btn btn-outline-warning w-100 py-3 fw-bold" for="radioAbono{{ item.apartamento.id }}">
+                                                        <i class="bi bi-piggy-bank d-block fs-4 mb-1"></i>Abono Parcial
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Campo monto abono -->
+                                        <div id="divAbono{{ item.apartamento.id }}" style="display:none;" class="animate__animated animate__fadeInDown">
+                                            <label class="form-label fw-bold small text-muted text-uppercase">¿Cuánto está pagando hoy?</label>
+                                            <div class="input-group input-group-lg shadow-sm">
+                                                <span class="input-group-text bg-white border-end-0 text-success fw-bold">$</span>
+                                                <input type="text" name="valor_abono" class="form-control border-start-0 ps-0 fw-bold text-success" 
+                                                       placeholder="0.00" oninput="this.value = this.value.replace(/[^0-9.]/g, '')">
+                                            </div>
+                                            <div class="form-text mt-2 small text-muted">
+                                                <i class="bi bi-info-circle me-1"></i>El sistema liquidará los meses más antiguos automáticamente con este valor.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer bg-light">
+                                        <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-success px-4 fw-bold shadow">
+                                            <i class="bi bi-cloud-upload me-2"></i>Registrar Pago
+                                        </button>
+                                    </div>
+                                  </form>
                                 </div>
                               </div>
                             </div>
@@ -162,23 +243,81 @@
     </div>
 </div>
 
+<!-- Botones de gestión movidos arriba -->
+
 <!-- Modal Facturacion Masiva -->
-<div class="modal fade" id="facturacionModal" tabindex="-1" aria-labelledby="facturacionModalLabel" aria-hidden="true">
+<div class="modal fade" id="facturacionModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="facturacionModalLabel"><i class="bi bi-building"></i> Generar Facturación Masiva</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title"><i class="bi bi-building"></i> Generar Facturación Masiva</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form action="{% url 'finanzas:generar_facturacion' %}" method="post">
-          <div class="modal-body">
+          <div class="modal-body p-4">
               {% csrf_token %}
-              <div class="alert alert-info small">
-                  Esta acción creará automáticamente una cuenta de cobro para los <strong>460 apartamentos</strong> del conjunto, ahorrando tiempo de digitalización.
+              <div class="alert alert-info border-0 shadow-sm small">
+                  <i class="bi bi-info-circle-fill me-2"></i>
+                  Esta acción creará automáticamente una cuenta de cobro para los <strong>460 apartamentos</strong> del conjunto residencial.
               </div>
-              <div class="row">
-                  <div class="col-6 mb-3">
+              <div class="row g-3">
+                  <div class="col-6">
                       <label class="form-label fw-bold">Mes</label>
+                      <select name="mes" class="form-select" required>
+                          <option value="01">01 - Enero</option>
+                          <option value="02">02 - Febrero</option>
+                          <option value="03" selected>03 - Marzo</option>
+                          <option value="04">04 - Abril</option>
+                          <option value="05">05 - Mayo</option>
+                          <option value="06">06 - Junio</option>
+                          <option value="07">07 - Julio</option>
+                          <option value="08">08 - Agosto</option>
+                          <option value="09">09 - Septiembre</option>
+                          <option value="10">10 - Octubre</option>
+                          <option value="11">11 - Noviembre</option>
+                          <option value="12">12 - Diciembre</option>
+                      </select>
+                  </div>
+                  <div class="col-6">
+                      <label class="form-label fw-bold">Año</label>
+                      <input type="number" name="anio" class="form-control" value="2026" required>
+                  </div>
+              </div>
+              <div class="mt-4">
+                  <label class="form-label fw-bold text-primary">Valor Base de Administración ($)</label>
+                  <div class="input-group input-group-lg shadow-sm">
+                      <span class="input-group-text bg-white border-end-0 text-primary fw-bold">$</span>
+                      <input type="number" name="valor_base" class="form-control border-start-0 ps-0 fw-bold text-primary" placeholder="Ej. 150000" required>
+                  </div>
+              </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-4 fw-bold shadow"><i class="bi bi-magic me-2"></i>Generar Ahora</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- NUEVO: Modal Eliminar Periodo -->
+<div class="modal fade" id="eliminarPeriodoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar Periodo Completo</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{% url 'finanzas:eliminar_periodo' %}" method="post">
+          <div class="modal-body p-4">
+              {% csrf_token %}
+              <div class="alert alert-warning border-danger">
+                  <i class="bi bi-info-circle-fill me-2"></i>
+                  <strong>¡Atención!</strong> Esta acción eliminará permanente **todas las facturas** del mes y año seleccionados. Úsalo solo para corregir errores de digitación.
+              </div>
+              <div class="row g-3">
+                  <div class="col-6">
+                      <label class="form-label fw-bold">Mes a eliminar</label>
                       <select name="mes" class="form-select" required>
                           <option value="01">01 - Enero</option>
                           <option value="02">02 - Febrero</option>
@@ -194,22 +333,38 @@
                           <option value="12">12 - Diciembre</option>
                       </select>
                   </div>
-                  <div class="col-6 mb-3">
+                  <div class="col-6">
                       <label class="form-label fw-bold">Año</label>
                       <input type="number" name="anio" class="form-control" value="2026" required>
                   </div>
               </div>
-              <div class="mb-3">
-                  <label class="form-label fw-bold text-danger">Valor Base de Administración ($)</label>
-                  <input type="number" name="valor_base" class="form-control form-control-lg text-danger fw-bold" placeholder="Ej. 150000" required>
-              </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-magic"></i> Generar Ahora</button>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger px-4 fw-bold shadow">
+                <i class="bi bi-trash3 me-2"></i>Confirmar Borrado
+            </button>
           </div>
       </form>
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleAbono(aptoId, mostrar) {
+    const campoAbono = document.getElementById('campoAbono' + aptoId);
+    const infoTotal  = document.getElementById('infoTotal' + aptoId);
+    if (mostrar) {
+        campoAbono.style.display = 'block';
+        infoTotal.style.display  = 'none';
+        campoAbono.querySelector('input').required = true;
+    } else {
+        campoAbono.style.display = 'none';
+        infoTotal.style.display  = 'block';
+        campoAbono.querySelector('input').required = false;
+    }
+}
+</script>
 {% endblock %}

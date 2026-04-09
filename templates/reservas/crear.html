@@ -2,21 +2,26 @@
 
 {% block title %}Nueva Reserva - Mi Conjunto Gestión{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <h2 class="h3 mb-0 text-gray-800">Agendar Nueva Reserva</h2>
     <a href="{% url 'reservas:lista_reservas' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
         <i class="bi bi-arrow-left"></i> Volver al Listado
     </a>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
+<div class="row justify-content-center">
+    <div class="col-lg-10">
         <div class="card shadow mb-4 border-start border-4 border-success">
-            <div class="card-header py-3 bg-white">
+            <div class="card-header py-3 bg-white d-flex justify-content-between align-items-center">
                 <h6 class="m-0 fw-bold text-success">Formulario de Agendamiento</h6>
+                <a href="{% url 'reservas:tarifario' %}" class="btn btn-sm btn-link text-decoration-none">
+                    <i class="bi bi-info-circle"></i> Ver Tarifario Completo
+                </a>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -36,17 +41,18 @@
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-12 mb-3">
                             <label class="form-label fw-bold">Fecha Reservada</label>
-                            <input type="text" name="fecha" id="id_fecha" class="form-control" required placeholder="Selecciona una fecha">
+                            <input type="text" name="fecha" id="id_fecha" class="form-control form-control-lg" required placeholder="Selecciona una fecha disponible..." autocomplete="off">
                             {% if form.fecha.errors %}<div class="text-danger small">{{ form.fecha.errors }}</div>{% endif %}
+                            <div class="form-text"><i class="bi bi-info-circle"></i> Las fechas en gris ya están reservadas para la zona seleccionada.</div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-bold">Hora Inicial</label>
                             {{ form.hora_inicio }}
                             {% if form.hora_inicio.errors %}<div class="text-danger small">{{ form.hora_inicio.errors }}</div>{% endif %}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-bold">Hora Final</label>
                             {{ form.hora_fin }}
                             {% if form.hora_fin.errors %}<div class="text-danger small">{{ form.hora_fin.errors }}</div>{% endif %}
@@ -67,42 +73,59 @@
                     </div>
 
                     <hr>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-success"><i class="bi bi-calendar-check"></i> Agendar Reserva</button>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">
+                            <i class="bi bi-shield-check"></i> El valor se asignará automáticamente según el tarifario vigente.
+                        </span>
+                        <button type="submit" class="btn btn-success btn-lg shadow"><i class="bi bi-calendar-check"></i> Agendar Reserva</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Datos inyectados desde Django
         const fechasOcupadas = JSON.parse('{{ fechas_ocupadas|safe }}');
-        
-        let fp = flatpickr("#id_fecha", {
+
+        const fp = flatpickr("#id_fecha", {
+            locale: "es",
             minDate: "today",
             dateFormat: "Y-m-d",
+            disableMobile: true,
         });
 
         const zonaSelect = document.querySelector("select[name='zona_comun']");
-        
-        zonaSelect.addEventListener("change", function() {
-            let zonaSeleccionada = this.value;
+
+        function onZonaChange() {
+            const zona = zonaSelect.value;
             fp.clear();
-            if (zonaSeleccionada && fechasOcupadas[zonaSeleccionada]) {
-                fp.set('disable', [
-                    function(date) {
-                        let dateString = date.getFullYear() + "-" + 
-                                         String(date.getMonth() + 1).padStart(2, '0') + "-" + 
-                                         String(date.getDate()).padStart(2, '0');
-                        return fechasOcupadas[zonaSeleccionada].includes(dateString);
-                    }
-                ]);
+            
+            if (zona && fechasOcupadas[zona]) {
+                fp.set('disable', [function(date) {
+                    const s = date.getFullYear() + "-" +
+                        String(date.getMonth() + 1).padStart(2, '0') + "-" +
+                        String(date.getDate()).padStart(2, '0');
+                    return fechasOcupadas[zona].includes(s);
+                }]);
             } else {
                 fp.set('disable', []);
             }
-        });
+        }
+
+        zonaSelect.addEventListener("change", onZonaChange);
+        
+        // Carga inicial
+        if (zonaSelect.value) {
+            onZonaChange();
+        }
     });
 </script>
 {% endblock %}
+
+

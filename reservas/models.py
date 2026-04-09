@@ -3,7 +3,7 @@ from usuarios.models import PerfilUsuario
 
 class Reserva(models.Model):
     # --- 1. DATOS DE LA RESERVA ---
-    ZONAS = [('Salón', 'Salón Social'), ('BBQ', 'Zona BBQ'), ('Piscina', 'Piscina')]
+    ZONAS = [('salon', 'Salón Social'), ('bbq', 'Zona BBQ'), ('piscina', 'Piscina')]
     zona_comun = models.CharField(max_length=50, choices=ZONAS)
     fecha = models.DateField()
     hora_inicio = models.TimeField(null=True, blank=True)
@@ -30,7 +30,7 @@ class Reserva(models.Model):
     valor = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     deposito = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     estado_pago = models.BooleanField(default=False, verbose_name="¿Está pagado?")
-    comprobante_pago = models.ImageField(upload_to='reservas/pagos/', null=True, blank=True, verbose_name="Recibo o Comprobante de Transacción")
+    comprobante_pago = models.FileField(upload_to='reservas/pagos/', null=True, blank=True, verbose_name="Recibo o Comprobante de Transacción")
     requiere_aseo = models.BooleanField(default=False)
     inventario_entregado = models.BooleanField(default=False)
 
@@ -38,3 +38,37 @@ class Reserva(models.Model):
         # Usamos un condicional por si el solicitante aún no se ha asignado
         nombre = self.solicitante.nombre_completo if self.solicitante else "Sin asignar"
         return f"{self.zona_comun} - {nombre} ({self.fecha})"
+
+
+class TarifaZona(models.Model):
+    """
+    Tarifario de Zonas Comunes — El administrador puede actualizar los precios
+    desde el panel de gestión sin necesidad de tocar el código fuente.
+    """
+    ZONAS = [('salon', 'Salón Social'), ('bbq', 'Zona BBQ'), ('piscina', 'Piscina')]
+    
+    zona = models.CharField(max_length=50, choices=ZONAS, unique=True, verbose_name="Zona Común")
+    valor = models.DecimalField(
+        max_digits=10, decimal_places=0, default=0,
+        verbose_name="Tarifa de Uso ($)",
+        help_text="Valor que debe pagar el residente por el uso de esta zona."
+    )
+    deposito_garantia = models.DecimalField(
+        max_digits=10, decimal_places=0, default=0,
+        verbose_name="Depósito de Garantía ($)",
+        help_text="Valor reembolsable condicionado al buen uso del espacio."
+    )
+    descripcion = models.TextField(
+        blank=True,
+        verbose_name="Descripción / Condiciones",
+        help_text="Capacidad, horarios, condiciones especiales, etc."
+    )
+    activa = models.BooleanField(default=True, verbose_name="¿Disponible para reservas?")
+    
+    def __str__(self):
+        return f"{self.get_zona_display()} — ${self.valor:,.0f}"
+
+    class Meta:
+        verbose_name = "Tarifa de Zona"
+        verbose_name_plural = "Tarifario de Zonas Comunes"
+        ordering = ['zona']

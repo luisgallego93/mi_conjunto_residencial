@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Mis Movimientos - Mi Conjunto Gestión{% endblock %}
+
+{% block content %}
+<!-- Cabecera de Estado -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow border-0 overflow-hidden" style="border-radius: 1rem;">
+            <div class="card-body p-0">
+                <div class="row g-0">
+                    <div class="col-md-8 p-4 bg-white">
+                        <h2 class="h4 fw-bold mb-1">Estado de Cuenta: {{ apartamento }}</h2>
+                        <p class="text-muted small mb-3">Consolidado histórico de obligaciones y pagos realizados.</p>
+                        <div class="d-flex gap-4">
+                            <div>
+                                <span class="text-muted small d-block">Residente Autorizado</span>
+                                <span class="fw-bold">{{ user.perfilusuario.nombre_completo }}</span>
+                            </div>
+                            <div>
+                                <span class="text-muted small d-block">Referencia Única de Pago</span>
+                                <span class="badge bg-light text-dark border">{{ apartamento.codigo_pago|default:"No asignado" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 p-4 d-flex align-items-center justify-content-center {% if al_dia %}bg-success{% else %}bg-danger{% endif %} text-white">
+                        <div class="text-center">
+                            {% if al_dia %}
+                                <i class="bi bi-check-circle-fill display-4 mb-2"></i>
+                                <h3 class="fw-bold mb-0">¡Al Día!</h3>
+                                <p class="small mb-0 opacity-75">No registras deudas pendientes</p>
+                            {% else %}
+                                <i class="bi bi-exclamation-triangle-fill display-4 mb-2"></i>
+                                <h3 class="fw-bold mb-0">Pendiente</h3>
+                                <p class="small mb-0 opacity-75">Revisa tus facturas abiertas</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs de Navegación -->
+<div class="card shadow border-0 mb-4" style="border-radius: 1rem;">
+    <div class="card-header bg-white py-3 border-0">
+        <ul class="nav nav-pills card-header-pills" id="pills-tab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold" id="pills-admin-tab" data-bs-toggle="pill" data-bs-target="#pills-admin" type="button"><i class="bi bi-building me-1"></i> Administración</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold" id="pills-multas-tab" data-bs-toggle="pill" data-bs-target="#pills-multas" type="button"><i class="bi bi-file-earmark-text me-1"></i> Multas</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold" id="pills-reservas-tab" data-bs-toggle="pill" data-bs-target="#pills-reservas" type="button"><i class="bi bi-calendar-event me-1"></i> Reservas</button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="pills-tabContent">
+            <!-- PESTAÑA ADMINISTRACIÓN -->
+            <div class="tab-pane fade show active" id="pills-admin" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Periodo</th>
+                                <th>Concepto</th>
+                                <th>Valor Facturado</th>
+                                <th>Abonado</th>
+                                <th>Saldo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in cuentas %}
+                            <tr>
+                                <td class="fw-bold">{{ c.mes_referencia }}/{{ c.anio }}</td>
+                                <td>Cuota de Administración Ordinaria</td>
+                                <td>${{ c.valor_base|intcomma }}</td>
+                                <td class="text-success">${{ c.valor_abonado|intcomma }}</td>
+                                <td class="fw-bold {% if c.saldo_pendiente > 0 %}text-danger{% endif %}">${{ c.saldo_pendiente|intcomma }}</td>
+                                <td>
+                                    {% if c.estado == 'Pagado' %}
+                                        <span class="badge bg-success">Pagado</span>
+                                    {% else %}
+                                        {% if c.anio < anio_actual or c.anio == anio_actual and c.mes_referencia < mes_actual %}
+                                            <span class="badge bg-danger"><i class="bi bi-clock-history"></i> En Mora</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted py-4">No hay registros de facturación.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PESTAÑA MULTAS -->
+            <div class="tab-pane fade" id="pills-multas" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Valor</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in multas %}
+                            <tr>
+                                <td>{{ m.fecha_suceso }}</td>
+                                <td><span class="badge bg-outline-danger border border-danger text-danger">{{ m.tipo }}</span></td>
+                                <td class="small">{{ m.descripcion }}</td>
+                                <td class="fw-bold">${{ m.valor|intcomma }}</td>
+                                <td>
+                                    {% if m.aplicada_en_cobro %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Pagado</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pendiente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">Sin registro de multas o sanciones.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PESTAÑA RESERVAS -->
+            <div class="tab-pane fade" id="pills-reservas" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha Reserva</th>
+                                <th>Zona</th>
+                                <th>Motivo</th>
+                                <th>Costo de Reserva</th>
+                                <th>Estado de Pago</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in reservas %}
+                            <tr>
+                                <td>{{ r.fecha }} <small class="text-muted d-block">{{ r.hora_inicio|time:"H:i" }} - {{ r.hora_fin|time:"H:i" }}</small></td>
+                                <td>
+                                    {% if r.zona_comun == 'salon' %}<i class="bi bi-house text-success"></i> {% elif r.zona_comun == 'bbq' %}<i class="bi bi-fire text-warning"></i> {% else %}<i class="bi bi-water text-info"></i> {% endif %}
+                                    {{ r.get_zona_comun_display }}
+                                </td>
+                                <td class="small">{{ r.motivo|default:"--N/A--" }}</td>
+                                <td class="fw-bold">${{ r.valor|intcomma }}</td>
+                                <td>
+                                    {% if r.estado_pago %}
+                                        <span class="badge bg-success">Liquidado</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pendiente Pago</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">No has realizado reservas de zonas comunes.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info border-0 shadow-sm" style="border-radius: 1rem;">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-info-square fs-3 me-3"></i>
+        <div>
+            <h6 class="fw-bold mb-1">Nota sobre tus movimientos</h6>
+            <p class="small mb-0">Si realizaste un pago y no aparece reflejado aquí, por favor recuerda que la conciliación bancaria puede tardar hasta 48 horas hábiles. Para reportar pagos inmediatos, envía el soporte al correo de administración o vía WhatsApp.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

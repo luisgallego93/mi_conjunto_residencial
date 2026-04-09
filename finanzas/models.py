@@ -9,12 +9,18 @@ class CuentaCobro(models.Model):
     apartamento = models.ForeignKey(Apartamento, on_delete=models.CASCADE, verbose_name="Apartamento")
     mes_referencia = models.CharField(max_length=2, choices=MESES, verbose_name="Mes")
     anio = models.IntegerField(default=2026, verbose_name="Año")
-    valor_base = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Administración Mes")
+    valor_base = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Facturado")
+    valor_abonado = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor Abonado")
     estado = models.CharField(
         max_length=20, 
         choices=[('Pendiente', 'Pendiente'), ('Pagado', 'Pagado')], 
         default='Pendiente'
     )
+
+    @property
+    def saldo_pendiente(self):
+        """Cuánto falta por pagar en esta factura."""
+        return self.valor_base - self.valor_abonado
 
     def __str__(self):
         return f"{self.apartamento} - Periodo {self.mes_referencia}/{self.anio}"

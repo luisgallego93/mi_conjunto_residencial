@@ -16,6 +16,16 @@ class Comunicacion(models.Model):
     titulo = models.CharField(max_length=100, verbose_name="Título/Asunto")
     descripcion = models.TextField(verbose_name="Descripción detallada")
     prioridad = models.CharField(max_length=10, choices=PRIORIDADES, default='Media')
+    
+    # --- NÚMERO DE RADICADO (Ticket de seguimiento) ---
+    numero_radicado = models.CharField(
+        max_length=25, 
+        unique=True, 
+        blank=True, 
+        null=True,
+        verbose_name="Número de Radicado",
+        help_text="Generado automáticamente al crear la solicitud. Ej: PQRS-2026-000001"
+    )
 
     # --- 2. SOLICITANTE ---
     # Al usar related_name='comunicaciones', facilitamos las consultas desde el usuario
@@ -46,6 +56,19 @@ class Comunicacion(models.Model):
     imagen_evidencia = models.ImageField(upload_to='comunicaciones/evidencias/', null=True, blank=True, verbose_name="Foto de Evidencia")
     observaciones_internas = models.TextField(blank=True, verbose_name="Notas de la Administración")
     respuesta_residente = models.TextField(blank=True, verbose_name="Respuesta final al residente")
+
+    def save(self, *args, **kwargs):
+        """Genera automáticamente el número de radicado al crear el registro."""
+        # Solo generamos el radicado si no tiene uno (es un registro nuevo)
+        if not self.numero_radicado:
+            # Guardamos primero para obtener el ID
+            super().save(*args, **kwargs)
+            anio = self.fecha_creacion.year if self.fecha_creacion else timezone.now().year
+            self.numero_radicado = f"PQRS-{anio}-{self.pk:06d}"
+            # Guardamos de nuevo solo el campo radicado
+            Comunicacion.objects.filter(pk=self.pk).update(numero_radicado=self.numero_radicado)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         # Usamos el nombre_completo del PerfilUsuario que ya definimos antes
