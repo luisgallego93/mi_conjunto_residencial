@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestionar Familia - Mi Conjunto{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Mi Grupo Familiar</h2>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Mi Familia</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row">
+    <!-- Listado de Ocupantes -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-bold text-primary"><i class="bi bi-people-fill me-2"></i>Personas que viven conmigo</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info border-0 small mb-4" style="background:#e8f0fe;">
+                    <i class="bi bi-info-circle-fill me-2 text-primary"></i>
+                    Esta información es vital para el censo del conjunto y para autorizar ingresos en portería de forma rápida.
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nombre Completo</th>
+                                <th>Parentesco</th>
+                                <th>Documento</th>
+                                <th>Edad</th>
+                                <th class="text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in ocupantes %}
+                            <tr>
+                                <td class="fw-bold">
+                                    {{ o.nombre_completo }}
+                                    {% if o.es_menor_edad %}
+                                        <span class="badge bg-warning text-dark ms-1 small">Menor</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ o.parentesco }}</td>
+                                <td class="text-muted">{{ o.documento|default:"-" }}</td>
+                                <td>{{ o.edad|default:"-" }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'usuarios:eliminar_ocupante' o.id %}" 
+                                       class="btn btn-sm btn-outline-danger" 
+                                       onclick="return confirm('¿Eliminar a {{ o.nombre_completo }} del censo familiar?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted fst-italic">
+                                    Aún no has registrado a tu grupo familiar. Usa el formulario de la derecha.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario para Agregar -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow border-0 overflow-hidden" style="border-radius: 12px;">
+            <div class="modal-header text-white p-3" style="background: linear-gradient(135deg,#4e73df,#224abe); border:none;">
+                <h6 class="modal-title fw-bold m-0"><i class="bi bi-person-plus-fill me-2"></i>Agregar Familiar</h6>
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form action="{% url 'usuarios:gestionar_familia' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Nombre Completo</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Ej: Diana Pérez" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Parentesco</label>
+                        <select name="parentesco" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Esposo(a)">Esposo(a)</option>
+                            <option value="Hijo(a)">Hijo(a)</option>
+                            <option value="Padre/Madre">Padre/Madre</option>
+                            <option value="Hermano(a)">Hermano(a)</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-8">
+                            <label class="form-label fw-bold small">Documento (Opcional)</label>
+                            <input type="text" name="documento" class="form-control" placeholder="Opcional">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-bold small">Edad</label>
+                            <input type="number" name="edad" class="form-control" placeholder="Años">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Teléfono (Opcional)</label>
+                        <input type="text" name="telefono" class="form-control" placeholder="Opcional">
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="es_menor" id="switchMenor">
+                        <label class="form-check-label fw-bold small" for="switchMenor">¿Es menor de edad?</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Registrar en Censo
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer bg-white text-muted small py-3">
+                <i class="bi bi-house-check me-1"></i> Registrado en Apto {{ apartamento.numero }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const edadInput = document.querySelector('input[name="edad"]');
+        const switchMenor = document.getElementById('switchMenor');
+
+        if (edadInput && switchMenor) {
+            edadInput.addEventListener('input', function() {
+                const edad = parseInt(this.value);
+                if (!isNaN(edad)) {
+                    if (edad < 18) {
+                        switchMenor.checked = true;
+                    } else {
+                        switchMenor.checked = false;
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

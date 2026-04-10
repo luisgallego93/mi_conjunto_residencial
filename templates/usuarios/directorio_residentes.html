@@ -15,94 +15,117 @@
         <h6 class="m-0 fw-bold text-primary">Residentes, Administradores y Personal</h6>
     </div>
     <div class="card-body">
-        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
-            {% for r in residentes %}
-            <div class="col">
-                <div class="card h-100 shadow-sm border-0 bg-light">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <h5 class="card-title fw-bold text-primary mb-0">{{ r.nombre_completo }}</h5>
-                            {% if r.activo %}
-                                <span class="badge bg-success rounded-pill align-self-start">Activo</span>
-                            {% else %}
-                                <span class="badge bg-danger rounded-pill align-self-start">Inactivo</span>
-                            {% endif %}
-                        </div>
-                        <h6 class="card-subtitle mb-3 text-muted">{{ r.rol }} - {{ r.tipo_ocupacion }}</h6>
-                        
-                        {% if r.apartamentos_asignados.exists %}
-                        <div class="mb-2">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle w-100 datatable-basic" id="tablaResidentes">
+                <thead class="table-light">
+                    <tr>
+                        <th>Residente</th>
+                        <th>Cédula</th>
+                        <th>Rol / Tipo</th>
+                        <th>Inmueble(s)</th>
+                        <th>Contacto</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in residentes %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ r.nombre_completo }}</div>
+                            <div class="small text-muted d-md-none">CC: {{ r.documento }}</div>
+                        </td>
+                        <td class="small">{{ r.documento }}</td>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">{{ r.rol }}</span>
+                            <div class="small text-muted">{{ r.tipo_ocupacion }}</div>
+                        </td>
+                        <td>
                             {% for apto in r.apartamentos_asignados.all %}
-                                <span class="badge bg-secondary"><i class="bi bi-building"></i> Apto {{ apto.numero }} (T{{ apto.torre }})</span>
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">T{{ apto.torre }} - {{ apto.numero }}</span>
+                            {% empty %}
+                                {% for apto in r.arrendamientos_asignados.all %}
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle">T{{ apto.torre }} - {{ apto.numero }}</span>
+                                {% empty %}
+                                    <span class="text-muted small fst-italic">No asignado</span>
+                                {% endfor %}
                             {% endfor %}
-                        </div>
-                        {% endif %}
-                        
-                        <p class="card-text small mb-1"><i class="bi bi-person-badge text-secondary"></i> {{ r.documento }}</p>
-                        <p class="card-text small mb-1"><i class="bi bi-telephone text-secondary"></i> {{ r.telefono }}</p>
-                        <p class="card-text small mb-3"><i class="bi bi-envelope text-secondary"></i> {{ r.email_personal|default:"No registrado" }}</p>
-                        
-                        <hr class="my-2">
-                        <div class="small fw-bold text-danger mb-1">Contacto de Emergencia</div>
-                        {% if r.emergencia_nombre %}
-                            <p class="card-text small mb-0">{{ r.emergencia_nombre }} ({{ r.emergencia_parentesco }})</p>
-                            <p class="card-text small mb-0"><i class="bi bi-telephone"></i> {{ r.emergencia_telefono }}</p>
-                        {% else %}
-                            <p class="card-text small text-muted fst-italic mb-0">Sin definir</p>
-                        {% endif %}
-                    </div>
-                    <div class="card-footer bg-white border-0 py-3 text-center">
-                        <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#editarPerfilModal{{ r.id }}">
-                            <i class="bi bi-pencil-square"></i> Editar Ficha Directo
-                        </button>
-                    </div>
-                </div>
-            </div>
+                        </td>
+                        <td>
+                            <div class="small"><i class="bi bi-telephone text-primary"></i> {{ r.telefono }}</div>
+                            <div class="small text-muted"><i class="bi bi-envelope text-primary"></i> {{ r.email_personal|default:"-" }}</div>
+                        </td>
+                        <td class="text-center">
+                            {% if r.activo %}
+                                <span class="badge bg-success rounded-pill px-3">Activo</span>
+                            {% else %}
+                                <span class="badge bg-danger rounded-pill px-3">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group shadow-sm">
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarPerfilModal{{ r.id }}" title="Editar Información">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <a href="{% url 'usuarios:alternar_estado_residente' r.id %}" 
+                                   class="btn btn-sm {% if r.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                   title="{% if r.activo %}Desactivar Cuenta{% else %}Activar Cuenta{% endif %}"
+                                   onclick="return confirm('¿Está seguro de que desea cambiar el estado de acceso para {{ r.nombre_completo }}?')">
+                                    <i class="bi {% if r.activo %}bi-person-x{% else %}bi-person-check{% endif %}"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
 
-            <!-- Modal Editar Perfil -->
-            <div class="modal fade" id="editarPerfilModal{{ r.id }}" tabindex="-1" aria-labelledby="editarPerfilLabel{{ r.id }}" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form action="{% url 'usuarios:editar_residente' r.id %}" method="post">
-                      {% csrf_token %}
-                      <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="editarPerfilLabel{{ r.id }}"><i class="bi bi-person-lines-fill"></i> Actualizar Ficha de {{ r.nombre_completo }}</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                      </div>
-                      <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Teléfono de Contacto</label>
-                            <input type="text" name="telefono" class="form-control" value="{{ r.telefono }}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Correo (Email Registrado)</label>
-                            <input type="email" name="email_personal" class="form-control" value="{{ r.email_personal|default:'' }}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold mt-3 text-danger"><i class="bi bi-heart-pulse"></i> DATOS DE EMERGENCIA</label>
-                            <hr class="mt-0 mb-2">
-                            <label class="form-label small">Nombre del Acudiente</label>
-                            <input type="text" name="emergencia_nombre" class="form-control form-control-sm mb-2" value="{{ r.emergencia_nombre }}">
-                            
-                            <label class="form-label small">Teléfono</label>
-                            <input type="text" name="emergencia_telefono" class="form-control form-control-sm" value="{{ r.emergencia_telefono }}">
-                        </div>
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
-                      </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-            {% empty %}
-            <div class="col-12 text-center text-muted py-5">
-                <p>Módulo de residentes vacío. Agrega a los inquilinos y propietarios desde tu panel central.</p>
-            </div>
-            {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
+
+<!-- Modales de Edición (Fuera de la tabla para evitar errores de DataTables) -->
+{% for r in residentes %}
+<div class="modal fade" id="editarPerfilModal{{ r.id }}" tabindex="-1" aria-labelledby="editarPerfilLabel{{ r.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{% url 'usuarios:editar_residente' r.id %}" method="post">
+          {% csrf_token %}
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="editarPerfilLabel{{ r.id }}"><i class="bi bi-person-lines-fill"></i> Actualizar Ficha de {{ r.nombre_completo }}</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Teléfono de Contacto</label>
+                <input type="text" name="telefono" class="form-control" value="{{ r.telefono }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Correo (Email Registrado)</label>
+                <input type="email" name="email_personal" class="form-control" value="{{ r.email_personal|default:'' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold mt-3 text-danger"><i class="bi bi-heart-pulse"></i> DATOS DE EMERGENCIA</label>
+                <hr class="mt-0 mb-2">
+                <label class="form-label small">Nombre del Contacto de Emergencia</label>
+                <input type="text" name="emergencia_nombre" class="form-control form-control-sm mb-2" value="{{ r.emergencia_nombre }}">
+                
+                <label class="form-label small">Teléfono</label>
+                <input type="text" name="emergencia_telefono" class="form-control form-control-sm" value="{{ r.emergencia_telefono }}">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+        </div>
+    </div>
+</div>
 </div>
 
 <!-- Modal Registrar Nuevo Residente (Flujo Unificado) -->

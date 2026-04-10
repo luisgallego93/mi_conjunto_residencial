@@ -17,3 +17,15 @@ class ComunicacionForm(forms.ModelForm):
             'ubicacion_especifica': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Apartamento 301. Zona lavandería.'}),
             'imagen_evidencia': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if user and hasattr(user, 'perfilusuario') and user.perfilusuario.rol == 'RESIDENTE':
+            from usuarios.models import PerfilUsuario
+            self.fields['solicitante'].queryset = PerfilUsuario.objects.filter(id=user.perfilusuario.id)
+            self.fields['solicitante'].initial = user.perfilusuario
+            # Hacerlo obligatorio y ocultar la opción de elegir otros
+            self.fields['solicitante'].widget.attrs['class'] = 'form-select bg-light'
+            # No usar readonly en select, es mejor limitar el queryset y poner initial.

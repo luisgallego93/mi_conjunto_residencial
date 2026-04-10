@@ -12,12 +12,30 @@ import json
 def lista_reservas(request):
     es_residente = hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'RESIDENTE'
 
+    # Parámetros de filtro
+    pago_filtro = request.GET.get('pago')
+    estado_filtro = request.GET.get('estado')
+    zona_filtro = request.GET.get('zona')
+
+    queryset = Reserva.objects.all()
+
     if es_residente:
-        # El residente solo ve SUS reservas
         perfil = request.user.perfilusuario
-        reservas = Reserva.objects.filter(solicitante=perfil).order_by('-fecha').select_related('solicitante')
-    else:
-        reservas = Reserva.objects.all().order_by('-fecha').select_related('solicitante')
+        queryset = queryset.filter(solicitante=perfil)
+    
+    # Aplicar filtros adicionales
+    if pago_filtro == 'pagado':
+        queryset = queryset.filter(estado_pago=True)
+    elif pago_filtro == 'pendiente':
+        queryset = queryset.filter(estado_pago=False)
+        
+    if estado_filtro:
+        queryset = queryset.filter(estado_reserva=estado_filtro)
+        
+    if zona_filtro:
+        queryset = queryset.filter(zona_comun=zona_filtro)
+
+    reservas = queryset.order_by('-fecha').select_related('solicitante')
 
     # --- Contexto para el Calendario Mensual ---
     hoy = date.today()
@@ -34,7 +52,7 @@ def lista_reservas(request):
     reservas_mes = Reserva.objects.filter(
         fecha__year=anio_actual,
         fecha__month=mes_actual
-    ).exclude(estado_reserva='Rechazado').select_related('solicitante')
+    ).exclude(estado_reserva__in=['Rechazado', 'Cancelado']).select_related('solicitante')
     
     reservas_por_dia = {}
     for r in reservas_mes:
@@ -65,6 +83,11 @@ def lista_reservas(request):
         'hoy_dia': hoy.day,
         'reservas_por_dia': reservas_por_dia,
         'es_residente': es_residente,
+        'filtros': {
+            'pago': pago_filtro,
+            'estado': estado_filtro,
+            'zona': zona_filtro
+        }
     })
 
 
@@ -90,7 +113,7 @@ def crear_reserva(request):
     ]
     
     if request.method == 'POST':
-        form = ReservaForm(request.POST, request.FILES)
+        form = ReservaForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             reserva = form.save(commit=False)
             
@@ -101,7 +124,7 @@ def crear_reserva(request):
             superposicion = Reserva.objects.filter(
                 zona_comun=reserva.zona_comun, 
                 fecha=reserva.fecha
-            ).exclude(estado_reserva='Rechazado').exists()
+            ).exclude(estado_reserva__in=['Rechazado', 'Cancelado']).exists()
             
             if superposicion:
                 messages.error(request, "Error: Ese día ya se encuentra reservado. Sólo se permite un grupo por día.")
@@ -118,9 +141,9 @@ def crear_reserva(request):
                 messages.success(request, f"Pre-reserva generada por ${reserva.valor:,.0f}. Realice el pago o suba el comprobante para confirmación final.")
                 return redirect('reservas:lista_reservas')
     else:
-        form = ReservaForm()
+        form = ReservaForm(user=request.user)
         
-    ocupadas_qs = Reserva.objects.exclude(estado_reserva='Rechazado')
+    ocupadas_qs = Reserva.objects.exclude(estado_reserva__in=['Rechazado', 'Cancelado'])
     fechas_ocupadas = {}
     for r in ocupadas_qs:
         zona = r.zona_comun
@@ -151,6 +174,12 @@ def crear_reserva(request):
 
 @login_required
 def gestionar_reserva(request, reserva_id):
+    # Seguridad: Solo administradores pueden gestionar estados
+    perfil = getattr(request.user, 'perfilusuario', None)
+    if not perfil or perfil.rol not in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']:
+        messages.error(request, "No tienes permiso para gestionar reservas.")
+        return redirect('reservas:lista_reservas')
+
     if request.method == 'POST':
         reserva = get_object_or_404(Reserva, id=reserva_id)
         accion = request.POST.get('accion')
@@ -221,5 +250,28 @@ def editar_tarifa(request, tarifa_id):
             messages.success(request, f"Tarifa de {tarifa.get_zona_display()} actualizada a ${tarifa.valor:,.0f}.")
         except (ValueError, TypeError) as e:
             messages.error(request, f"Error al actualizar la tarifa: {e}")
-    return redirect('reservas:tarifario')
+
+@login_required
+def cancelar_reserva(request, reserva_id):
+    """
+    Cancela una reserva y libera el cupo. 
+    Seguridad: Solo el solicitante original o un administrador pueden cancelar.
+    """
+    reserva = get_object_or_404(Reserva, id=reserva_id)
+    perfil = request.user.perfilusuario
+    es_admin = perfil.rol in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']
+    
+    # Validar propiedad o permisos
+    if not es_admin and reserva.solicitante != perfil:
+        messages.error(request, "No tienes permiso para cancelar esta reserva.")
+        return redirect('reservas:lista_reservas')
+        
+    if reserva.estado_reserva == 'Cancelado':
+        messages.warning(request, "Esta reserva ya se encuentra cancelada.")
+    else:
+        reserva.estado_reserva = 'Cancelado'
+        reserva.save()
+        messages.success(request, f"La reserva para {reserva.get_zona_comun_display()} el {reserva.fecha} ha sido cancelada exitosamente.")
+        
+    return redirect('reservas:lista_reservas')
 

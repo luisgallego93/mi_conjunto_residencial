@@ -62,6 +62,7 @@
         {% endfor %}
 
         <!-- Formulario para Nueva Respuesta -->
+        {% if pqrs.estado != 'Cerrado' %}
         <div class="card shadow-sm mt-4 border-0 bg-light">
             <div class="card-body">
                 <h6 class="fw-bold"><i class="bi bi-reply"></i> Escribir una Respuesta</h6>
@@ -80,6 +81,11 @@
                 </form>
             </div>
         </div>
+        {% else %}
+        <div class="alert alert-dark text-center mt-4 border-0 shadow-sm">
+            <i class="bi bi-lock-fill me-2"></i> Este caso ha sido <strong>CERRADO</strong>. No se permiten más respuestas.
+        </div>
+        {% endif %}
     </div>
     
     <div class="col-lg-4">
@@ -91,7 +97,24 @@
                 <p><strong>Tipo:</strong> {{ pqrs.get_tipo_display }}</p>
                 <p><strong>Prioridad:</strong> <span class="badge bg-danger">{{ pqrs.prioridad }}</span></p>
                 <p><strong>Remitente:</strong> {{ pqrs.solicitante.nombre_completo }}</p>
-                <p><strong>Torre:</strong> {{ pqrs.solicitante.apartamento_set.first.torre|default:"-" }} <strong>Apto:</strong> {{ pqrs.solicitante.apartamento_set.first.numero|default:"-" }}</p>
+                <div class="mb-3 p-2 bg-light border rounded">
+                    <div class="small fw-bold text-muted mb-1 text-uppercase"><i class="bi bi-geo-alt"></i> Ubicación vinculada:</div>
+                    <div class="fs-6">
+                        {% for apto in pqrs.solicitante.apartamentos_asignados.all %}
+                            Torre {{ apto.torre }} - Apto {{ apto.numero }}<br>
+                        {% empty %}
+                            {% for apto in pqrs.solicitante.propiedades_asignadas.all %}
+                                Torre {{ apto.torre }} - Apto {{ apto.numero }}<br>
+                            {% empty %}
+                                {% for apto in pqrs.solicitante.arrendamientos_asignados.all %}
+                                    Torre {{ apto.torre }} - Apto {{ apto.numero }}<br>
+                                {% empty %}
+                                    Ubicación no registrada
+                                {% endfor %}
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
                 <p><strong>Teléfono:</strong> {{ pqrs.solicitante.telefono }}</p>
             </div>
         </div>
@@ -102,6 +125,7 @@
             </div>
             <div class="card-body">
                 <p><strong>Estado Actual:</strong> <span class="badge bg-primary fs-6">{{ pqrs.estado }}</span></p>
+                {% if user.perfilusuario.rol != 'RESIDENTE' %}
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="cambiar_estado">
@@ -116,6 +140,11 @@
                         <button class="btn btn-success" type="submit">Guardar</button>
                     </div>
                 </form>
+                {% else %}
+                <div class="alert alert-info small mt-2 py-2">
+                    <i class="bi bi-info-circle"></i> Solo la administración puede cambiar el estado legal del radicado.
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

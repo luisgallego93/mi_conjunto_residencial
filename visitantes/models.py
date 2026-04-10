@@ -31,6 +31,7 @@ class Visitante(models.Model):
     # Destino
     apartamento_destino = models.ForeignKey(Apartamento, on_delete=models.CASCADE)
     autorizado_por = models.ForeignKey(PerfilUsuario, on_delete=models.SET_NULL, null=True, blank=True)
+    autorizado_por_nombre = models.CharField(max_length=150, blank=True, verbose_name="Voz de Autorización (Nombre)")
     
     # Vehículo
     tipo_vehiculo = models.CharField(

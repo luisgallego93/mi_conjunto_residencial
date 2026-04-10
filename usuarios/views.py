@@ -20,6 +20,11 @@ def sync_residente_principal(apto):
 
 @login_required
 def directorio_residentes(request):
+    # Seguridad: Los residentes no pueden ver el directorio de todos
+    if request.user.perfilusuario.rol == 'RESIDENTE':
+        messages.warning(request, "Como residente, solo puedes ver tus propios datos en 'Mi Perfil'.")
+        return redirect('usuarios:mi_perfil')
+        
     residentes = PerfilUsuario.objects.all().order_by('nombre_completo')
     todos_apartamentos = Apartamento.objects.select_related('propietario', 'inquilino').order_by('torre', 'numero')
     return render(request, 'usuarios/directorio_residentes.html', {
@@ -172,6 +177,8 @@ def editar_residente(request, residente_id):
         r.emergencia_telefono = request.POST.get('emergencia_telefono', r.emergencia_telefono)
         r.tipo_ocupacion = request.POST.get('tipo_ocupacion', r.tipo_ocupacion)
         r.save()
+        messages.success(request, f"Ficha de {r.nombre_completo} actualizada.")
+    return redirect('usuarios:directorio_residentes')
 @login_required
 def completar_perfil(request):
     """
@@ -224,3 +231,116 @@ def completar_perfil(request):
         'perfil': perfil,
         'apartamento': apartamento
     })
+
+@login_required
+def gestionar_familia(request):
+    """
+    Permite al residente gestionar los miembros de su núcleo familiar (Censo).
+    """
+    perfil = request.user.perfilusuario
+    from django.db.models import Q
+    apartamento = Apartamento.objects.filter(Q(propietario=perfil) | Q(inquilino=perfil)).first()
+    
+    if not apartamento:
+        messages.warning(request, "No tienes un apartamento vinculado para gestionar el censo familiar.")
+        return redirect('dashboard:index')
+
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        parentesco = request.POST.get('parentesco')
+        documento = request.POST.get('documento', '')
+        telefono = request.POST.get('telefono', '')
+        es_menor = request.POST.get('es_menor') == 'on'
+        edad = request.POST.get('edad')
+        
+        if nombre and parentesco:
+            Ocupante.objects.create(
+                apartamento=apartamento,
+                nombre_completo=nombre,
+                parentesco=parentesco,
+                documento=documento,
+                telefono=telefono,
+                es_menor_edad=es_menor,
+                edad=edad if edad else None
+            )
+            messages.success(request, f"Se ha agregado a {nombre} al núcleo familiar.")
+        return redirect('usuarios:gestionar_familia')
+
+    ocupantes = apartamento.habitantes.all()
+    return render(request, 'usuarios/gestionar_familia.html', {
+        'apartamento': apartamento,
+        'ocupantes': ocupantes
+    })
+
+@login_required
+def mi_perfil(request):
+    """
+    Permite al residente actualizar sus datos de contacto (Celular, Correo).
+    Nombre y Cédula están bloqueados (Read-only).
+    """
+    perfil = request.user.perfilusuario
+    if request.method == 'POST':
+        perfil.telefono = request.POST.get('telefono', perfil.telefono)
+        perfil.email_personal = request.POST.get('email_personal', perfil.email_personal)
+        perfil.emergencia_nombre = request.POST.get('emergencia_nombre', perfil.emergencia_nombre)
+        perfil.emergencia_telefono = request.POST.get('emergencia_telefono', perfil.emergencia_telefono)
+        perfil.save()
+        
+        # También actualizar el email en el modelo User de Django
+        request.user.email = perfil.email_personal
+        request.user.save()
+        
+        messages.success(request, "Tus datos personales han sido actualizados correctamente.")
+        return redirect('usuarios:mi_perfil')
+
+    # Buscar el apartamento vinculado (ya sea como propietario o inquilino)
+    from django.db.models import Q
+    apartamento = Apartamento.objects.filter(Q(propietario=perfil) | Q(inquilino=perfil) | Q(residente_principal=perfil)).first()
+
+    return render(request, 'usuarios/perfil.html', {
+        'perfil': perfil,
+        'apartamento': apartamento
+    })
+
+@login_required
+def eliminar_ocupante(request, ocupante_id):
+    """
+    Elimina un miembro del núcleo familiar.
+    """
+    ocupante = get_object_or_404(Ocupante, id=ocupante_id)
+    perfil = request.user.perfilusuario
+    
+    # Seguridad: Solo el residente del apto o un administrador pueden borrar
+    if perfil.rol != 'ADMIN_CONJUNTO' and ocupante.apartamento.propietario != perfil and ocupante.apartamento.inquilino != perfil:
+        messages.error(request, "No tienes permiso para eliminar a este ocupante.")
+        return redirect('dashboard:index')
+    
+    nombre = ocupante.nombre_completo
+    ocupante.delete()
+    messages.warning(request, f"Se ha eliminado a {nombre} del censo familiar.")
+    return redirect('usuarios:gestionar_familia')
+
+@login_required
+def alternar_estado_residente(request, residente_id):
+    """
+    Desactiva o activa lógicamente a un residente y su usuario de sistema.
+    """
+    if request.user.perfilusuario.rol not in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']:
+         messages.error(request, "No tienes permisos de administrador.")
+         return redirect('dashboard:index')
+         
+    residente = get_object_or_404(PerfilUsuario, id=residente_id)
+    user = residente.user
+    
+    # Alternar estado (is_active en User y activo en Perfil)
+    nuevo_estado = not user.is_active
+    user.is_active = nuevo_estado
+    user.save()
+    
+    residente.activo = nuevo_estado
+    residente.save()
+    
+    estado_texto = "activado" if nuevo_estado else "desactivado"
+    messages.success(request, f"El perfil de {residente.nombre_completo} ha sido {estado_texto} correctamente.")
+    return redirect('usuarios:directorio_residentes')
+

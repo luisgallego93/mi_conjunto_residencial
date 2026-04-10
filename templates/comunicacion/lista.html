@@ -11,8 +11,45 @@
 </div>
 
 <div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-white">
-        <h6 class="m-0 fw-bold text-primary">Historial de Comunicaciones</h6>
+    <div class="card-header py-3 bg-white border-bottom-0">
+        <form method="GET" class="row g-2 align-items-end">
+            <!-- Filtro por Estado -->
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Estado</label>
+                <select name="estado" class="form-select form-select-sm">
+                    <option value="">Todos los estados</option>
+                    <option value="Abierto" {% if filtros.estado == 'Abierto' %}selected{% endif %}>Abierto</option>
+                    <option value="En Proceso" {% if filtros.estado == 'En Proceso' %}selected{% endif %}>En Proceso</option>
+                    <option value="Resuelto" {% if filtros.estado == 'Resuelto' %}selected{% endif %}>Resuelto</option>
+                    <option value="Cerrado" {% if filtros.estado == 'Cerrado' %}selected{% endif %}>Cerrado</option>
+                </select>
+            </div>
+            <!-- Filtro por Tipo -->
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Tipo</label>
+                <select name="tipo" class="form-select form-select-sm">
+                    <option value="">Todos los tipos</option>
+                    <option value="Peticion" {% if filtros.tipo == 'Peticion' %}selected{% endif %}>Petición</option>
+                    <option value="Queja" {% if filtros.tipo == 'Queja' %}selected{% endif %}>Queja</option>
+                    <option value="Reclamo" {% if filtros.tipo == 'Reclamo' %}selected{% endif %}>Reclamo</option>
+                    <option value="Sugerencia" {% if filtros.tipo == 'Sugerencia' %}selected{% endif %}>Sugerencia</option>
+                </select>
+            </div>
+            <!-- Búsqueda por Texto -->
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Buscar (Radicado, Título, Nombre)</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Ej: PQRS-2026-..." value="{{ filtros.search|default:'' }}">
+                </div>
+            </div>
+            <!-- Botón Filtrar -->
+            <div class="col-md-2">
+                <div class="d-grid shadow-sm">
+                    <button type="submit" class="btn btn-sm btn-dark fw-bold">Filtrar</button>
+                </div>
+            </div>
+        </form>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -23,7 +60,7 @@
                         <th>Fecha</th>
                         <th>Tipo</th>
                         <th>Asunto</th>
-                        <th>Residente</th>
+                        <th>Residente / Apto</th>
                         <th>Prioridad</th>
                         <th>Estado</th>
                         <th>Acción</th>
@@ -40,8 +77,26 @@
                         </td>
                         <td>{{ item.fecha_creacion|date:"d M Y" }}</td>
                         <td><span class="badge bg-secondary">{{ item.get_tipo_display }}</span></td>
-                        <td>{{ item.titulo }}</td>
-                        <td>{{ item.solicitante.nombre_completo }}</td>
+                        <td>{{ item.titulo|truncatechars:40 }}</td>
+                        <td>
+                            <div class="fw-bold">{{ item.solicitante.nombre_completo }}</div>
+                            <div class="small text-muted">
+                                <i class="bi bi-building"></i>
+                                {% for apto in item.solicitante.apartamentos_asignados.all %}
+                                    Apto {{ apto.numero }} - T{{ apto.torre }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    {% for apto in item.solicitante.propiedades_asignadas.all %}
+                                        Apto {{ apto.numero }} - T{{ apto.torre }}{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        {% for apto in item.solicitante.arrendamientos_asignados.all %}
+                                            Apto {{ apto.numero }} - T{{ apto.torre }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            Sin Apto
+                                        {% endfor %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </td>
                         <td>
                             {% if item.prioridad == 'Alta' or item.prioridad == 'Urgente' %}
                                 <span class="badge bg-danger">{{ item.prioridad }}</span>

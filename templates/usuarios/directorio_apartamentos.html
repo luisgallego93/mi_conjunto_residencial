@@ -13,7 +13,7 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover align-middle w-100" cellspacing="0">
+            <table class="table table-hover align-middle w-100 datatable-basic" cellspacing="0">
                 <thead class="table-light">
                     <tr>
                         <th>Torre</th>
@@ -57,9 +57,68 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-info fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#vincularModal{{ apto.id }}">
-                                <i class="bi bi-person-plus-fill"></i> Asignar
-                            </button>
+                            <div class="btn-group shadow-sm">
+                                <button class="btn btn-sm btn-outline-dark fw-bold" data-bs-toggle="modal" data-bs-target="#censoModal{{ apto.id }}" title="Ver Censo Habitantes">
+                                    <i class="bi bi-people"></i>
+                                </button>
+                                <a href="{% url 'finanzas:historial_apartamento_admin' apto.id %}" class="btn btn-sm btn-info fw-bold text-white" title="Ver Historial Financiero">
+                                    <i class="bi bi-cash-stack"></i> Historial
+                                </a>
+                                <button class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#vincularModal{{ apto.id }}" title="Vincular Residente">
+                                    <i class="bi bi-person-plus-fill"></i>
+                                </button>
+                            </div>
+
+                            <!-- Modal Ver Censo (Habitantes) -->
+                            <div class="modal fade" id="censoModal{{ apto.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content border-0 shadow-lg">
+                                        <div class="modal-header bg-dark text-white">
+                                            <h5 class="modal-title fw-bold">
+                                                <i class="bi bi-house-door me-2"></i>Habitantes: Apto {{ apto.numero }}
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-0">
+                                            <ul class="list-group list-group-flush">
+                                                {% for habitante in apto.habitantes.all %}
+                                                <li class="list-group-item py-3">
+                                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                                        <div>
+                                                            <div class="fw-bold fs-6">{{ habitante.nombre_completo }}</div>
+                                                            <div class="badge bg-light text-dark border-0 p-0 text-muted small">{{ habitante.parentesco }}</div>
+                                                        </div>
+                                                        {% if habitante.es_menor_edad %}
+                                                            <span class="badge bg-warning text-dark small"><i class="bi bi-person-fill-exclamation"></i> Menor de Edad</span>
+                                                        {% else %}
+                                                            <span class="badge bg-info text-white small">Adulto</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="row g-2 mt-1 small">
+                                                        <div class="col-6">
+                                                            <i class="bi bi-card-text text-muted me-1"></i> CC: {{ habitante.documento|default:"N/A" }}
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <i class="bi bi-telephone text-muted me-1"></i> {{ habitante.telefono|default:"N/A" }}
+                                                        </div>
+                                                        <div class="col-12 mt-1">
+                                                            <i class="bi bi-calendar3 text-muted me-1"></i> Edad: {{ habitante.edad|default:"N/A" }} años
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                {% empty %}
+                                                <li class="list-group-item text-center py-4 text-muted fst-italic">
+                                                    No hay familiares registrados en el censo para este apartamento.
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="modal-footer bg-light py-2">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Modal Asignar por Cédula -->
                             <div class="modal fade" id="vincularModal{{ apto.id }}" tabindex="-1" aria-hidden="true">

@@ -11,8 +11,45 @@
 </div>
 
 <div class="card shadow mb-4">
-    <div class="card-header py-3 bg-white">
-        <h6 class="m-0 fw-bold text-success">Zonas Comunes Apartadas</h6>
+    <div class="card-header py-3 bg-white border-bottom-0">
+        <form method="GET" class="row g-2 align-items-end">
+            <!-- Filtro por Pago -->
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Estado de Pago</label>
+                <select name="pago" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    <option value="pagado" {% if filtros.pago == 'pagado' %}selected{% endif %}>Pagado</option>
+                    <option value="pendiente" {% if filtros.pago == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                </select>
+            </div>
+            <!-- Filtro por Estado de Reserva -->
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Estado Reserva</label>
+                <select name="estado" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    <option value="Pendiente" {% if filtros.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="Aprobado" {% if filtros.estado == 'Aprobado' %}selected{% endif %}>Aprobado</option>
+                    <option value="Rechazado" {% if filtros.estado == 'Rechazado' %}selected{% endif %}>Rechazado</option>
+                    <option value="Cancelado" {% if filtros.estado == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+            <!-- Filtro por Zona -->
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Zona Común</label>
+                <select name="zona" class="form-select form-select-sm">
+                    <option value="">Todas las zonas</option>
+                    <option value="salon" {% if filtros.zona == 'salon' %}selected{% endif %}>Salón Social</option>
+                    <option value="bbq" {% if filtros.zona == 'bbq' %}selected{% endif %}>Zona BBQ</option>
+                    <option value="piscina" {% if filtros.zona == 'piscina' %}selected{% endif %}>Piscina</option>
+                </select>
+            </div>
+            <!-- Botón Filtrar -->
+            <div class="col-md-2">
+                <div class="d-grid shadow-sm">
+                    <button type="submit" class="btn btn-sm btn-dark fw-bold">Filtrar</button>
+                </div>
+            </div>
+        </form>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -64,23 +101,23 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if res.estado_reserva == 'Pendiente' %}
+                            {% if res.estado_reserva == 'Pendiente' and not es_residente %}
                                 <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#gestionModal{{ res.id }}">
                                     <i class="bi bi-gear"></i> Gestionar
                                 </button>
-                                
-                                <!-- Modal -->
+
+                                <!-- Modal Gestionar -->
                                 <div class="modal fade" id="gestionModal{{ res.id }}" tabindex="-1" aria-hidden="true">
                                   <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title">Gestionar Reserva</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <div class="modal-content border-0">
+                                      <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title fw-bold">Gestionar Reserva</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                       </div>
                                       <div class="modal-body text-start">
                                         <p>¿Aprobar y registrar pago para la reserva de <strong>{{ res.solicitante.nombre_completo }}</strong> en <strong>{{ res.get_zona_comun_display|default:res.zona_comun }}</strong> el <strong>{{ res.fecha|date:"d/M/Y" }}</strong>?</p>
                                       </div>
-                                      <div class="modal-footer">
+                                      <div class="modal-footer bg-light">
                                         <form action="{% url 'reservas:gestionar_reserva' res.id %}" method="post">
                                             {% csrf_token %}
                                             <input type="hidden" name="accion" value="rechazar">
@@ -89,8 +126,36 @@
                                         <form action="{% url 'reservas:gestionar_reserva' res.id %}" method="post">
                                             {% csrf_token %}
                                             <input type="hidden" name="accion" value="aprobar">
-                                            <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Aprobar y Pago Confirmado</button>
+                                            <button type="submit" class="btn btn-success fw-bold"><i class="bi bi-check-circle"></i> Aprobar y Pago Confirmado</button>
                                         </form>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            {% elif res.estado_reserva == 'Pendiente' %}
+                                <span class="badge bg-light text-primary border">En revisión</span>
+                            {% endif %}
+
+                            {% if res.estado_reserva != 'Cancelado' and res.estado_reserva != 'Rechazado' %}
+                                <button type="button" class="btn btn-sm btn-outline-danger shadow-sm ms-1" data-bs-toggle="modal" data-bs-target="#cancelarModal{{ res.id }}">
+                                    <i class="bi bi-trash"></i> Cancelar
+                                </button>
+
+                                <!-- Modal Cancelar -->
+                                <div class="modal fade" id="cancelarModal{{ res.id }}" tabindex="-1" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content border-0">
+                                      <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle"></i> Cancelar Reserva</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body text-start">
+                                        <p>¿Estás seguro de que deseas <strong>CANCELAR</strong> la reserva de <strong>{{ res.get_zona_comun_display|default:res.zona_comun }}</strong> para el día <strong>{{ res.fecha|date:"d/M/Y" }}</strong>?</p>
+                                        <p class="small text-muted mb-0">Esta acción liberará el espacio para otros residentes inmediatamente.</p>
+                                      </div>
+                                      <div class="modal-footer bg-light">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, mantener</button>
+                                        <a href="{% url 'reservas:cancelar_reserva' res.id %}" class="btn btn-danger fw-bold">Sí, Cancelar Reserva</a>
                                       </div>
                                     </div>
                                   </div>

@@ -17,7 +17,15 @@ class ReservaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        if user and hasattr(user, 'perfilusuario') and user.perfilusuario.rol == 'RESIDENTE':
+            from usuarios.models import PerfilUsuario
+            self.fields['solicitante'].queryset = PerfilUsuario.objects.filter(id=user.perfilusuario.id)
+            self.fields['solicitante'].initial = user.perfilusuario
+            self.fields['solicitante'].widget.attrs['readonly'] = True
+            
         # Inyectar datos de tarifas directamente en los atributos de las opciones (choices)
         tarifas = {t.zona: t for t in TarifaZona.objects.all()}
         new_choices = []

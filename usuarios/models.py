@@ -7,6 +7,7 @@ class Apartamento(models.Model):
     numero = models.CharField(max_length=10, verbose_name="Número de Apartamento")
     piso = models.PositiveIntegerField(verbose_name="Piso")
     codigo_pago = models.CharField(max_length=20, unique=True, blank=True, null=True, help_text="Ej: 14501", verbose_name="Código Bancario CSV")
+    saldo_a_favor = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Saldo a Favor ($)")
     
     # NUEVA ARQUITECTURA (Dualidad Propietario/Inquilino)
     propietario = models.ForeignKey(
@@ -102,6 +103,7 @@ class Ocupante(models.Model):
     parentesco = models.CharField(max_length=50, help_text="Ej: Esposa, Hijo, Madre")
     telefono = models.CharField(max_length=15, blank=True)
     es_menor_edad = models.BooleanField(default=False)
+    edad = models.PositiveIntegerField(null=True, blank=True, verbose_name="Edad")
     
     def __str__(self):
         return f"{self.nombre_completo} ({self.parentesco}) - Apto {self.apartamento.numero}"

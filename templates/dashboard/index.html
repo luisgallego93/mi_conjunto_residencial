@@ -4,6 +4,7 @@
 {% block title %}Dashboard - Mi Conjunto Gestión{% endblock %}
 
 {% block content %}
+{% if user.perfilusuario.rol != 'RESIDENTE' %}
 <!-- Welcome Row -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Centro de Monitoreo Gerencial</h1>
@@ -13,7 +14,6 @@
 
 <!-- Key Performance Indicators Row -->
 <div class="row">
-
     <!-- Dinero en Mora -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-start border-4 border-danger shadow h-100 py-2">
@@ -160,4 +160,65 @@
         </div>
     </div>
 </div>
+
+{% else %}
+<!-- RESIDENT VIEW -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Panel del Residente</h1>
+</div>
+
+<div class="row">
+    <!-- User Info Card -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow border-0 text-center p-4 h-100">
+            <div class="rounded-circle bg-primary text-white mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
+                <i class="bi bi-person"></i>
+            </div>
+            <h4 class="fw-bold mb-1">{{ user.perfilusuario.nombre_completo }}</h4>
+            <p class="text-muted mb-3">{{ user.perfilusuario.tipo_ocupacion }}</p>
+            <div class="d-grid">
+                <a href="{% url 'usuarios:mi_perfil' %}" class="btn btn-primary btn-sm rounded-pill shadow-sm">
+                    <i class="bi bi-pencil-square me-1"></i> Actualizar Mis Datos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access Metrics -->
+    <div class="col-lg-8">
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100 bg-primary text-white p-4">
+                    <h6 class="text-uppercase small fw-bold opacity-75">Mi Estado de Cuenta</h6>
+                    <h2 class="fw-bold mb-0">Ver Movimientos</h2>
+                    <a href="{% url 'finanzas:mi_estado_cuenta' %}" class="mt-auto text-white text-decoration-none small">
+                        Consultar pagos y facturas <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100 bg-info text-white p-4">
+                    <h6 class="text-uppercase small fw-bold opacity-75">Control de Visitas</h6>
+                    <h2 class="fw-bold mb-0">Autorizar Ingreso</h2>
+                    <a href="{% url 'visitantes:registrar_visitante' %}" class="mt-auto text-white text-decoration-none small">
+                        Registrar un nuevo visitante <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-12 mb-4">
+                <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center justify-content-between" style="background-color: #f8f9fc;">
+                    <div>
+                        <h6 class="fw-bold text-primary mb-1">¿Necesitas ayuda o reportar algo?</h6>
+                        <p class="text-muted small mb-0">Crea una PQRS para que la administración te atienda.</p>
+                    </div>
+                    <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn btn-warning fw-bold shadow-sm">
+                        <i class="bi bi-envelope-paper me-1"></i> Nueva PQRS
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

@@ -11,4 +11,9 @@ urlpatterns = [
     path('desvincular/<int:apto_id>/<str:rol>/', views.desvincular_residente, name='desvincular_residente'),
     path('editar/<int:residente_id>/', views.editar_residente, name='editar_residente'),
     path('completar-perfil/', views.completar_perfil, name='completar_perfil'),
+    # Nuevas rutas
+    path('familia/', views.gestionar_familia, name='gestionar_familia'),
+    path('ocupante/eliminar/<int:ocupante_id>/', views.eliminar_ocupante, name='eliminar_ocupante'),
+    path('estado/<int:residente_id>/', views.alternar_estado_residente, name='alternar_estado_residente'),
+    path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
 ]

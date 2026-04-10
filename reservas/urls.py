@@ -10,4 +10,5 @@ urlpatterns = [
     path('pago/<int:reserva_id>/', views.subir_comprobante, name='subir_comprobante'),
     path('tarifario/', views.tarifario, name='tarifario'),
     path('tarifa/editar/<int:tarifa_id>/', views.editar_tarifa, name='editar_tarifa'),
+    path('cancelar/<int:reserva_id>/', views.cancelar_reserva, name='cancelar_reserva'),
 ]

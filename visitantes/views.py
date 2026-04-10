@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
 from .models import Visitante
@@ -56,24 +57,31 @@ def registrar_visitante(request):
 
     if request.method == 'POST':
         form = VisitanteForm(request.POST, request.FILES)
+
         if form.is_valid():
             visitante = form.save(commit=False)
             visitante.estado = 'Dentro'
             visitante.hora_ingreso_real = timezone.now()
             visitante.registrado_por = request.user
 
-            # Si es residente, forzar su apartamento y autorizacion
             if es_res and apartamento_residente:
                 visitante.apartamento_destino = apartamento_residente
+                visitante.autorizado_por_nombre = request.user.perfilusuario.nombre_completo
                 visitante.autorizado_por = request.user.perfilusuario
+            # Si no es residente (es portero/admin), el valor de autorizado_por_nombre 
+            # ya se toma automáticamente del formulario al hacer form.save(commit=False)
+            # si el campo está en el modelo y en el formulario.
 
             visitante.save()
+            messages.success(request, f"Ingreso autorizado para {visitante.nombre}.")
             return redirect('visitantes:lista_visitantes')
+        else:
+            messages.error(request, "Hubo un error al procesar el ingreso. Por favor verifica los campos.")
     else:
         initial = {}
         if es_res and apartamento_residente:
             initial['apartamento_destino'] = apartamento_residente.id
-            initial['autorizado_por'] = request.user.perfilusuario.id
+            initial['autorizado_por_nombre'] = request.user.perfilusuario.nombre_completo
         form = VisitanteForm(initial=initial)
 
     return render(request, 'visitantes/crear.html', {

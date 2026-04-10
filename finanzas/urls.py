@@ -14,4 +14,5 @@ urlpatterns = [
     path('expediente/<int:apartamento_id>/', views.expediente_cobranza, name='expediente_cobranza'),
     path('eliminar-periodo/', views.eliminar_periodo, name='eliminar_periodo'),
     path('mis-movimientos/', views.mi_estado_cuenta, name='mi_estado_cuenta'),
+    path('historial/<int:apartamento_id>/', views.historial_apartamento_admin, name='historial_apartamento_admin'),
 ]

@@ -87,17 +87,47 @@
             </div>
         </div>
     </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-4 border-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs fw-bold text-info text-uppercase mb-1">Total Saldo a Favor</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">$ {{ total_saldo_favor|intcomma }}</div>
+                        <div class="small text-muted mt-1">Créditos de residentes</div>
+                    </div>
+                    <div class="col-auto"><i class="bi bi-star-fill fs-2 text-info opacity-50"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="card shadow mb-4 border-top-0 border-start border-4 border-danger">
-    <div class="card-header py-3 bg-white d-flex justify-content-between align-items-center">
-        <h6 class="m-0 fw-bold text-danger">Facturas Pendientes de Cobro</h6>
+    <div class="card-header py-3 bg-white d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <h6 class="m-0 fw-bold text-danger me-2">Facturas de Cobro</h6>
+            <div class="btn-group shadow-sm" role="group">
+                <a href="?filtro=todos{% if query %}&q={{ query }}{% endif %}" class="btn btn-sm {% if filtro_estado == 'todos' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Todos <span class="badge bg-white text-primary ms-1">{{ aptos_totales }}</span>
+                </a>
+                <a href="?filtro=mora{% if query %}&q={{ query }}{% endif %}" class="btn btn-sm {% if filtro_estado == 'mora' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                    En Mora <span class="badge bg-white text-danger ms-1">{{ aptos_en_mora }}</span>
+                </a>
+                <a href="?filtro=aldia{% if query %}&q={{ query }}{% endif %}" class="btn btn-sm {% if filtro_estado == 'aldia' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    Al Día
+                </a>
+            </div>
+        </div>
         <form method="get" class="d-flex align-items-center">
-            <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm me-2" placeholder="Buscar Apto o Residente..." style="width: 250px;">
-            <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-search"></i></button>
-            {% if query %}
-            <a href="{% url 'finanzas:cartera' %}" class="btn btn-sm btn-outline-danger ms-1"><i class="bi bi-x"></i></a>
-            {% endif %}
+            {% if filtro_estado != 'todos' %}<input type="hidden" name="filtro" value="{{ filtro_estado }}">{% endif %}
+            <div class="input-group input-group-sm">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Buscar Apto o Residente..." style="width: 200px;">
+                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                {% if query %}
+                <a href="?filtro={{ filtro_estado }}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>
+                {% endif %}
+            </div>
         </form>
     </div>
     <div class="card-body">
@@ -114,7 +144,7 @@
                 </thead>
                 <tbody>
                     {% for item in resumen_cartera %}
-                    <tr>
+                    <tr class="{% if item.esta_al_dia %}table-light opacity-75{% endif %}">
                         <td>
                             <div class="fw-bold fs-5">Apto {{ item.apartamento.numero }}</div>
                             <div class="small text-muted">Torre {{ item.apartamento.torre }}</div>
@@ -145,20 +175,36 @@
                                             {% if det.tipo == 'Multa' %}<small class="text-danger">*</small>{% endif %}
                                         </div>
                                     </div>
+                                {% empty %}
+                                    <div class="text-success fw-bold py-2"><i class="bi bi-check-circle-fill"></i> Saldo Pendiente: $0</div>
                                 {% endfor %}
                             </div>
                         </td>
                         <td class="text-end">
-                            <div class="text-xs text-uppercase text-muted">Saldo Pendiente</div>
-                            <div class="h5 mb-0 fw-bold {% if item.total_mora > 0 %}text-danger{% else %}text-warning{% endif %}">
-                                $ {{ item.total|intcomma }}
-                            </div>
-                            <div class="small text-muted">{{ item.detalles|length }} factura(s) / multas</div>
+                            {% if item.saldo_a_favor > 0 %}
+                                <div class="text-xs text-uppercase text-info fw-bold">Saldo a Favor <i class="bi bi-star-fill"></i></div>
+                                <div class="h6 mb-2 fw-bold text-info">$ {{ item.saldo_a_favor|intcomma }}</div>
+                            {% endif %}
+                            
+                            {% if not item.esta_al_dia %}
+                                <div class="text-xs text-uppercase text-muted">Saldo Pendiente</div>
+                                <div class="h5 mb-0 fw-bold {% if item.total_mora > 0 %}text-danger{% else %}text-warning{% endif %}">
+                                    $ {{ item.total|intcomma }}
+                                </div>
+                                <div class="small text-muted">{{ item.detalles|length }} factura(s) / multas</div>
+                            {% else %}
+                                <div class="badge bg-success-soft text-success border border-success px-3 py-2">
+                                    <i class="bi bi-award-fill me-1"></i> PAZ Y SALVO
+                                </div>
+                            {% endif %}
                         </td>
                         <td class="text-end">
                             <div class="btn-group shadow-sm">
-                                <a href="{% url 'finanzas:expediente_cobranza' item.apartamento.id %}" class="btn btn-sm btn-outline-primary" title="Ver Historial">
-                                    <i class="bi bi-file-earmark-person"></i>
+                                <a href="{% url 'finanzas:expediente_cobranza' item.apartamento.id %}" class="btn btn-sm btn-outline-secondary" title="Expediente de Cobranza">
+                                    <i class="bi bi-journal-text"></i>
+                                </a>
+                                <a href="{% url 'finanzas:historial_apartamento_admin' item.apartamento.id %}" class="btn btn-sm btn-outline-info" title="Ver Historial (Vista Residente)">
+                                    <i class="bi bi-eye"></i>
                                 </a>
                                 <button type="button" 
                                         class="btn btn-sm btn-success fw-bold" 
@@ -181,8 +227,12 @@
                                     {% csrf_token %}
                                     <div class="modal-body text-start p-4">
                                         <div class="p-3 bg-light rounded-3 mb-4 text-center border">
-                                            <div class="text-xs text-uppercase text-muted mb-1">Total a Recaudar</div>
-                                            <div class="h3 mb-0 fw-bold text-success">$ {{ item.total|intcomma }}</div>
+                                            <div class="text-xs text-uppercase text-muted mb-1">
+                                                {% if item.total > 0 %}Total a Recaudar{% else %}Apto al Día (Saldo $0){% endif %}
+                                            </div>
+                                            <div class="h3 mb-0 fw-bold {% if item.total > 0 %}text-danger{% else %}text-success{% endif %}">
+                                                $ {{ item.total|default:0|intcomma }}
+                                            </div>
                                         </div>
 
                                         <div class="mb-4">
@@ -192,7 +242,7 @@
                                                     <input type="radio" class="btn-check" name="tipo_pago" value="total" 
                                                            id="radioTotal{{ item.apartamento.id }}" checked
                                                            onchange="document.getElementById('divAbono{{ item.apartamento.id }}').style.display = 'none'">
-                                                    <label class="btn btn-outline-success w-100 py-3 fw-bold" for="radioTotal{{ item.apartamento.id }}">
+                                                    <label class="btn btn-outline-success w-100 py-3 fw-bold {% if item.total <= 0 %}disabled{% endif %}" for="radioTotal{{ item.apartamento.id }}">
                                                         <i class="bi bi-check-all d-block fs-4 mb-1"></i>Pago Total
                                                     </label>
                                                 </div>
@@ -208,12 +258,12 @@
                                         </div>
 
                                         <!-- Campo monto abono -->
-                                        <div id="divAbono{{ item.apartamento.id }}" style="display:none;" class="animate__animated animate__fadeInDown">
+                                        <div id="divAbono{{ item.apartamento.id }}" style="display: {% if item.total <= 0 %}block{% else %}none{% endif %};" class="animate__animated animate__fadeInDown show-abono-field">
                                             <label class="form-label fw-bold small text-muted text-uppercase">¿Cuánto está pagando hoy?</label>
                                             <div class="input-group input-group-lg shadow-sm">
                                                 <span class="input-group-text bg-white border-end-0 text-success fw-bold">$</span>
                                                 <input type="text" name="valor_abono" class="form-control border-start-0 ps-0 fw-bold text-success" 
-                                                       placeholder="0.00" oninput="this.value = this.value.replace(/[^0-9.]/g, '')">
+                                                       placeholder="0.00" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             </div>
                                             <div class="form-text mt-2 small text-muted">
                                                 <i class="bi bi-info-circle me-1"></i>El sistema liquidará los meses más antiguos automáticamente con este valor.
@@ -234,7 +284,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No se registran apartamentos con deudas pendientes. ¡Excelente cultura de pago!</td>
+                        <td colspan="5" class="text-center text-muted py-4">No se registran apartamentos que coincidan con la búsqueda o filtro.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

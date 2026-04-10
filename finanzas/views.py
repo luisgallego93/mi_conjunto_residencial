@@ -8,6 +8,7 @@ import calendar as cal_module
 import csv
 import io
 
+from django.db.models import Q
 from .models import CuentaCobro, Multa, GestionCartera
 from usuarios.models import Apartamento, PerfilUsuario
 from reservas.models import Reserva
@@ -20,10 +21,11 @@ def _ultimo_dia_mes(anio, mes):
     return date(int(anio), int(mes), ultimo)
 
 
-def _aplicar_saldo(facturas_qs, saldo: Decimal):
+def _aplicar_saldo(apto, facturas_qs, saldo: Decimal):
     """
     Aplica `saldo` a las facturas pendientes de más antigua a más reciente.
-    Usa `valor_abonado` para no destruir `valor_base` (valor original facturado).
+    Usa `valor_abonado` para no destruir `valor_base`.
+    Si sobra saldo tras pagar todo, se acumula en `apto.saldo_a_favor`.
     Retorna la cantidad de meses completamente liquidados.
     """
     meses_liquidados = 0
@@ -39,10 +41,16 @@ def _aplicar_saldo(facturas_qs, saldo: Decimal):
             saldo -= pendiente
             meses_liquidados += 1
         else:
-            # Abono parcial — solo acumular el abono, NO modificar valor_base
+            # Abono parcial
             factura.valor_abonado += saldo
             factura.save()
             saldo = Decimal('0')
+    
+    # Si aún sobra saldo después de recorrer facturas, es Saldo a Favor
+    if saldo > 0:
+        apto.saldo_a_favor += saldo
+        apto.save()
+        
     return meses_liquidados, saldo
 
 
@@ -54,90 +62,96 @@ def cartera(request):
     """
     query = request.GET.get('q', '')
     hoy = date.today()
+    filtro_estado = request.GET.get('filtro', 'todos') # todos, mora, aldia
 
-    # Traer todas las facturas pendientes
-    cuentas_qs = CuentaCobro.objects.filter(estado='Pendiente').select_related(
-        'apartamento', 'apartamento__residente_principal'
-    ).order_by('anio', 'mes_referencia')
+    # 1. Obtener todos los apartamentos (inicializar el resumen)
+    apartamentos_qs = Apartamento.objects.all().select_related('residente_principal', 'propietario', 'inquilino')
     
-    # Traer todas las multas no facturadas
-    multas_qs = Multa.objects.filter(aplicada_en_cobro=False).select_related(
-        'apartamento', 'apartamento__residente_principal'
-    )
-
     if query:
-        cuentas_qs = (
-            cuentas_qs.filter(apartamento__numero__icontains=query) |
-            cuentas_qs.filter(apartamento__residente_principal__nombre_completo__icontains=query)
-        )
-        multas_qs = (
-            multas_qs.filter(apartamento__numero__icontains=query) |
-            multas_qs.filter(apartamento__residente_principal__nombre_completo__icontains=query)
+        apartamentos_qs = apartamentos_qs.filter(
+            Q(numero__icontains=query) | 
+            Q(propietario__nombre_completo__icontains=query) |
+            Q(inquilino__nombre_completo__icontains=query) |
+            Q(residente_principal__nombre_completo__icontains=query)
         )
 
-    # Agrupar datos por apartamento
     deuda_por_apto = {}
+    for apto in apartamentos_qs:
+        deuda_por_apto[apto.id] = {
+            'apartamento': apto,
+            'detalles': [],
+            'total_mora': Decimal('0'),
+            'total_vigente': Decimal('0'),
+            'total': Decimal('0'),
+            'saldo_a_favor': apto.saldo_a_favor,
+            'esta_al_dia': True
+        }
+
+    # 2. Cargar Cuentas y Multas
+    cuentas_qs = CuentaCobro.objects.filter(estado='Pendiente').select_related('apartamento')
+    multas_qs = Multa.objects.filter(aplicada_en_cobro=False).select_related('apartamento')
+
+    hoy = date.today()
 
     for c in cuentas_qs:
         apto_id = c.apartamento.id
-        if apto_id not in deuda_por_apto:
-            deuda_por_apto[apto_id] = {
-                'apartamento': c.apartamento,
-                'detalles': [],
-                'total_mora': Decimal('0'),
-                'total_vigente': Decimal('0'),
-                'total': Decimal('0'),
-            }
-        
-        # Lógica de Mora: Vencida al último día del mes
-        vencimiento = _ultimo_dia_mes(c.anio, c.mes_referencia)
-        en_mora = hoy > vencimiento
-        saldo = c.saldo_pendiente
+        if apto_id in deuda_por_apto:
+            # Lógica de Mora: Vencida al último día del mes
+            vencimiento = _ultimo_dia_mes(c.anio, c.mes_referencia)
+            en_mora = hoy > vencimiento
+            saldo = c.saldo_pendiente
 
-        deuda_por_apto[apto_id]['detalles'].append({
-            'periodo': f"{c.mes_referencia}/{c.anio}",
-            'saldo': saldo,
-            'en_mora': en_mora,
-            'tipo': 'Administración'
-        })
-        
-        deuda_por_apto[apto_id]['total'] += saldo
-        if en_mora:
-            deuda_por_apto[apto_id]['total_mora'] += saldo
-        else:
-            deuda_por_apto[apto_id]['total_vigente'] += saldo
+            deuda_por_apto[apto_id]['detalles'].append({
+                'periodo': f"{c.mes_referencia}/{c.anio}",
+                'saldo': saldo,
+                'en_mora': en_mora,
+                'tipo': 'Administración'
+            })
+            
+            deuda_por_apto[apto_id]['total'] += saldo
+            deuda_por_apto[apto_id]['esta_al_dia'] = False
+            if en_mora:
+                deuda_por_apto[apto_id]['total_mora'] += saldo
+            else:
+                deuda_por_apto[apto_id]['total_vigente'] += saldo
 
     for m in multas_qs:
         apto_id = m.apartamento.id
-        if apto_id not in deuda_por_apto:
-            deuda_por_apto[apto_id] = {
-                'apartamento': m.apartamento,
-                'detalles': [],
-                'total_mora': Decimal('0'),
-                'total_vigente': Decimal('0'),
-                'total': Decimal('0'),
-            }
-        deuda_por_apto[apto_id]['detalles'].append({
-            'periodo': f"Multa: {m.tipo}",
-            'saldo': m.valor,
-            'en_mora': True,
-            'tipo': 'Multa'
-        })
-        deuda_por_apto[apto_id]['total'] += m.valor
-        deuda_por_apto[apto_id]['total_mora'] += m.valor
+        if apto_id in deuda_por_apto:
+            deuda_por_apto[apto_id]['detalles'].append({
+                'periodo': f"Multa: {m.tipo}",
+                'saldo': m.valor,
+                'en_mora': True,
+                'tipo': 'Multa'
+            })
+            deuda_por_apto[apto_id]['total'] += m.valor
+            deuda_por_apto[apto_id]['total_mora'] += m.valor
+            deuda_por_apto[apto_id]['esta_al_dia'] = False
+
+    # 3. Filtrar por estado si aplica
+    resumen_cartera = list(deuda_por_apto.values())
+    
+    if filtro_estado == 'mora':
+        resumen_cartera = [item for item in resumen_cartera if not item['esta_al_dia']]
+    elif filtro_estado == 'aldia':
+        resumen_cartera = [item for item in resumen_cartera if item['esta_al_dia']]
 
     # Ordenar por Torre y Apto
-    resumen_cartera = list(deuda_por_apto.values())
     resumen_cartera.sort(key=lambda x: (x['apartamento'].torre, x['apartamento'].numero))
 
-    total_mora = sum(item['total_mora'] for item in resumen_cartera)
-    total_vigente = sum(item['total_vigente'] for item in resumen_cartera)
+    total_mora = sum(item.get('total_mora', Decimal('0')) for item in resumen_cartera)
+    total_vigente = sum(item.get('total_vigente', Decimal('0')) for item in resumen_cartera)
+    total_saldo_favor = sum(item.get('saldo_a_favor', Decimal('0')) or Decimal('0') for item in resumen_cartera)
     
     return render(request, 'finanzas/cartera.html', {
         'resumen_cartera': resumen_cartera,
         'total_mora': total_mora,
         'total_vigente': total_vigente,
+        'total_saldo_favor': total_saldo_favor,
         'query': query,
+        'filtro_estado': filtro_estado,
+        'aptos_totales': apartamentos_qs.count(),
+        'aptos_en_mora': sum(1 for item in deuda_por_apto.values() if not item['esta_al_dia']),
     })
 
 
@@ -157,13 +171,35 @@ def generar_facturacion(request):
             creados = 0
             ya_existian = 0
             for apto in apartamentos:
+                # 1. Valor base de la nueva factura
+                valor_base = Decimal(str(valor))
+                valor_abonado = Decimal('0')
+                estado = 'Pendiente'
+
+                # 2. Aplicar SALDO A FAVOR si existe
+                saldo_favor = apto.saldo_a_favor
+                if saldo_favor > 0:
+                    if saldo_favor >= valor_base:
+                        # El saldo cubre toda la factura
+                        valor_abonado = valor_base
+                        apto.saldo_a_favor -= valor_base
+                        estado = 'Pagado'
+                    else:
+                        # El saldo cubre parte de la factura
+                        valor_abonado = saldo_favor
+                        apto.saldo_a_favor = Decimal('0')
+                    apto.save()
+
                 # Cada factura debe representar solo el valor del mes actual.
-                # El tablero de Cartera se encargará de sumar los meses independientes.
                 _, created = CuentaCobro.objects.get_or_create(
                     apartamento=apto,
                     mes_referencia=mes,
                     anio=int(anio),
-                    defaults={'valor_base': Decimal(str(valor)), 'valor_abonado': Decimal('0'), 'estado': 'Pendiente'}
+                    defaults={
+                        'valor_base': valor_base, 
+                        'valor_abonado': valor_abonado, 
+                        'estado': estado
+                    }
                 )
                 if created:
                     creados += 1
@@ -233,7 +269,7 @@ def recibir_pago(request, apartamento_id):
                 apartamento=apto, estado='Pendiente'
             ).order_by('anio', 'mes_referencia')
 
-            meses_pagados, saldo_restante = _aplicar_saldo(facturas, saldo)
+            meses_pagados, saldo_restante = _aplicar_saldo(apto, facturas, saldo)
 
             if meses_pagados > 0:
                 messages.success(request, f"Abono aplicado. {meses_pagados} mes(es) liquidado(s) para Apto {apto.numero}.")
@@ -387,7 +423,7 @@ def cargar_pagos_csv(request):
                     apartamento=apto, estado='Pendiente'
                 ).order_by('anio', 'mes_referencia')
 
-                meses_liquidados, saldo_restante = _aplicar_saldo(facturas, saldo_disponible)
+                meses_liquidados, saldo_restante = _aplicar_saldo(apto, facturas, saldo_disponible)
 
                 if meses_liquidados > 0:
                     pagos_aplicados += 1
@@ -472,32 +508,81 @@ def mi_estado_cuenta(request):
     Vista para que el RESIDENTE consulte su historial de pagos y deudas.
     Cruza información de Administración, Multas y Reservas.
     """
-    try:
-        perfil = request.user.perfilusuario
-    except PerfilUsuario.DoesNotExist:
-        messages.error(request, "Tu usuario no tiene un perfil de residente asociado.")
+    perfil = getattr(request.user, 'perfilusuario', None)
+    if not perfil:
+        messages.error(request, "No tienes un perfil de usuario asignado.")
         return redirect('dashboard:index')
+
+    es_admin = perfil.rol in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']
+    
+    # Si es administrador y no ha seleccionado apto, mostrar buscador
+    apartamento_id = request.GET.get('apartamento_id')
+    if es_admin and not apartamento_id:
+        from usuarios.models import Apartamento as AptoModel
+        apartamentos = AptoModel.objects.all().order_by('torre', 'numero')
+        return render(request, 'finanzas/movimientos.html', {
+            'vista_admin': True,
+            'seleccion_necesaria': True,
+            'apartamentos_lista': apartamentos
+        })
 
     apartamento = None
     from usuarios.models import Apartamento as AptoModel
-    from django.db.models import Q
-    # Buscar por nueva arquitectura (propietario o inquilino) o por campo legado
-    apartamento = AptoModel.objects.filter(
-        Q(propietario=perfil) | Q(inquilino=perfil) | Q(residente_principal=perfil)
-    ).first()
+    
+    if es_admin and apartamento_id:
+        apartamento = get_object_or_404(AptoModel, id=apartamento_id)
+    else:
+        # Buscar por nueva arquitectura para residentes
+        apartamento = AptoModel.objects.filter(
+            Q(propietario=perfil) | Q(inquilino=perfil) | Q(residente_principal=perfil)
+        ).first()
 
     if not apartamento:
-        messages.warning(request, "No tienes un apartamento asignado. Contacta a la administración.")
-        return render(request, 'finanzas/movimientos.html', {'movimientos': [], 'al_dia': True})
+        # Si es residente y no tiene apto asignado
+        if not es_admin:
+            messages.warning(request, "No tienes un apartamento asignado. Contacta a la administración.")
+        return render(request, 'finanzas/movimientos.html', {
+            'movimientos': [], 
+            'al_dia': True, 
+            'vista_admin': es_admin,
+            'seleccion_necesaria': es_admin
+        })
 
+    # 0. Filtro por año
+    anio_filtro = request.GET.get('anio_filtro')
+    
     # 1. Cuentas de Cobro
-    cuentas = CuentaCobro.objects.filter(apartamento=apartamento).order_by('-anio', '-mes_referencia')
+    cuentas_qs = CuentaCobro.objects.filter(apartamento=apartamento)
+    anios_disponibles = cuentas_qs.values_list('anio', flat=True).distinct().order_by('-anio')
+    
+    if anio_filtro and anio_filtro != 'todos':
+        cuentas = cuentas_qs.filter(anio=int(anio_filtro)).order_by('-anio', '-mes_referencia')
+    else:
+        cuentas = cuentas_qs.order_by('-anio', '-mes_referencia')
     
     # 2. Multas
-    multas = Multa.objects.filter(apartamento=apartamento).order_by('-fecha_suceso')
+    multas_qs = Multa.objects.filter(apartamento=apartamento)
+    if anio_filtro and anio_filtro != 'todos':
+        multas = multas_qs.filter(fecha_suceso__year=int(anio_filtro)).order_by('-fecha_suceso')
+    else:
+        multas = multas_qs.order_by('-fecha_suceso')
     
     # 3. Reservas Pagadas o Aprobadas
-    reservas = Reserva.objects.filter(solicitante=perfil).order_by('-fecha')
+    if es_admin and apartamento:
+        # En modo auditoría, vemos las reservas de TODOS los residentes asociados al inmueble
+        residentes_perfiles = [r for r in [apartamento.inquilino, apartamento.propietario, apartamento.residente_principal] if r]
+        reservas_qs = Reserva.objects.filter(solicitante__in=residentes_perfiles)
+    else:
+        # En modo residente, solo vemos las propias
+        reservas_qs = Reserva.objects.filter(solicitante=perfil)
+
+    try:
+        if anio_filtro and anio_filtro != 'todos':
+            reservas = reservas_qs.filter(fecha__year=int(anio_filtro)).order_by('-fecha')
+        else:
+            reservas = reservas_qs.order_by('-fecha')
+    except (ValueError, TypeError):
+        reservas = reservas_qs.order_by('-fecha')
 
     # Determinar si está al día
     deuda_pendiente = cuentas.filter(estado='Pendiente').exists() or multas.filter(aplicada_en_cobro=False).exists()
@@ -515,5 +600,83 @@ def mi_estado_cuenta(request):
         'al_dia': not deuda_pendiente,
         'mes_actual': mes_actual,
         'anio_actual': anio_actual,
+        'anios_disponibles': anios_disponibles,
+        'anio_filtro': anio_filtro,
+        'vista_admin': es_admin,
+    }
+    
+    # Asegurar que el administrador tenga la lista para el buscador superior
+    if es_admin:
+        from usuarios.models import Apartamento as AptoModel
+        context['apartamentos_lista'] = AptoModel.objects.all().order_by('torre', 'numero')
+    return render(request, 'finanzas/movimientos.html', context)
+
+@login_required
+def historial_apartamento_admin(request, apartamento_id):
+    """
+    Vista para que el ADMINISTRADOR consulte el historial de un apartamento específico.
+    Reutiliza la lógica de mi_estado_cuenta pero para cualquier apartamento.
+    """
+    perfil = getattr(request.user, 'perfilusuario', None)
+    if not perfil or perfil.rol not in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']:
+        messages.error(request, "No tienes permisos para ver esta sección administrativa.")
+        return redirect('dashboard:index')
+
+    apartamento = get_object_or_404(Apartamento, id=apartamento_id)
+    
+    # 0. Filtro por año
+    anio_filtro = request.GET.get('anio_filtro')
+    
+    # 1. Cuentas de Cobro
+    cuentas_qs = CuentaCobro.objects.filter(apartamento=apartamento)
+    anios_disponibles = cuentas_qs.values_list('anio', flat=True).distinct().order_by('-anio')
+    
+    if anio_filtro and anio_filtro != 'todos':
+        cuentas = cuentas_qs.filter(anio=int(anio_filtro)).order_by('-anio', '-mes_referencia')
+    else:
+        cuentas = cuentas_qs.order_by('-anio', '-mes_referencia')
+    
+    # 2. Multas
+    multas_qs = Multa.objects.filter(apartamento=apartamento)
+    if anio_filtro and anio_filtro != 'todos':
+        multas = multas_qs.filter(fecha_suceso__year=int(anio_filtro)).order_by('-fecha_suceso')
+    else:
+        multas = multas_qs.order_by('-fecha_suceso')
+    
+    # 3. Reservas
+    # Buscamos de forma robusta todos los perfiles asociados
+    residentes_perfiles = [r for r in [apartamento.inquilino, apartamento.propietario, apartamento.residente_principal] if r]
+    reservas_qs = Reserva.objects.filter(solicitante__in=residentes_perfiles)
+    
+    try:
+        if anio_filtro and anio_filtro != 'todos':
+            reservas = reservas_qs.filter(fecha__year=int(anio_filtro)).order_by('-fecha')
+        else:
+            reservas = reservas_qs.order_by('-fecha')
+    except (ValueError, TypeError):
+        reservas = reservas_qs.order_by('-fecha')
+
+    # Determinar si está al día
+    deuda_pendiente = cuentas.filter(estado='Pendiente').exists() or multas.filter(aplicada_en_cobro=False).exists()
+
+    hoy = date.today()
+    mes_actual = str(hoy.month).zfill(2)
+    anio_actual = hoy.year
+
+    from usuarios.models import Apartamento as AptoModel
+    apartamentos_lista = AptoModel.objects.all().order_by('torre', 'numero')
+
+    context = {
+        'apartamento': apartamento,
+        'cuentas': cuentas,
+        'multas': multas,
+        'reservas': reservas,
+        'al_dia': not deuda_pendiente,
+        'mes_actual': mes_actual,
+        'anio_actual': anio_actual,
+        'anios_disponibles': anios_disponibles,
+        'anio_filtro': anio_filtro,
+        'vista_admin': True, 
+        'apartamentos_lista': apartamentos_lista, # Necesario para el selector rápido
     }
     return render(request, 'finanzas/movimientos.html', context)

@@ -88,7 +88,9 @@
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column" id="sidebar">
         <div class="p-3">
-            <h4 class="text-center text-white my-3">Mi Conjunto</h4>
+            <a href="{% url 'dashboard:index' %}" class="text-decoration-none">
+                <h4 class="text-center text-white my-3 fw-bold">Mi Conjunto</h4>
+            </a>
         </div>
         <ul class="nav flex-column mb-auto">
 
@@ -148,6 +150,13 @@
                     <i class="bi bi-envelope-paper"></i> PQRS
                 </a>
             </li>
+            {% if user.perfilusuario.rol == 'RESIDENTE' %}
+            <li class="nav-item">
+                <a href="{% url 'usuarios:gestionar_familia' %}" class="nav-link {% if request.resolver_match.url_name == 'gestionar_familia' %}active{% endif %}">
+                    <i class="bi bi-people-fill"></i> Mi Familia (Censo)
+                </a>
+            </li>
+            {% endif %}
             <li class="nav-item">
                 <a href="{% url 'reservas:lista_reservas' %}" class="nav-link {% if request.resolver_match.app_name == 'reservas' and request.resolver_match.url_name == 'lista_reservas' or request.resolver_match.url_name == 'crear_reserva' %}active{% endif %}">
                     <i class="bi bi-calendar-check"></i> Reservas
@@ -168,6 +177,11 @@
             <li class="nav-item">
                 <a href="{% url 'finanzas:mi_estado_cuenta' %}" class="nav-link {% if request.resolver_match.url_name == 'mi_estado_cuenta' %}active{% endif %}" style="padding-left: {% if rol != 'RESIDENTE' %}40{% else %}20{% endif %}px; font-size: 0.88rem; color: rgba(255,255,255,.55);">
                     <i class="bi bi-journal-text"></i> Mis Movimientos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'usuarios:mi_perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'mi_perfil' %}active{% endif %}" style="padding-left: {% if rol != 'RESIDENTE' %}40{% else %}20{% endif %}px; font-size: 0.88rem; color: rgba(255,255,255,.55);">
+                    <i class="bi bi-person-gear"></i> Mi Perfil
                 </a>
             </li>
 
@@ -235,6 +249,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- DataTables JS -->
@@ -262,12 +277,14 @@
             $('.form-select').select2({
                 theme: 'bootstrap-5',
                 width: '100%',
+                language: 'es',
                 placeholder: "Seleccione una opción",
-                allowClear: true
+                allowClear: true,
+                dropdownParent: $('#registrarModal').length ? $('#registrarModal') : $(document.body)
             });
             
             // Inicializar DataTables globalmente en las tablas
-            $('.table').DataTable({
+            $('.datatable-basic').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
                 },
