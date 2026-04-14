@@ -1,130 +1,163 @@
 {% extends 'base.html' %}
 
-{% block title %}PQRS - Mi Conjunto Gestión{% endblock %}
+{% block title %}Buzón de PQRS - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Radicación y Gestión de PQRS</h2>
-    <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn btn-sm btn-primary shadow-sm">
-        <i class="bi bi-plus-circle"></i> Nueva Solicitud
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div class="text-brand-dark">
+        <h2 class="text-3xl font-black tracking-tight uppercase italic">
+            <i class="bi bi-chat-dots-fill mr-2 text-brand-primary"></i>Gestión de PQRS
+        </h2>
+        <div class="flex items-center gap-3">
+            <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Buzón Digital</span>
+            <span class="text-gray-400 font-medium text-sm italic">Requerimientos y solicitudes de residentes</span>
+        </div>
+    </div>
+    <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn-pro-primary flex items-center justify-center gap-3 !px-8 !py-4 shadow-xl active:scale-95 text-[0.65rem] uppercase tracking-widest italic">
+        <i class="bi bi-plus-circle-fill text-lg"></i> Nueva Solicitud
     </a>
 </div>
 
-<div class="card shadow mb-4">
-    <div class="card-header py-3 bg-white border-bottom-0">
-        <form method="GET" class="row g-2 align-items-end">
-            <!-- Filtro por Estado -->
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Estado</label>
-                <select name="estado" class="form-select form-select-sm">
-                    <option value="">Todos los estados</option>
-                    <option value="Abierto" {% if filtros.estado == 'Abierto' %}selected{% endif %}>Abierto</option>
-                    <option value="En Proceso" {% if filtros.estado == 'En Proceso' %}selected{% endif %}>En Proceso</option>
-                    <option value="Resuelto" {% if filtros.estado == 'Resuelto' %}selected{% endif %}>Resuelto</option>
-                    <option value="Cerrado" {% if filtros.estado == 'Cerrado' %}selected{% endif %}>Cerrado</option>
+<div class="card-pro overflow-hidden border-none shadow-premium !p-0">
+    <div class="p-8 bg-gray-50/50 border-b border-gray-100 mb-0">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+            <div class="md:col-span-3">
+                <label class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest px-1 mb-2 block italic">Filtrar Estado</label>
+                <select name="estado" class="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none">
+                    <option value="">TODOS LOS ESTADOS</option>
+                    <option value="Abierto" {% if filtros.estado == 'Abierto' %}selected{% endif %}>ABIERTO</option>
+                    <option value="En Proceso" {% if filtros.estado == 'En Proceso' %}selected{% endif %}>EN PROCESO</option>
+                    <option value="Resuelto" {% if filtros.estado == 'Resuelto' %}selected{% endif %}>RESUELTO</option>
+                    <option value="Cerrado" {% if filtros.estado == 'Cerrado' %}selected{% endif %}>CERRADO</option>
                 </select>
             </div>
-            <!-- Filtro por Tipo -->
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Tipo</label>
-                <select name="tipo" class="form-select form-select-sm">
-                    <option value="">Todos los tipos</option>
-                    <option value="Peticion" {% if filtros.tipo == 'Peticion' %}selected{% endif %}>Petición</option>
-                    <option value="Queja" {% if filtros.tipo == 'Queja' %}selected{% endif %}>Queja</option>
-                    <option value="Reclamo" {% if filtros.tipo == 'Reclamo' %}selected{% endif %}>Reclamo</option>
-                    <option value="Sugerencia" {% if filtros.tipo == 'Sugerencia' %}selected{% endif %}>Sugerencia</option>
+            <div class="md:col-span-3">
+                <label class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest px-1 mb-2 block italic">Clasificación</label>
+                <select name="tipo" class="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none">
+                    <option value="">TODAS LAS PQRS</option>
+                    <option value="Peticion" {% if filtros.tipo == 'Peticion' %}selected{% endif %}>PETICIÓN</option>
+                    <option value="Queja" {% if filtros.tipo == 'Queja' %}selected{% endif %}>QUEJA</option>
+                    <option value="Reclamo" {% if filtros.tipo == 'Reclamo' %}selected{% endif %}>RECLAMO</option>
+                    <option value="Sugerencia" {% if filtros.tipo == 'Sugerencia' %}selected{% endif %}>SUGERENCIA</option>
                 </select>
             </div>
-            <!-- Búsqueda por Texto -->
-            <div class="col-md-4">
-                <label class="form-label small fw-bold text-muted">Buscar (Radicado, Título, Nombre)</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Ej: PQRS-2026-..." value="{{ filtros.search|default:'' }}">
+            <div class="md:col-span-4">
+                <label class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest px-1 mb-2 block italic">Búsqueda Rápida</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                        <i class="bi bi-search text-sm"></i>
+                    </div>
+                    <input type="text" name="search" value="{{ filtros.search|default:'' }}"
+                           class="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none" 
+                           placeholder="RADICADO O TÍTULO...">
                 </div>
             </div>
-            <!-- Botón Filtrar -->
-            <div class="col-md-2">
-                <div class="d-grid shadow-sm">
-                    <button type="submit" class="btn btn-sm btn-dark fw-bold">Filtrar</button>
-                </div>
+            <div class="md:col-span-2">
+                <button type="submit" class="w-full py-3 bg-brand-dark text-white font-black rounded-2xl hover:bg-opacity-90 transition-all shadow-lg text-[0.65rem] flex items-center justify-center gap-2 uppercase tracking-widest italic">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
             </div>
         </form>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover w-100" cellspacing="0">
-                <thead class="table-light">
-                    <tr>
-                        <th><i class="bi bi-ticket-perforated"></i> Radicado</th>
-                        <th>Fecha</th>
-                        <th>Tipo</th>
-                        <th>Asunto</th>
-                        <th>Residente / Apto</th>
-                        <th>Prioridad</th>
-                        <th>Estado</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in comunicaciones %}
-                    <tr>
-                        <td>
-                            <span class="badge" style="background-color:#1e3a5f; font-size:0.8rem; letter-spacing:0.5px;">
-                                <i class="bi bi-ticket-perforated"></i>
-                                {{ item.numero_radicado|default:"--" }}
-                            </span>
-                        </td>
-                        <td>{{ item.fecha_creacion|date:"d M Y" }}</td>
-                        <td><span class="badge bg-secondary">{{ item.get_tipo_display }}</span></td>
-                        <td>{{ item.titulo|truncatechars:40 }}</td>
-                        <td>
-                            <div class="fw-bold">{{ item.solicitante.nombre_completo }}</div>
-                            <div class="small text-muted">
-                                <i class="bi bi-building"></i>
+
+    <div class="overflow-x-auto">
+        <table class="w-full datatable-brand" id="tablaPQRS">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Radicado</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Prioridad</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Asunto / Fecha</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Solicitante</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Estado</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Detalle</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for item in comunicaciones %}
+                <tr class="hover:bg-gray-50/50 transition-colors group">
+                    <td class="px-8 py-6 align-middle">
+                        <span class="inline-flex px-3 py-1 bg-brand-primary/5 text-brand-primary text-[0.65rem] font-black uppercase tracking-[0.2em] rounded-lg border border-brand-primary/10">
+                            #{{ item.numero_radicado|default:"--" }}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        <span class="text-[0.6rem] font-black uppercase tracking-[0.15em] {% if item.prioridad == 'Alta' or item.prioridad == 'Urgente' %}text-red-500 bg-red-50 px-2 py-1 rounded-md{% else %}text-brand-blue bg-blue-50 px-2 py-1 rounded-md{% endif %}">
+                            {{ item.prioridad }}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-black text-brand-dark max-w-[220px] truncate italic">{{ item.titulo }}</span>
+                            <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest mt-1 italic">{{ item.fecha_creacion|date:"d M Y, H:i" }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-black text-gray-700">{{ item.solicitante.nombre_completo }}</span>
+                            <span class="text-[0.55rem] font-black text-brand-lime uppercase tracking-widest leading-none mt-1">
                                 {% for apto in item.solicitante.apartamentos_asignados.all %}
-                                    Apto {{ apto.numero }} - T{{ apto.torre }}{% if not forloop.last %}, {% endif %}
+                                    APTO {{ apto.numero }}{% if not forloop.last %}, {% endif %}
                                 {% empty %}
-                                    {% for apto in item.solicitante.propiedades_asignadas.all %}
-                                        Apto {{ apto.numero }} - T{{ apto.torre }}{% if not forloop.last %}, {% endif %}
-                                    {% empty %}
-                                        {% for apto in item.solicitante.arrendamientos_asignados.all %}
-                                            Apto {{ apto.numero }} - T{{ apto.torre }}{% if not forloop.last %}, {% endif %}
-                                        {% empty %}
-                                            Sin Apto
-                                        {% endfor %}
-                                    {% endfor %}
+                                    {{ item.ubicacion_especifica|default:"General" }}
                                 {% endfor %}
-                            </div>
-                        </td>
-                        <td>
-                            {% if item.prioridad == 'Alta' or item.prioridad == 'Urgente' %}
-                                <span class="badge bg-danger">{{ item.prioridad }}</span>
-                            {% else %}
-                                <span class="badge bg-info">{{ item.prioridad }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if item.estado == 'Abierto' %}
-                                <span class="badge bg-warning text-dark">{{ item.estado }}</span>
-                            {% elif item.estado == 'Resuelto' or item.estado == 'Cerrado' %}
-                                <span class="badge bg-success">{{ item.estado }}</span>
-                            {% else %}
-                                <span class="badge bg-primary">{{ item.estado }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{% url 'comunicacion:ver_pqrs' item.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Leer / Gestionar</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">No hay comunicaciones registradas.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        {% if item.estado == 'Abierto' %}
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-brand-lime text-brand-dark shadow-sm uppercase italic tracking-widest">
+                                <span class="w-1.5 h-1.5 rounded-full bg-brand-dark/20 mr-2"></span> RECIBIDO
+                            </span>
+                        {% elif item.estado == 'Resuelto' or item.estado == 'Cerrado' %}
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-gray-100 text-gray-400 uppercase tracking-widest">
+                                FINALIZADO
+                            </span>
+                        {% elif item.estado == 'En Proceso' %}
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-brand-primary text-white shadow-sm animate-pulse uppercase italic tracking-widest">
+                                EN TRÁMITE
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-brand-dark text-white uppercase tracking-widest">
+                                {{ item.estado|upper }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 align-middle text-right">
+                        <a href="{% url 'comunicacion:ver_pqrs' item.id %}" class="w-10 h-10 inline-flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:bg-brand-primary hover:text-white transition-all shadow-sm">
+                            <i class="bi bi-journal-text text-lg"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-32 text-center">
+                        <div class="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-gray-200">
+                            <i class="bi bi-chat-left-dots text-4xl"></i>
+                        </div>
+                        <p class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">No se registran solicitudes en el historial de comunicaciones.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        if ($.fn.DataTable.isDataTable('#tablaPQRS')) {
+            $('#tablaPQRS').DataTable().destroy();
+        }
+        $('#tablaPQRS').DataTable({
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+            order: [[0, 'desc']],
+            autoWidth: false,
+            responsive: true,
+            pageLength: 20,
+            dom: 't<"flex flex-col md:flex-row justify-between items-center gap-4 p-8 border-t border-gray-100"ip>'
+        });
+    });
+</script>
 {% endblock %}

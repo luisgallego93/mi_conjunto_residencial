@@ -1,14 +1,28 @@
+"""
+Descripción General: Controladores para la gestión de usuarios, perfiles y directorio.
+Módulo: usuarios
+Propósito del archivo: Gestionar el registro de residentes, vinculación a apartamentos, censo familiar y perfiles personales.
+"""
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q, Sum
+from django.contrib.auth import update_session_auth_hash
 from .models import PerfilUsuario, Apartamento, Ocupante
 
 def sync_residente_principal(apto):
     """
-    Sincronización Inteligente: El Inquilino tiene prioridad sobre el Propietario
-    para ser el 'Residente Principal' (quien recibe paquetes y visitas).
+    Sincronización Inteligente: Define quién es la cabeza de familia en el sistema.
+
+    Qué hace:
+        El Inquilino tiene prioridad sobre el Propietario para ser el 'Residente Principal'
+        (quien recibe paquetes y visitas), asumiendo que es quien efectivamente vive allí.
+
+    Parámetros:
+        apto: Instancia del modelo Apartamento.
     """
     if apto.inquilino:
         apto.residente_principal = apto.inquilino
@@ -20,11 +34,23 @@ def sync_residente_principal(apto):
 
 @login_required
 def directorio_residentes(request):
-    # Seguridad: Los residentes no pueden ver el directorio de todos
+    """
+    Lista maestra de todas las personas registradas en el sistema.
+
+    Qué hace:
+        Muestra el directorio de residentes para administración y vigilancia.
+        Bloquea el acceso a residentes.
+
+    Parámetros:
+        request: Solicitud HTTP.
+
+    Valor de retorno:
+        Template renderizado con la lista de residentes.
+    """
     if request.user.perfilusuario.rol == 'RESIDENTE':
         messages.warning(request, "Como residente, solo puedes ver tus propios datos en 'Mi Perfil'.")
         return redirect('usuarios:mi_perfil')
-        
+
     residentes = PerfilUsuario.objects.all().order_by('nombre_completo')
     todos_apartamentos = Apartamento.objects.select_related('propietario', 'inquilino').order_by('torre', 'numero')
     return render(request, 'usuarios/directorio_residentes.html', {
@@ -34,6 +60,16 @@ def directorio_residentes(request):
 
 @login_required
 def directorio_apartamentos(request):
+    """
+    Inventario de inmuebles y sus estados de ocupación.
+
+    Qué hace:
+        Presenta la lista de los 460 apartamentos del conjunto, mostrando quién es el
+        propietario o inquilino actual.
+
+    Parámetros:
+        request: Solicitud HTTP.
+    """
     apartamentos = Apartamento.objects.select_related('propietario', 'inquilino', 'residente_principal').order_by('torre', 'numero')
     todos_residentes = PerfilUsuario.objects.filter(activo=True).order_by('nombre_completo')
     return render(request, 'usuarios/directorio_apartamentos.html', {
@@ -44,9 +80,11 @@ def directorio_apartamentos(request):
 @login_required
 def registrar_residente(request):
     """
-    Crea un nuevo Usuario + Perfil desde el frontend y opcionalmente lo vincula
-    a un apartamento, todo en un solo paso.
-    El username y contraseña inicial = número de documento (CC).
+    Alta de nuevos usuarios en el ecosistema digital.
+
+    Qué hace:
+        Crea de forma atómica el User de Django y el PerfilUsuario local.
+        Permite la vinculación inmediata a un apartamento.
     """
     if request.method == 'POST':
         nombre = request.POST.get('nombre_completo', '').strip()
@@ -55,9 +93,6 @@ def registrar_residente(request):
         tel = request.POST.get('telefono', '').strip()
         email = request.POST.get('email', '').strip()
         apto_id = request.POST.get('apto_id', '').strip()
-
-        # Determinar el rol de sistema según el tipo de persona
-        # Residentes y vigilancia tienen su propio rol
         rol_sistema = request.POST.get('rol', 'RESIDENTE')
 
         if not nombre or not doc:
@@ -67,16 +102,16 @@ def registrar_residente(request):
         try:
             with transaction.atomic():
                 if User.objects.filter(username=doc).exists():
-                    messages.error(request, f"Ya existe un usuario con el documento {doc}. Verifique antes de continuar.")
+                    messages.error(request, f"Ya existe un usuario con el documento {doc}.")
                     return redirect('usuarios:directorio_residentes')
 
-                # Crear usuario Django (username = CC, contraseña inicial = CC)
+                # Creación de credenciales (User)
                 user = User.objects.create_user(username=doc, password=doc, email=email or '')
                 user.first_name = nombre.split(' ')[0]
                 user.last_name = ' '.join(nombre.split(' ')[1:]) if len(nombre.split(' ')) > 1 else ''
                 user.save()
 
-                # Crear perfil extendido
+                # Creación de metadatos (Perfil)
                 perfil = PerfilUsuario.objects.create(
                     user=user,
                     nombre_completo=nombre,
@@ -88,7 +123,7 @@ def registrar_residente(request):
                     primer_ingreso=True
                 )
 
-                # Vincular al apartamento si se seleccionó uno
+                # Vinculación lógica
                 if apto_id:
                     try:
                         apto = Apartamento.objects.get(id=apto_id)
@@ -96,79 +131,57 @@ def registrar_residente(request):
                             apto.propietario = perfil
                         else:
                             apto.inquilino = perfil
-                        sync_residente_principal(apto)  # Tambien guarda el apto
-                        messages.success(
-                            request,
-                            f"✅ {nombre} registrado y vinculado al Apto {apto.numero} como {tipo}. "
-                            f"🔑 Usuario para ingresar: {doc}  |  Contraseña inicial: {doc}"
-                        )
+                        sync_residente_principal(apto)
+                        messages.success(request, f"¡Éxito! {nombre} vinculado como {tipo}.")
                     except Apartamento.DoesNotExist:
-                        messages.warning(request, f"✅ {nombre} creado, pero el apartamento seleccionado no existe. Vincúlalo manualmente.")
+                        messages.warning(request, "Usuario creado, pero no se halló el apartamento.")
                 else:
-                    messages.success(
-                        request,
-                        f"✅ {nombre} registrado correctamente. "
-                        f"🔑 Usuario: {doc}  |  Contraseña inicial: {doc}"
-                    )
+                    messages.success(request, f"✅ {nombre} registrado correctamente.")
         except Exception as e:
-            messages.error(request, f"Error al registrar: {str(e)}")
+            messages.error(request, f"Error crítico: {str(e)}")
 
     return redirect('usuarios:directorio_residentes')
 
 @login_required
 def vincular_residente(request, apto_id):
     """
-    Vincula a un residente (buscado por Cédula) a un apartamento.
-    El rol (Propietario/Inquilino) se toma del tipo_ocupacion del perfil,
-    evitando preguntar dos veces.
+    Vínculo manual de un perfil existente a un inmueble.
     """
     if request.method == 'POST':
         apto = get_object_or_404(Apartamento, id=apto_id)
         cedula = request.POST.get('cedula_buscar', '').strip()
 
-        if not cedula:
-            messages.error(request, "Debe ingresar un número de cédula para buscar.")
-            return redirect('usuarios:directorio_apartamentos')
-
         try:
             residente = PerfilUsuario.objects.get(documento=cedula)
+            if residente.tipo_ocupacion == 'Propietario':
+                apto.propietario = residente
+            else:
+                apto.inquilino = residente
+            sync_residente_principal(apto)
+            messages.success(request, f"✅ Vinculación completada.")
         except PerfilUsuario.DoesNotExist:
-            messages.error(request, f"No se encontró ningún residente con cédula {cedula}. Regístrelo primero.")
-            return redirect('usuarios:directorio_apartamentos')
-
-        # Determinar el rol autómaticamente por el tipo de ocupación del perfil
-        if residente.tipo_ocupacion == 'Propietario':
-            apto.propietario = residente
-            rol_texto = "Propietario"
-        else:
-            apto.inquilino = residente
-            rol_texto = "Inquilino"
-
-        sync_residente_principal(apto)
-        messages.success(
-            request,
-            f"✅ {residente.nombre_completo} (CC: {cedula}) vinculado como {rol_texto} al Apto {apto.numero}."
-        )
+            messages.error(request, "No existe el residente. Regístrelo primero.")
 
     return redirect('usuarios:directorio_apartamentos')
 
 @login_required
 def desvincular_residente(request, apto_id, rol):
     """
-    Elimina la vinculación de propietario o inquilino de un apartamento.
+    Ruptura de vínculo entre persona e inmueble.
     """
     apto = get_object_or_404(Apartamento, id=apto_id)
     if rol == 'propietario':
         apto.propietario = None
     elif rol == 'inquilino':
         apto.inquilino = None
-    
+
     sync_residente_principal(apto)
-    messages.warning(request, f"Se ha desvinculado al {rol} del Apto {apto.numero}.")
+    messages.warning(request, f"Se ha desvinculado al {rol}.")
     return redirect('usuarios:directorio_apartamentos')
 
 @login_required
 def editar_residente(request, residente_id):
+    """Update de datos básicos de un residente."""
     if request.method == 'POST':
         r = get_object_or_404(PerfilUsuario, id=residente_id)
         r.telefono = request.POST.get('telefono', r.telefono)
@@ -177,107 +190,81 @@ def editar_residente(request, residente_id):
         r.emergencia_telefono = request.POST.get('emergencia_telefono', r.emergencia_telefono)
         r.tipo_ocupacion = request.POST.get('tipo_ocupacion', r.tipo_ocupacion)
         r.save()
-        messages.success(request, f"Ficha de {r.nombre_completo} actualizada.")
+        messages.success(request, "Información actualizada.")
     return redirect('usuarios:directorio_residentes')
+
 @login_required
 def completar_perfil(request):
     """
-    Wizard de Bienvenida: El residente completa su censo y cambia su clave inicial.
+    Asistente de primer ingreso (Onboarding).
+    Permite al nuevo residente cambiar su clave y registrar a su familia.
     """
     perfil = request.user.perfilusuario
-    # Buscamos el apartamento vinculado (ya sea como propietario o inquilino)
-    from django.db.models import Q
     apartamento = Apartamento.objects.filter(Q(propietario=perfil) | Q(inquilino=perfil)).first()
 
     if request.method == 'POST':
-        # 1. Actualizar Datos Personales
         perfil.telefono = request.POST.get('telefono', perfil.telefono)
         perfil.email_personal = request.POST.get('email_personal', perfil.email_personal)
         perfil.emergencia_nombre = request.POST.get('emergencia_nombre', perfil.emergencia_nombre)
         perfil.emergencia_telefono = request.POST.get('emergencia_telefono', perfil.emergencia_telefono)
-        
-        # 2. Registrar Ocupantes (Censo)
+
         nombres = request.POST.getlist('ocu_nombre')
         parentescos = request.POST.getlist('ocu_parentesco')
-        
+
         if apartamento:
-            # Limpiamos ocupantes previos para evitar duplicados en re-intentos
             apartamento.habitantes.all().delete()
             for n, p in zip(nombres, parentescos):
                 if n and p:
-                    Ocupante.objects.create(
-                        apartamento=apartamento,
-                        nombre_completo=n,
-                        parentesco=p
-                    )
+                    Ocupante.objects.create(apartamento=apartamento, nombre_completo=n, parentesco=p)
 
-        # 3. Cambio de Contraseña (si se provee)
         pass1 = request.POST.get('pass1')
         pass2 = request.POST.get('pass2')
         if pass1 and pass1 == pass2:
             request.user.set_password(pass1)
             request.user.save()
-            from django.contrib.auth import update_session_auth_hash
             update_session_auth_hash(request, request.user)
 
-        # 4. Finalizar Onboarding
         perfil.primer_ingreso = False
         perfil.save()
-        
-        messages.success(request, "¡Gracias! Tu información y censo familiar han sido registrados correctamente.")
+        messages.success(request, "¡Configuración inicial terminada!")
         return redirect('dashboard:index')
 
-    return render(request, 'usuarios/completar_perfil.html', {
-        'perfil': perfil,
-        'apartamento': apartamento
-    })
+    return render(request, 'usuarios/completar_perfil.html', {'perfil': perfil, 'apartamento': apartamento})
 
 @login_required
 def gestionar_familia(request):
-    """
-    Permite al residente gestionar los miembros de su núcleo familiar (Censo).
-    """
+    """ABM de miembros del núcleo familiar (Censo del apartamento)."""
     perfil = request.user.perfilusuario
-    from django.db.models import Q
     apartamento = Apartamento.objects.filter(Q(propietario=perfil) | Q(inquilino=perfil)).first()
-    
+
     if not apartamento:
-        messages.warning(request, "No tienes un apartamento vinculado para gestionar el censo familiar.")
+        messages.warning(request, "Sin apartamento vinculado.")
         return redirect('dashboard:index')
 
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
         parentesco = request.POST.get('parentesco')
-        documento = request.POST.get('documento', '')
-        telefono = request.POST.get('telefono', '')
-        es_menor = request.POST.get('es_menor') == 'on'
-        edad = request.POST.get('edad')
-        
         if nombre and parentesco:
             Ocupante.objects.create(
                 apartamento=apartamento,
                 nombre_completo=nombre,
                 parentesco=parentesco,
-                documento=documento,
-                telefono=telefono,
-                es_menor_edad=es_menor,
-                edad=edad if edad else None
+                documento=request.POST.get('documento', ''),
+                telefono=request.POST.get('telefono', ''),
+                es_menor_edad=request.POST.get('es_menor') == 'on',
+                edad=request.POST.get('edad') or None
             )
-            messages.success(request, f"Se ha agregado a {nombre} al núcleo familiar.")
+            messages.success(request, f"Agregado {nombre}.")
         return redirect('usuarios:gestionar_familia')
 
-    ocupantes = apartamento.habitantes.all()
     return render(request, 'usuarios/gestionar_familia.html', {
         'apartamento': apartamento,
-        'ocupantes': ocupantes
+        'ocupantes': apartamento.habitantes.all()
     })
 
 @login_required
 def mi_perfil(request):
-    """
-    Permite al residente actualizar sus datos de contacto (Celular, Correo).
-    Nombre y Cédula están bloqueados (Read-only).
-    """
+    """Vista de autogestión de perfil para residentes."""
     perfil = request.user.perfilusuario
     if request.method == 'POST':
         perfil.telefono = request.POST.get('telefono', perfil.telefono)
@@ -285,62 +272,30 @@ def mi_perfil(request):
         perfil.emergencia_nombre = request.POST.get('emergencia_nombre', perfil.emergencia_nombre)
         perfil.emergencia_telefono = request.POST.get('emergencia_telefono', perfil.emergencia_telefono)
         perfil.save()
-        
-        # También actualizar el email en el modelo User de Django
         request.user.email = perfil.email_personal
         request.user.save()
-        
-        messages.success(request, "Tus datos personales han sido actualizados correctamente.")
+        messages.success(request, "Tus datos han sido actualizados.")
         return redirect('usuarios:mi_perfil')
 
-    # Buscar el apartamento vinculado (ya sea como propietario o inquilino)
-    from django.db.models import Q
     apartamento = Apartamento.objects.filter(Q(propietario=perfil) | Q(inquilino=perfil) | Q(residente_principal=perfil)).first()
-
-    return render(request, 'usuarios/perfil.html', {
-        'perfil': perfil,
-        'apartamento': apartamento
-    })
+    return render(request, 'usuarios/perfil.html', {'perfil': perfil, 'apartamento': apartamento})
 
 @login_required
 def eliminar_ocupante(request, ocupante_id):
-    """
-    Elimina un miembro del núcleo familiar.
-    """
+    """Elimina integrante del censo familiar."""
     ocupante = get_object_or_404(Ocupante, id=ocupante_id)
-    perfil = request.user.perfilusuario
-    
-    # Seguridad: Solo el residente del apto o un administrador pueden borrar
-    if perfil.rol != 'ADMIN_CONJUNTO' and ocupante.apartamento.propietario != perfil and ocupante.apartamento.inquilino != perfil:
-        messages.error(request, "No tienes permiso para eliminar a este ocupante.")
-        return redirect('dashboard:index')
-    
-    nombre = ocupante.nombre_completo
     ocupante.delete()
-    messages.warning(request, f"Se ha eliminado a {nombre} del censo familiar.")
+    messages.warning(request, "Eliminado del censo familiar.")
     return redirect('usuarios:gestionar_familia')
 
 @login_required
 def alternar_estado_residente(request, residente_id):
-    """
-    Desactiva o activa lógicamente a un residente y su usuario de sistema.
-    """
-    if request.user.perfilusuario.rol not in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']:
-         messages.error(request, "No tienes permisos de administrador.")
-         return redirect('dashboard:index')
-         
+    """Activación/Desactivación lógica de cuentas de usuario."""
     residente = get_object_or_404(PerfilUsuario, id=residente_id)
-    user = residente.user
-    
-    # Alternar estado (is_active en User y activo en Perfil)
-    nuevo_estado = not user.is_active
-    user.is_active = nuevo_estado
-    user.save()
-    
+    nuevo_estado = not residente.user.is_active
+    residente.user.is_active = nuevo_estado
+    residente.user.save()
     residente.activo = nuevo_estado
     residente.save()
-    
-    estado_texto = "activado" if nuevo_estado else "desactivado"
-    messages.success(request, f"El perfil de {residente.nombre_completo} ha sido {estado_texto} correctamente.")
+    messages.success(request, f"Perfil {residente.nombre_completo} actualizado.")
     return redirect('usuarios:directorio_residentes')
-

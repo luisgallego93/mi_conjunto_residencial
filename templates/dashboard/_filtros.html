@@ -1,0 +1,61 @@
+<!-- Componente de Filtros de Periodo (Mes, Trimestre, Año) -->
+<div class="card-pro mb-8 bg-gray-50/50 border-gray-100">
+    <form method="get" class="flex flex-col md:flex-row items-center gap-6">
+        <!-- Selector de Año -->
+        <div class="w-full md:w-48">
+            <label class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-widest block mb-2">Año</label>
+            <select name="anio" class="form-select border-none shadow-sm rounded-xl text-sm font-bold h-12">
+                {% for a in anios_disponibles %}
+                    <option value="{{ a }}" {% if v_anio == a %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Selector de Mes -->
+        <div class="w-full md:w-56">
+            <label class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-widest block mb-2">Mes</label>
+            <select name="mes" class="form-select border-none shadow-sm rounded-xl text-sm font-bold h-12">
+                <option value="todos" {% if not v_mes or v_mes == 'todos' %}selected{% endif %}>Todos los meses</option>
+                <option value="1" {% if v_mes == 1 %}selected{% endif %}>Enero</option>
+                <option value="2" {% if v_mes == 2 %}selected{% endif %}>Febrero</option>
+                <option value="3" {% if v_mes == 3 %}selected{% endif %}>Marzo</option>
+                <option value="4" {% if v_mes == 4 %}selected{% endif %}>Abril</option>
+                <option value="5" {% if v_mes == 5 %}selected{% endif %}>Mayo</option>
+                <option value="6" {% if v_mes == 6 %}selected{% endif %}>Junio</option>
+                <option value="7" {% if v_mes == 7 %}selected{% endif %}>Julio</option>
+                <option value="8" {% if v_mes == 8 %}selected{% endif %}>Agosto</option>
+                <option value="9" {% if v_mes == 9 %}selected{% endif %}>Septiembre</option>
+                <option value="10" {% if v_mes == 10 %}selected{% endif %}>Octubre</option>
+                <option value="11" {% if v_mes == 11 %}selected{% endif %}>Noviembre</option>
+                <option value="12" {% if v_mes == 12 %}selected{% endif %}>Diciembre</option>
+            </select>
+        </div>
+
+        <!-- Selector de Trimestre -->
+        <div class="w-full md:w-56">
+            <label class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-widest block mb-2">Trimestre</label>
+            <select name="trimestre" class="form-select border-none shadow-sm rounded-xl text-sm font-bold h-12">
+                <option value="todos" {% if not v_trim or v_trim == 'todos' %}selected{% endif %}>Acumulado Anual</option>
+                <option value="1" {% if v_trim == 1 %}selected{% endif %}>Trimestre 1 (Ene-Mar)</option>
+                <option value="2" {% if v_trim == 2 %}selected{% endif %}>Trimestre 2 (Abr-Jun)</option>
+                <option value="3" {% if v_trim == 3 %}selected{% endif %}>Trimestre 3 (Jul-Sep)</option>
+                <option value="4" {% if v_trim == 4 %}selected{% endif %}>Trimestre 4 (Oct-Dic)</option>
+            </select>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex items-end gap-3 h-full pt-6">
+            <button type="submit" class="btn-pro-primary h-12 px-8 flex items-center justify-center gap-2">
+                <i class="bi bi-funnel-fill"></i> Filtrar
+            </button>
+            <a href="{{ request.path }}" class="h-12 px-6 bg-white border border-gray-200 text-gray-400 rounded-xl flex items-center justify-center transition-all hover:bg-gray-50 hover:text-gray-600">
+                <i class="bi bi-x-circle"></i>
+            </a>
+        </div>
+    </form>
+    
+    <div class="mt-4 flex items-center gap-2">
+        <span class="flex h-2 w-2 rounded-full bg-brand-primary animate-pulse"></span>
+        <span class="text-[0.65rem] font-black text-brand-primary uppercase tracking-[0.2em] italic">Visualizando: {{ periodo_txt }}</span>
+    </div>
+</div>

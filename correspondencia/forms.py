@@ -5,7 +5,7 @@ class PaqueteForm(forms.ModelForm):
     class Meta:
         model = Paquete
         fields = ['apartamento', 'transportadora', 'destinatario', 'guia', 'observaciones']
-        
+
         widgets = {
             'apartamento': forms.Select(attrs={'class': 'form-select'}),
             'transportadora': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Servientrega, MercadoLibre, Amazon'}),

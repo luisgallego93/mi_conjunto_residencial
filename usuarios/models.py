@@ -1,43 +1,53 @@
+"""
+Descripción General: Definición de modelos para la gestión de usuarios e inmuebles.
+Módulo: usuarios
+Propósito del archivo: Estructurar la base de datos para apartamentos, perfiles de usuario y el censo poblacional.
+"""
+
 from django.db import models
 from django.contrib.auth.models import User
 
 # --- 1. ENTIDAD: APARTAMENTO (El Activo Físico) ---
 class Apartamento(models.Model):
+    """
+    Representa una unidad habitacional física dentro del conjunto residencial.
+    """
     torre = models.CharField(max_length=10, verbose_name="Torre / Bloque")
     numero = models.CharField(max_length=10, verbose_name="Número de Apartamento")
     piso = models.PositiveIntegerField(verbose_name="Piso")
     codigo_pago = models.CharField(max_length=20, unique=True, blank=True, null=True, help_text="Ej: 14501", verbose_name="Código Bancario CSV")
     saldo_a_favor = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Saldo a Favor ($)")
-    
-    # NUEVA ARQUITECTURA (Dualidad Propietario/Inquilino)
+
+    # Asignación de roles sobre la propiedad
     propietario = models.ForeignKey(
-        'PerfilUsuario', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
+        'PerfilUsuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="propiedades_asignadas",
         verbose_name="Propietario Legal"
     )
     inquilino = models.ForeignKey(
-        'PerfilUsuario', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
+        'PerfilUsuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="arrendamientos_asignados",
         verbose_name="Inquilino / Arrendatario"
     )
 
-    # CAMPO LEGADO (Para compatibilidad con módulos antiguos)
+    # Residente principal (Legado para compatibilidad)
     residente_principal = models.ForeignKey(
-        'PerfilUsuario', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
+        'PerfilUsuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="apartamentos_asignados",
         verbose_name="Residente Principal (LEGACY)"
     )
 
     def __str__(self):
+        """Retorna la representación legible del apartamento."""
         return f"Apto {self.numero} (Torre {self.torre})"
 
     class Meta:
@@ -49,8 +59,11 @@ class Apartamento(models.Model):
 
 # --- 2. ENTIDAD: PERFIL DE USUARIO (La Persona) ---
 class PerfilUsuario(models.Model):
+    """
+    Extensión del modelo User de Django para almacenar datos específicos del residente o administrador.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Usuario de Sistema")
-    
+
     ROLES = [
         ('ADMIN_SISTEMA', 'Administrador del Sistema'),
         ('ADMIN_CONJUNTO', 'Administrador del Conjunto'),
@@ -61,13 +74,13 @@ class PerfilUsuario(models.Model):
     activo = models.BooleanField(default=True, verbose_name="Cuenta Activa")
     primer_ingreso = models.BooleanField(default=True, verbose_name="¿Es su primer ingreso?")
 
-    # --- Datos Personales ---
+    # Datos Personales
     documento = models.CharField(max_length=20, unique=True, verbose_name="Número de Documento")
     nombre_completo = models.CharField(max_length=150)
     telefono = models.CharField(max_length=15)
     email_personal = models.EmailField(blank=True)
 
-    # --- Datos de Ocupación ---
+    # Datos de Ocupación
     TIPOS_OCUPACION = [
         ('Propietario', 'Propietario'),
         ('Arrendatario', 'Arrendatario'),
@@ -76,17 +89,18 @@ class PerfilUsuario(models.Model):
     tipo_ocupacion = models.CharField(max_length=20, choices=TIPOS_OCUPACION, default='Propietario')
     fecha_ingreso = models.DateField(null=True, blank=True)
 
-    # --- Contacto de Emergencia ---
+    # Contacto de Emergencia
     emergencia_nombre = models.CharField(max_length=100, verbose_name="Nombre de Emergencia", blank=True)
     emergencia_telefono = models.CharField(max_length=15, verbose_name="Teléfono de Emergencia", blank=True)
     emergencia_parentesco = models.CharField(max_length=50, blank=True)
 
-    # --- Configuración ---
+    # Configuración de cuenta
     recibir_notificaciones = models.BooleanField(default=True)
     permitir_acceso_portal = models.BooleanField(default=True)
     observaciones = models.TextField(max_length=500, blank=True)
 
     def __str__(self):
+        """Retorna el nombre del usuario y su documento."""
         return f"{self.nombre_completo} - Doc: {self.documento}"
 
     class Meta:
@@ -97,6 +111,9 @@ class PerfilUsuario(models.Model):
 
 # --- 3. ENTIDAD: OCUPANTE (Censo Poblacional) ---
 class Ocupante(models.Model):
+    """
+    Registro detallado de las personas que habitan en cada apartamento para el censo.
+    """
     apartamento = models.ForeignKey(Apartamento, on_delete=models.CASCADE, related_name="habitantes")
     nombre_completo = models.CharField(max_length=150)
     documento = models.CharField(max_length=20, blank=True)
@@ -104,10 +121,11 @@ class Ocupante(models.Model):
     telefono = models.CharField(max_length=15, blank=True)
     es_menor_edad = models.BooleanField(default=False)
     edad = models.PositiveIntegerField(null=True, blank=True, verbose_name="Edad")
-    
+
     def __str__(self):
+        """Retorna el nombre del ocupante y su ubicación."""
         return f"{self.nombre_completo} ({self.parentesco}) - Apto {self.apartamento.numero}"
 
     class Meta:
         verbose_name = "Ocupante"
-        verbose_name_plural = "Censo: Ocupantes"
+        verbose_name_plural = "Censo: Ocupantes"

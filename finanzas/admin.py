@@ -20,8 +20,8 @@ class CuentaCobroAdmin(admin.ModelAdmin):
     def generar_mensualidad_masiva(self, request, queryset):
         mes_actual = str(datetime.now().month).zfill(2)
         anio_actual = datetime.now().year
-        valor_estandar = 150000 
-        
+        valor_estandar = 150000
+
         aptos = Apartamento.objects.all()
         creados = 0
         for apto in aptos:
@@ -30,14 +30,14 @@ class CuentaCobroAdmin(admin.ModelAdmin):
                 defaults={'valor_base': valor_estandar, 'estado': 'Pendiente'}
             )
             if created: creados += 1
-        
+
         self.message_user(request, f"✅ Proceso completado: {creados} cobros nuevos.", messages.SUCCESS)
 
     def mostrar_mora_y_deuda(self, obj):
         deuda = CuentaCobro.objects.filter(
             apartamento=obj.apartamento, estado='Pendiente', id__lt=obj.id
         ).aggregate(Sum('valor_base'))['valor_base__sum'] or 0
-        
+
         if deuda > 0:
             interes = float(deuda) * 0.019
             return f"${deuda:,.2f} (+ ${interes:,.2f} Int.)"
@@ -55,12 +55,12 @@ class CuentaCobroAdmin(admin.ModelAdmin):
         deuda = CuentaCobro.objects.filter(
             apartamento=obj.apartamento, estado='Pendiente', id__lt=obj.id
         ).aggregate(Sum('valor_base'))['valor_base__sum'] or 0
-        
+
         interes = float(deuda) * 0.019
         multas = Multa.objects.filter(
             apartamento=obj.apartamento, aplicada_en_cobro=False
         ).aggregate(Sum('valor'))['valor__sum'] or 0
-        
+
         total = float(obj.valor_base) + float(deuda) + interes + float(multas)
         return f"${total:,.2f}"
     total_final.short_description = "TOTAL A PAGAR"

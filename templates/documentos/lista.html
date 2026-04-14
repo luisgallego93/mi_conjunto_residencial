@@ -1,81 +1,117 @@
 {% extends 'base.html' %}
 
-{% block title %}Documentos - Mi Conjunto Gestión{% endblock %}
+{% comment %}Propósito: Repositorio Digital de Documentos Oficiales.
+    Descripción: Centro de consulta y descarga de normativa, manuales, circulares y formatos. 
+    Permite el acceso rápido a la documentación institucional del conjunto "Sauces de Ciudad del Valle".{% endcomment %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Repositorio de Documentos</h2>
-    {% if puede_subir %}
-    <a href="{% url 'documentos:subir' %}" class="btn btn-sm btn-primary shadow-sm fw-bold">
-        <i class="bi bi-cloud-arrow-up"></i> Subir Documento
-    </a>
-    {% endif %}
-</div>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">Repositorio Digital</h2>
+            <p class="text-gray-400 font-medium text-sm">Biblioteca oficial de reglamentos, circulares y formatos.</p>
+        </div>
+        {% if puede_subir %}
+        <a href="{% url 'documentos:subir' %}" class="inline-flex items-center px-6 py-3 bg-brand-primary text-white rounded-2xl text-sm font-black hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95">
+            <i class="bi bi-cloud-arrow-up-fill mr-2"></i> PUBLICAR DOCUMENTO
+        </a>
+        {% endif %}
+    </div>
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <form method="get" class="row gx-2 gy-2 align-items-center">
-                    <div class="col-md-auto">
-                        <label class="fw-bold me-2">Filtrar por Categoría:</label>
-                    </div>
-                    <div class="col-md-5">
-                        <select name="categoria" class="form-select form-select-sm shadow-sm" onchange="this.form.submit()">
-                            <option value="">Todas las Categorías</option>
+    <!-- Filtros y Búsqueda -->
+    <div class="card-pro mb-10">
+        <div class="flex flex-col md:flex-row gap-6">
+            <div class="w-full md:w-1/2 flex flex-col md:flex-row gap-4">
+                <form method="get" id="filtroForm" class="flex flex-col md:flex-row gap-4 w-full">
+                    <div class="relative group flex-grow">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary">
+                            <i class="bi bi-filter-circle"></i>
+                        </div>
+                        <select name="categoria" class="w-full pl-11 pr-12 py-3 bg-gray-50 border-none rounded-xl text-xs font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none appearance-none cursor-pointer transition-all" onchange="this.form.submit()">
+                            <option value="">TODAS LAS CATEGORÍAS</option>
                             {% for cod, nom in categorias %}
-                                <option value="{{ cod }}" {% if categoria_activa == cod %}selected{% endif %}>{{ nom }}</option>
+                                <option value="{{ cod }}" {% if categoria_activa == cod %}selected{% endif %}>{{ nom|upper }}</option>
                             {% endfor %}
                         </select>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-300">
+                            <i class="bi bi-chevron-down text-[0.6rem]"></i>
+                        </div>
                     </div>
-                    <div class="col-md-5">
-                        <input type="text" id="filtroTexto" class="form-control form-control-sm shadow-sm" placeholder="Buscar por título o palabra clave...">
+
+                    <div class="relative group min-w-[200px]">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary">
+                            <i class="bi bi-sort-down"></i>
+                        </div>
+                        <select name="orden" class="w-full pl-11 pr-12 py-3 bg-gray-50 border-none rounded-xl text-xs font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none appearance-none cursor-pointer transition-all" onchange="this.form.submit()">
+                            <option value="desc" {% if orden_activo == 'desc' %}selected{% endif %}>MÁS RECIENTES</option>
+                            <option value="asc" {% if orden_activo == 'asc' %}selected{% endif %}>MÁS ANTIGUOS</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-300">
+                            <i class="bi bi-chevron-down text-[0.6rem]"></i>
+                        </div>
                     </div>
                 </form>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="row" id="contenedorDocumentos">
-    {% for doc in documentos %}
-    <div class="col-md-4 mb-4 tarjeta-doc">
-        <div class="card h-100 shadow-sm border-start border-4 border-primary card-stat">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0">
-                        <i class="bi bi-file-earmark-pdf-fill text-danger fs-1"></i>
+            <div class="flex-grow">
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary">
+                        <i class="bi bi-search"></i>
                     </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-0 fw-bold text-dark">{{ doc.titulo }}</h6>
-                        <span class="badge bg-secondary mb-1">{{ doc.get_categoria_display }}</span>
-                    </div>
-                </div>
-                
-                {% if doc.descripcion %}
-                <p class="small text-muted mb-3 flex-grow-1">{{ doc.descripcion }}</p>
-                {% else %}
-                <p class="small text-muted mb-3 flex-grow-1"><em>Sin descripción</em></p>
-                {% endif %}
-                
-                <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                    <small class="text-muted"><i class="bi bi-calendar3"></i> {{ doc.fecha_subida|date:"d M, Y" }}</small>
-                    <a href="{{ doc.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-eye"></i> Ver PDF
-                    </a>
+                    <input type="text" id="filtroTexto" class="w-full pl-11 pr-6 py-3 bg-gray-50 border-none rounded-xl text-xs font-black text-brand-dark placeholder-gray-300 focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all" placeholder="BUSCAR POR TÍTULO O PALABRA CLAVE...">
                 </div>
             </div>
         </div>
     </div>
-    {% empty %}
-    <div class="col-12">
-        <div class="alert alert-light text-center py-5 border shadow-sm">
-            <i class="bi bi-folder-x display-4 text-muted mb-3"></i>
-            <h5 class="text-muted">No se encontraron documentos registrados.</h5>
-            <p class="mb-0">{% if categoria_activa %}Intenta con otra categoría o elimina los filtros.{% else %}Utiliza el botón superior para subir el primer documento.{% endif %}</p>
+
+    <!-- Grid de Documentos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="contenedorDocumentos">
+        {% for doc in documentos %}
+        <div class="tarjeta-doc group">
+            <div class="card-pro h-100 !p-0 overflow-hidden border-none shadow-premium hover:-translate-y-2 transition-all duration-300">
+                <div class="h-1.5 bg-brand-primary/20 w-full group-hover:bg-brand-primary transition-colors"></div>
+                <div class="p-6 md:p-8 space-y-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 text-2xl shadow-inner shrink-0 leading-none">
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                        </div>
+                        <div class="flex-grow text-right">
+                             <span class="inline-block px-3 py-1 bg-brand-lime text-brand-dark text-[0.6rem] font-black uppercase tracking-widest rounded-lg">
+                                {{ doc.get_categoria_display }}
+                             </span>
+                             <div class="mt-2 text-[0.6rem] font-bold text-gray-300 uppercase tracking-tighter">
+                                <i class="bi bi-calendar-event mr-1"></i> {{ doc.fecha_subida|date:"d M, Y" }}
+                             </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-sm font-black text-brand-dark uppercase tracking-tight leading-snug mb-3 group-hover:text-brand-primary transition-colors line-clamp-2">{{ doc.titulo }}</h3>
+                        <p class="text-xs text-gray-500 font-medium leading-relaxed line-clamp-3">
+                            {% if doc.descripcion %}{{ doc.descripcion }}{% else %}Sin descripción detallada disponible.{% endif %}
+                        </p>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-50">
+                        <a href="{{ doc.archivo.url }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-50 text-brand-primary text-xs font-black rounded-xl border border-gray-100 hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all active:scale-95 shadow-sm">
+                            <i class="bi bi-download"></i> DESCARGAR ARCHIVO
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
+        {% empty %}
+        <div class="col-span-1 md:col-span-2 lg:col-span-3 py-20 text-center bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-100">
+            <i class="bi bi-folder-x text-6xl text-gray-200 mb-6 block"></i>
+            <h5 class="text-lg font-black text-brand-dark mb-2">Repositorio Vacío</h5>
+            <p class="text-gray-400 font-medium text-sm mb-8">No se encontraron documentos en esta categoría.</p>
+            {% if not categoria_activa %}
+            <a href="{% url 'documentos:subir' %}" class="inline-flex items-center px-8 py-3 bg-brand-primary text-white text-xs font-black rounded-2xl shadow-lg shadow-brand-primary/20">
+                SUBIR PRIMER ARCHIVO
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 
 <script>
@@ -84,13 +120,15 @@
         let tarjetas = document.querySelectorAll('.tarjeta-doc');
 
         tarjetas.forEach(function(tarjeta) {
-            let titulo = tarjeta.querySelector('h6').innerText.toLowerCase();
+            let titulo = tarjeta.querySelector('h3').innerText.toLowerCase();
             let descripcion = tarjeta.querySelector('p').innerText.toLowerCase();
             
             if (titulo.includes(filtro) || descripcion.includes(filtro)) {
-                tarjeta.style.display = 'block';
+                tarjeta.classList.remove('hidden');
+                tarjeta.classList.add('animate-fade-in');
             } else {
-                tarjeta.style.display = 'none';
+                tarjeta.classList.add('hidden');
+                tarjeta.classList.remove('animate-fade-in');
             }
         });
     });

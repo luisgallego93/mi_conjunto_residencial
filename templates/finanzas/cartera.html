@@ -1,420 +1,418 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}Finanzas y Cartera - Mi Conjunto Gestión{% endblock %}
+{% block title %}Finanzas y Cartera - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Cartera y Cobranzas</h2>
-    <div>
-        <button class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#facturacionModal">
-            <i class="bi bi-magic"></i> Facturación Masiva
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div class="text-brand-dark">
+        <h2 class="text-3xl font-black tracking-tight uppercase italic">Cartera y Cobranzas</h2>
+        <div class="flex items-center gap-3">
+            <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Gestión Financiera</span>
+            <span class="text-gray-400 font-medium text-sm italic">Monitoreo de obligaciones y recaudos</span>
+        </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+        <button class="px-5 py-3 bg-brand-primary text-white font-black rounded-2xl hover:bg-opacity-90 transition-all shadow-lg active:scale-95 text-[0.65rem] uppercase tracking-widest" data-bs-toggle="modal" data-bs-target="#facturacionModal">
+            <i class="bi bi-magic mr-2 text-brand-lime"></i> Facturación
         </button>
-        <button class="btn btn-sm btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#eliminarPeriodoModal">
-            <i class="bi bi-trash3"></i> Eliminar Periodo
+        <button class="px-5 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-colors shadow-sm text-[0.65rem] uppercase tracking-widest" data-bs-toggle="modal" data-bs-target="#cargarCsvModal">
+            <i class="bi bi-cloud-arrow-up mr-2 text-brand-primary"></i> Cargar CSV
         </button>
-        <button class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#cargarCsvModal">
-            <i class="bi bi-cloud-arrow-up"></i> Cargar Pagos (CSV)
+        <a href="{% url 'finanzas:registrar_multa' %}" class="px-5 py-3 bg-red-500 text-white font-black rounded-2xl hover:bg-opacity-90 transition-all shadow-lg active:scale-95 text-[0.65rem] uppercase tracking-widest">
+            <i class="bi bi-file-earmark-text mr-2"></i> Nueva Multa
+        </a>
+        <button class="w-12 h-12 flex items-center justify-center bg-gray-50 text-gray-400 rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all shadow-sm" data-bs-toggle="modal" data-bs-target="#eliminarPeriodoModal">
+            <i class="bi bi-trash3"></i>
         </button>
-        <a href="{% url 'finanzas:registrar_multa' %}" class="btn btn-sm btn-outline-danger shadow-sm">
-            <i class="bi bi-file-earmark-text"></i> Nueva Multa
-        </a>
-        <a href="{% url 'finanzas:notificar_morosos' %}" class="btn btn-sm btn-danger shadow-sm">
-            <i class="bi bi-envelope"></i> Notificar Morosos
-        </a>
-        <a href="{% url 'finanzas:mi_estado_cuenta' %}" class="btn btn-sm btn-info shadow-sm text-white">
-            <i class="bi bi-journal-check"></i> Mis Movimientos
-        </a>
     </div>
 </div>
 
-<!-- Modal para CSV de Bancos -->
-<div class="modal fade" id="cargarCsvModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{% url 'finanzas:cargar_pagos_csv' %}" method="post" enctype="multipart/form-data">
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <div class="card-pro !border-l-4 !border-red-500">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[0.65rem] font-black text-red-500 uppercase tracking-widest">Total en Mora</span>
+            <i class="bi bi-exclamation-octagon text-red-200 text-xl"></i>
+        </div>
+        <div class="text-3xl font-black text-brand-dark">$ {{ total_mora|intcomma }}</div>
+        <div class="text-[0.7rem] text-gray-400 font-black uppercase mt-1 italic">Obligaciones Vencidas</div>
+    </div>
+
+    <div class="card-pro !border-l-4 !border-brand-lime">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[0.65rem] font-black text-brand-lime uppercase tracking-widest">Facturación Vigente</span>
+            <i class="bi bi-check2-circle text-brand-lime/30 text-xl"></i>
+        </div>
+        <div class="text-3xl font-black text-brand-dark">$ {{ total_vigente|intcomma }}</div>
+        <div class="text-[0.7rem] text-gray-400 font-black uppercase mt-1 italic">Recaudos Mes en Curso</div>
+    </div>
+
+    <div class="card-pro !border-l-4 !border-brand-blue">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[0.65rem] font-black text-brand-blue uppercase tracking-widest">Saldos a Favor</span>
+            <i class="bi bi-star-fill text-brand-blue/20 text-xl"></i>
+        </div>
+        <div class="text-3xl font-black text-brand-dark">$ {{ total_saldo_favor|intcomma }}</div>
+        <div class="text-[0.7rem] text-gray-400 font-black uppercase mt-1 italic">Notas Crédito Activas</div>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="card-pro overflow-hidden border-none shadow-premium !p-0">
+    <div class="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white">
+        <div class="flex items-center gap-2">
+            <div class="flex p-1 bg-gray-100 rounded-2xl">
+                <a href="?filtro=todos{% if query %}&q={{ query }}{% endif %}" 
+                   class="px-6 py-2 rounded-xl text-[0.6rem] font-black transition-all uppercase tracking-widest {% if filtro_estado == 'todos' %}bg-white text-brand-primary shadow-sm{% else %}text-gray-400 hover:text-brand-dark{% endif %}">
+                    TODOS
+                </a>
+                <a href="?filtro=mora{% if query %}&q={{ query }}{% endif %}" 
+                   class="px-6 py-2 rounded-xl text-[0.6rem] font-black transition-all uppercase tracking-widest {% if filtro_estado == 'mora' %}bg-white text-red-500 shadow-sm{% else %}text-gray-400 hover:text-brand-dark{% endif %}">
+                    EN MORA
+                </a>
+                <a href="?filtro=aldia{% if query %}&q={{ query }}{% endif %}" 
+                   class="px-6 py-2 rounded-xl text-[0.6rem] font-black transition-all uppercase tracking-widest {% if filtro_estado == 'aldia' %}bg-white text-brand-lime shadow-sm{% else %}text-gray-400 hover:text-brand-dark{% endif %}">
+                    AL DÍA
+                </a>
+            </div>
+        </div>
+
+        <form method="get" class="relative group max-w-sm w-full">
+            {% if filtro_estado != 'todos' %}<input type="hidden" name="filtro" value="{{ filtro_estado }}">{% endif %}
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary">
+                <i class="bi bi-search text-sm"></i>
+            </div>
+            <input type="text" name="q" value="{{ query }}" 
+                   class="w-full pl-10 pr-12 py-3 bg-gray-50 border-none rounded-2xl text-xs font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none" 
+                   placeholder="Apto o Residente...">
+            {% if query %}
+                <a href="?filtro={{ filtro_estado }}" class="absolute inset-y-0 right-0 pr-4 flex items-center text-red-400 hover:text-red-600 transition-colors">
+                    <i class="bi bi-x-circle-fill"></i>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full datatable-brand" id="tablaCartera">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Inmueble</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Residente</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Detalle Deuda</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Balance Total</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Gestiones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for item in resumen_cartera %}
+                <tr class="hover:bg-gray-50/50 transition-colors group">
+                    <td class="px-8 py-6 align-middle">
+                        <div class="flex flex-col">
+                            <span class="text-xl font-black text-brand-dark italic">Apto {{ item.apartamento.numero }}</span>
+                            <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest mt-1">Torre {{ item.apartamento.torre }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        {% if item.apartamento.residente_principal %}
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-gray-700 leading-tight">{{ item.apartamento.residente_principal.nombre_completo }}</span>
+                                <span class="text-[0.65rem] text-brand-primary font-black mt-1 uppercase tracking-tighter"><i class="bi bi-telephone mr-1"></i>{{ item.apartamento.residente_principal.telefono }}</span>
+                            </div>
+                        {% else %}
+                            <span class="text-xs text-gray-300 font-bold italic uppercase">Sin censo</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        <div class="flex flex-wrap gap-2">
+                            {% for det in item.detalles %}
+                                <div class="px-3 py-1 bg-white border border-gray-100 rounded-lg shadow-sm min-w-[90px] text-center relative group/det">
+                                    <div class="text-[0.55rem] font-black text-gray-400 uppercase mb-0.5">{{ det.periodo }}</div>
+                                    <div class="text-[0.7rem] font-black {% if det.en_mora %}text-red-500{% else %}text-brand-dark{% endif %}">
+                                        $ {{ det.saldo|intcomma }}
+                                    </div>
+                                    {% if det.tipo == 'Multa' %}
+                                        <button type="button" 
+                                                class="absolute -top-1 -right-1 opacity-40 hover:opacity-100 transition-opacity z-50 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer border-none btn-global-confirm"
+                                                data-url="{% url 'finanzas:eliminar_multa' det.id_multa %}"
+                                                data-msg="¿Eliminar multa permanentemente?">
+                                            <i class="bi bi-x text-[12px]"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% empty %}
+                                <div class="flex items-center text-brand-lime">
+                                    <i class="bi bi-check-circle-fill text-sm mr-2"></i>
+                                    <span class="text-[0.6rem] font-black uppercase tracking-widest italic">Paz y Salvo</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 align-middle text-right">
+                        {% if item.saldo_a_favor > 0 %}
+                            <div class="text-[0.55rem] text-brand-blue font-black uppercase tracking-widest mb-1 italic">Favor: $ {{ item.saldo_a_favor|intcomma }}</div>
+                        {% endif %}
+                        
+                        {% if not item.esta_al_dia %}
+                            <div class="text-lg font-black {% if item.total_mora > 0 %}text-red-500{% else %}text-brand-dark{% endif %}">
+                                $ {{ item.total|intcomma }}
+                            </div>
+                            <div class="text-[0.55rem] text-gray-400 font-black uppercase tracking-widest italic">{{ item.detalles|length }} Pendiente(s)</div>
+                        {% else %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-[0.55rem] font-black bg-brand-lime text-brand-dark shadow-sm italic tracking-widest">
+                                <i class="bi bi-shield-check mr-1"></i>PAZ Y SALVO
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 align-middle text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{% url 'finanzas:expediente_cobranza' item.apartamento.id %}" 
+                                class="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:bg-brand-primary hover:text-white transition-all shadow-sm" title="Expediente CV">
+                                <i class="bi bi-journal-text"></i>
+                            </a>
+                            <button type="button" class="btn-pro-primary !py-2.5 !px-5 text-[0.65rem] !rounded-xl italic tracking-widest flex items-center gap-2" data-bs-toggle="modal" data-bs-target="#pagoModal{{ item.apartamento.id }}">
+                                <i class="bi bi-cash"></i> PAGAR
+                            </button>
+                        </div>
+
+                        <!-- Modal Recibir Pago -->
+                        <div class="modal fade" id="pagoModal{{ item.apartamento.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+                                    <div class="bg-brand-dark p-8 md:p-10 text-white relative">
+                                        <div class="relative z-10 text-left">
+                                            <h5 class="text-2xl font-black tracking-tight italic uppercase">Recaudar Pago</h5>
+                                            <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-1">APARTAMENTO {{ item.apartamento.numero }}</p>
+                                        </div>
+                                        <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                    <form action="{% url 'finanzas:recibir_pago' item.apartamento.id %}" method="post">
+                                        {% csrf_token %}
+                                        <div class="p-10 space-y-10 text-left">
+                                            <div class="p-8 bg-gray-50 rounded-3xl text-center border border-gray-100">
+                                                <div class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest mb-2 italic">Total Deuda Consolidada</div>
+                                                <div class="text-4xl font-black text-brand-dark italic">$ {{ item.total|default:0|intcomma }}</div>
+                                            </div>
+
+                                            <div class="space-y-4">
+                                                <label class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest block text-center">Tipo de Operación</label>
+                                                <div class="flex p-1.5 bg-gray-100 rounded-2xl">
+                                                    <label class="flex-1 cursor-pointer">
+                                                        <input type="radio" name="tipo_pago" value="total" class="sr-only peer" checked 
+                                                               onclick="document.getElementById('abonoField{{ item.apartamento.id }}').classList.add('hidden')">
+                                                        <div class="py-4 text-center text-[0.6rem] font-black text-gray-400 peer-checked:bg-white peer-checked:text-brand-primary peer-checked:shadow-sm rounded-xl transition-all uppercase tracking-widest">
+                                                            Pago Total
+                                                        </div>
+                                                    </label>
+                                                    <label class="flex-1 cursor-pointer">
+                                                        <input type="radio" name="tipo_pago" value="abono" class="sr-only peer"
+                                                               onclick="document.getElementById('abonoField{{ item.apartamento.id }}').classList.remove('hidden')">
+                                                        <div class="py-4 text-center text-[0.6rem] font-black text-gray-400 peer-checked:bg-white peer-checked:text-brand-primary peer-checked:shadow-sm rounded-xl transition-all uppercase tracking-widest">
+                                                            Abono Parcial
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div id="abonoField{{ item.apartamento.id }}" class="hidden space-y-3 animate-fadeIn">
+                                                <label class="text-[0.65rem] font-black text-brand-primary uppercase tracking-widest px-1">Valor a Recaudar</label>
+                                                <div class="relative">
+                                                     <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-2xl font-black text-brand-primary opacity-30">$</div>
+                                                     <input type="text" name="valor_abono" 
+                                                            class="w-full px-12 py-5 bg-gray-50 border-none rounded-2xl text-2xl font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm" 
+                                                            placeholder="0" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="px-10 py-8 bg-gray-50 flex gap-4">
+                                            <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-colors uppercase tracking-widest" data-bs-dismiss="modal">Cerrar</button>
+                                            <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl shadow-brand-primary/20 hover:bg-opacity-95 active:scale-95 transition-all uppercase tracking-[0.2em] italic">
+                                                CONFIRMAR RECAUDO <i class="bi bi-check2-all ml-2 text-brand-lime"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="py-32 text-center">
+                        <div class="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-gray-200">
+                             <i class="bi bi-bank text-4xl"></i>
+                        </div>
+                        <p class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">No se registran movimientos de cartera para los filtros aplicados</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modales Secundarios Rediseñados -->
+<div class="modal fade" id="facturacionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+            <div class="bg-brand-primary p-10 text-white relative">
+                <h5 class="text-2xl font-black tracking-tight italic uppercase leading-none">Generación Masiva</h5>
+                <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-2">Facturación Ordinaria 460 Unidades</p>
+                <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+            </div>
+            <form action="{% url 'finanzas:generar_facturacion' %}" method="post">
                 {% csrf_token %}
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-cloud-arrow-up"></i> Carga Masiva Bancaria</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Sube el archivo plano <code>.csv</code> con los pagos reportados. El sistema dará de baja la deuda completa (Administración + Multas) de los apartamentos listados.</p>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Archivo CSV:</label>
-                        <input type="file" name="archivo_csv" class="form-control" accept=".csv" required>
+                <div class="p-10 space-y-8 text-left">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Periodo Mensual</label>
+                            <select name="mes" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-[0.7rem] font-black text-brand-dark outline-none cursor-pointer" required>
+                                {% for val, label in meses_choices %}
+                                <option value="{{ val }}" {% if val == mes_actual %}selected{% endif %}>{{ label|upper }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="space-y-3">
+                             <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Año Fiscal</label>
+                             <input type="number" name="anio" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-[0.7rem] font-black text-brand-dark" value="2026" required>
+                        </div>
                     </div>
-                    <div class="alert alert-warning small">
-                        <strong>Formato Requerido:</strong> El archivo debe tener dos columnas tituladas exactamente <code>torre</code> y <code>apartamento</code>.
-                        <a href="{% url 'finanzas:plantilla_pagos' %}" class="alert-link ms-2"><i class="bi bi-download"></i> Descargar Plantilla de Ejemplo</a>
+                    <div class="space-y-3">
+                        <label class="px-1 text-[0.65rem] font-black text-brand-primary uppercase tracking-widest italic">Cuota de Administración Base</label>
+                        <div class="relative">
+                             <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-2xl font-black text-brand-primary opacity-30">$</div>
+                             <input type="number" name="valor_base" class="w-full px-12 py-5 bg-white border-2 border-brand-primary/10 rounded-2xl text-2xl font-black text-brand-dark outline-none focus:border-brand-primary transition-all text-center" placeholder="150,000" required>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success fw-bold">Procesar Archivo</button>
+                <div class="px-10 py-8 bg-gray-50 flex gap-4">
+                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">INICIAR CIERRE MENSUAL</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-4 border-danger shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-danger text-uppercase mb-1">Cartera en Mora</div>
-                        <div class="h5 mb-0 fw-bold text-gray-800">$ {{ total_mora|intcomma }}</div>
-                        <div class="small text-muted mt-1">Plazo vencido — meses anteriores</div>
-                    </div>
-                    <div class="col-auto"><i class="bi bi-cash-coin fs-2 text-danger opacity-50"></i></div>
-                </div>
+<div class="modal fade" id="cargarCsvModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+            <div class="bg-brand-dark p-10 text-white text-left">
+                <h5 class="text-2xl font-black tracking-tight italic uppercase">Conciliación Bancaria</h5>
+                <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-2">Carga Masiva de Recaudos (CSV)</p>
             </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-4 border-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-warning text-uppercase mb-1">Facturas Vigentes</div>
-                        <div class="h5 mb-0 fw-bold text-gray-800">$ {{ total_vigente|intcomma }}</div>
-                        <div class="small text-muted mt-1">{{ aptos_vigentes }} apto(s) — aún en plazo</div>
+            <form action="{% url 'finanzas:cargar_pagos_csv' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="p-10 space-y-8 text-left">
+                    <div class="space-y-3">
+                         <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Seleccionar Archivo .CSV</label>
+                         <input type="file" name="archivo_csv" class="w-full px-5 py-8 bg-gray-50 border-2 border-dashed border-gray-200 rounded-[2rem] text-[0.65rem] font-black text-gray-400 uppercase tracking-widest" accept=".csv" required>
                     </div>
-                    <div class="col-auto"><i class="bi bi-clock-history fs-2 text-warning opacity-50"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-4 border-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-info text-uppercase mb-1">Total Saldo a Favor</div>
-                        <div class="h5 mb-0 fw-bold text-gray-800">$ {{ total_saldo_favor|intcomma }}</div>
-                        <div class="small text-muted mt-1">Créditos de residentes</div>
+                    <div class="p-6 bg-brand-primary/5 rounded-3xl border border-brand-primary/10 flex items-center gap-5">
+                         <i class="bi bi-info-circle text-2xl text-brand-primary"></i>
+                         <a href="{% url 'finanzas:plantilla_pagos' %}" class="text-[0.65rem] font-black text-brand-primary uppercase tracking-widest hover:underline">
+                            <i class="bi bi-download mr-1"></i> Descargar Plantilla Oficial
+                        </a>
                     </div>
-                    <div class="col-auto"><i class="bi bi-star-fill fs-2 text-info opacity-50"></i></div>
                 </div>
-            </div>
+                <div class="px-10 py-8 bg-gray-50 flex gap-4">
+                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="flex-[2] py-4 bg-brand-dark text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">PROCESAR EXTRACTO</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<div class="card shadow mb-4 border-top-0 border-start border-4 border-danger">
-    <div class="card-header py-3 bg-white d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <div class="d-flex align-items-center gap-2">
-            <h6 class="m-0 fw-bold text-danger me-2">Facturas de Cobro</h6>
-            <div class="btn-group shadow-sm" role="group">
-                <a href="?filtro=todos{% if query %}&q={{ query }}{% endif %}" class="btn btn-sm {% if filtro_estado == 'todos' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    Todos <span class="badge bg-white text-primary ms-1">{{ aptos_totales }}</span>
-                </a>
-                <a href="?filtro=mora{% if query %}&q={{ query }}{% endif %}" class="btn btn-sm {% if filtro_estado == 'mora' %}btn-danger{% else %}btn-outline-danger{% endif %}">
-                    En Mora <span class="badge bg-white text-danger ms-1">{{ aptos_en_mora }}</span>
-                </a>
-                <a href="?filtro=aldia{% if query %}&q={{ query }}{% endif %}" class="btn btn-sm {% if filtro_estado == 'aldia' %}btn-success{% else %}btn-outline-success{% endif %}">
-                    Al Día
-                </a>
-            </div>
-        </div>
-        <form method="get" class="d-flex align-items-center">
-            {% if filtro_estado != 'todos' %}<input type="hidden" name="filtro" value="{{ filtro_estado }}">{% endif %}
-            <div class="input-group input-group-sm">
-                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Buscar Apto o Residente..." style="width: 200px;">
-                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
-                {% if query %}
-                <a href="?filtro={{ filtro_estado }}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>
-                {% endif %}
-            </div>
-        </form>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle w-100" cellspacing="0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Apartamento</th>
-                        <th>Residente / Contacto</th>
-                        <th>Detalle de la Deuda</th>
-                        <th>Total Consolidado</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in resumen_cartera %}
-                    <tr class="{% if item.esta_al_dia %}table-light opacity-75{% endif %}">
-                        <td>
-                            <div class="fw-bold fs-5">Apto {{ item.apartamento.numero }}</div>
-                            <div class="small text-muted">Torre {{ item.apartamento.torre }}</div>
-                        </td>
-                        <td>
-                            {% if item.apartamento.residente_principal %}
-                                <div class="fw-bold">{{ item.apartamento.residente_principal.nombre_completo }}</div>
-                                <div class="small text-muted mb-1"><i class="bi bi-telephone"></i> {{ item.apartamento.residente_principal.telefono }}</div>
-                                <div class="text-xs text-primary">{{ item.apartamento.residente_principal.email_personal|default:"" }}</div>
-                            {% else %}
-                                <span class="text-secondary fst-italic">Sin asignar</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="d-flex flex-wrap gap-2">
-                                {% for det in item.detalles %}
-                                    <div class="px-3 py-2 border rounded bg-white shadow-sm flex-grow-1" style="min-width: 130px;">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <span class="small fw-bold text-muted">{{ det.periodo }}</span>
-                                            {% if det.en_mora %}
-                                                <span class="badge bg-danger p-1" style="font-size: 0.65rem;">Mora</span>
-                                            {% else %}
-                                                <span class="badge bg-warning text-dark p-1" style="font-size: 0.65rem;">Plazo</span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="fw-bold text-dark">
-                                            $ {{ det.saldo|intcomma }}
-                                            {% if det.tipo == 'Multa' %}<small class="text-danger">*</small>{% endif %}
-                                        </div>
-                                    </div>
-                                {% empty %}
-                                    <div class="text-success fw-bold py-2"><i class="bi bi-check-circle-fill"></i> Saldo Pendiente: $0</div>
-                                {% endfor %}
-                            </div>
-                        </td>
-                        <td class="text-end">
-                            {% if item.saldo_a_favor > 0 %}
-                                <div class="text-xs text-uppercase text-info fw-bold">Saldo a Favor <i class="bi bi-star-fill"></i></div>
-                                <div class="h6 mb-2 fw-bold text-info">$ {{ item.saldo_a_favor|intcomma }}</div>
-                            {% endif %}
-                            
-                            {% if not item.esta_al_dia %}
-                                <div class="text-xs text-uppercase text-muted">Saldo Pendiente</div>
-                                <div class="h5 mb-0 fw-bold {% if item.total_mora > 0 %}text-danger{% else %}text-warning{% endif %}">
-                                    $ {{ item.total|intcomma }}
-                                </div>
-                                <div class="small text-muted">{{ item.detalles|length }} factura(s) / multas</div>
-                            {% else %}
-                                <div class="badge bg-success-soft text-success border border-success px-3 py-2">
-                                    <i class="bi bi-award-fill me-1"></i> PAZ Y SALVO
-                                </div>
-                            {% endif %}
-                        </td>
-                        <td class="text-end">
-                            <div class="btn-group shadow-sm">
-                                <a href="{% url 'finanzas:expediente_cobranza' item.apartamento.id %}" class="btn btn-sm btn-outline-secondary" title="Expediente de Cobranza">
-                                    <i class="bi bi-journal-text"></i>
-                                </a>
-                                <a href="{% url 'finanzas:historial_apartamento_admin' item.apartamento.id %}" class="btn btn-sm btn-outline-info" title="Ver Historial (Vista Residente)">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <button type="button" 
-                                        class="btn btn-sm btn-success fw-bold" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#pagoModal{{ item.apartamento.id }}"
-                                        title="Recibir Pago">
-                                    <i class="bi bi-cash"></i> Recibir
-                                </button>
-                            </div>
-                            
-                            <!-- Modal Pago -->
-                            <div class="modal fade" id="pagoModal{{ item.apartamento.id }}" tabindex="-1" aria-hidden="true">
-                              <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 shadow-lg">
-                                  <div class="modal-header bg-success text-white">
-                                    <h5 class="modal-title"><i class="bi bi-cash-coin me-2"></i>Pago: Apto {{ item.apartamento.numero }}</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                  </div>
-                                  <form action="{% url 'finanzas:recibir_pago' item.apartamento.id %}" method="post">
-                                    {% csrf_token %}
-                                    <div class="modal-body text-start p-4">
-                                        <div class="p-3 bg-light rounded-3 mb-4 text-center border">
-                                            <div class="text-xs text-uppercase text-muted mb-1">
-                                                {% if item.total > 0 %}Total a Recaudar{% else %}Apto al Día (Saldo $0){% endif %}
-                                            </div>
-                                            <div class="h3 mb-0 fw-bold {% if item.total > 0 %}text-danger{% else %}text-success{% endif %}">
-                                                $ {{ item.total|default:0|intcomma }}
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold small text-muted text-uppercase">Método de Recaudo</label>
-                                            <div class="row g-2">
-                                                <div class="col-6">
-                                                    <input type="radio" class="btn-check" name="tipo_pago" value="total" 
-                                                           id="radioTotal{{ item.apartamento.id }}" checked
-                                                           onchange="document.getElementById('divAbono{{ item.apartamento.id }}').style.display = 'none'">
-                                                    <label class="btn btn-outline-success w-100 py-3 fw-bold {% if item.total <= 0 %}disabled{% endif %}" for="radioTotal{{ item.apartamento.id }}">
-                                                        <i class="bi bi-check-all d-block fs-4 mb-1"></i>Pago Total
-                                                    </label>
-                                                </div>
-                                                <div class="col-6">
-                                                    <input type="radio" class="btn-check" name="tipo_pago" value="abono" 
-                                                           id="radioAbono{{ item.apartamento.id }}"
-                                                           onchange="document.getElementById('divAbono{{ item.apartamento.id }}').style.display = 'block'">
-                                                    <label class="btn btn-outline-warning w-100 py-3 fw-bold" for="radioAbono{{ item.apartamento.id }}">
-                                                        <i class="bi bi-piggy-bank d-block fs-4 mb-1"></i>Abono Parcial
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Campo monto abono -->
-                                        <div id="divAbono{{ item.apartamento.id }}" style="display: {% if item.total <= 0 %}block{% else %}none{% endif %};" class="animate__animated animate__fadeInDown show-abono-field">
-                                            <label class="form-label fw-bold small text-muted text-uppercase">¿Cuánto está pagando hoy?</label>
-                                            <div class="input-group input-group-lg shadow-sm">
-                                                <span class="input-group-text bg-white border-end-0 text-success fw-bold">$</span>
-                                                <input type="text" name="valor_abono" class="form-control border-start-0 ps-0 fw-bold text-success" 
-                                                       placeholder="0.00" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                                            </div>
-                                            <div class="form-text mt-2 small text-muted">
-                                                <i class="bi bi-info-circle me-1"></i>El sistema liquidará los meses más antiguos automáticamente con este valor.
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer bg-light">
-                                        <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
-                                        <button type="submit" class="btn btn-success px-4 fw-bold shadow">
-                                            <i class="bi bi-cloud-upload me-2"></i>Registrar Pago
-                                        </button>
-                                    </div>
-                                  </form>
-                                </div>
-                              </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No se registran apartamentos que coincidan con la búsqueda o filtro.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Botones de gestión movidos arriba -->
-
-<!-- Modal Facturacion Masiva -->
-<div class="modal fade" id="facturacionModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="bi bi-building"></i> Generar Facturación Masiva</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form action="{% url 'finanzas:generar_facturacion' %}" method="post">
-          <div class="modal-body p-4">
-              {% csrf_token %}
-              <div class="alert alert-info border-0 shadow-sm small">
-                  <i class="bi bi-info-circle-fill me-2"></i>
-                  Esta acción creará automáticamente una cuenta de cobro para los <strong>460 apartamentos</strong> del conjunto residencial.
-              </div>
-              <div class="row g-3">
-                  <div class="col-6">
-                      <label class="form-label fw-bold">Mes</label>
-                      <select name="mes" class="form-select" required>
-                          <option value="01">01 - Enero</option>
-                          <option value="02">02 - Febrero</option>
-                          <option value="03" selected>03 - Marzo</option>
-                          <option value="04">04 - Abril</option>
-                          <option value="05">05 - Mayo</option>
-                          <option value="06">06 - Junio</option>
-                          <option value="07">07 - Julio</option>
-                          <option value="08">08 - Agosto</option>
-                          <option value="09">09 - Septiembre</option>
-                          <option value="10">10 - Octubre</option>
-                          <option value="11">11 - Noviembre</option>
-                          <option value="12">12 - Diciembre</option>
-                      </select>
-                  </div>
-                  <div class="col-6">
-                      <label class="form-label fw-bold">Año</label>
-                      <input type="number" name="anio" class="form-control" value="2026" required>
-                  </div>
-              </div>
-              <div class="mt-4">
-                  <label class="form-label fw-bold text-primary">Valor Base de Administración ($)</label>
-                  <div class="input-group input-group-lg shadow-sm">
-                      <span class="input-group-text bg-white border-end-0 text-primary fw-bold">$</span>
-                      <input type="number" name="valor_base" class="form-control border-start-0 ps-0 fw-bold text-primary" placeholder="Ej. 150000" required>
-                  </div>
-              </div>
-          </div>
-          <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary px-4 fw-bold shadow"><i class="bi bi-magic me-2"></i>Generar Ahora</button>
-          </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- NUEVO: Modal Eliminar Periodo -->
+<!-- Modal Eliminar Periodo -->
 <div class="modal fade" id="eliminarPeriodoModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar Periodo Completo</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form action="{% url 'finanzas:eliminar_periodo' %}" method="post">
-          <div class="modal-body p-4">
-              {% csrf_token %}
-              <div class="alert alert-warning border-danger">
-                  <i class="bi bi-info-circle-fill me-2"></i>
-                  <strong>¡Atención!</strong> Esta acción eliminará permanente **todas las facturas** del mes y año seleccionados. Úsalo solo para corregir errores de digitación.
-              </div>
-              <div class="row g-3">
-                  <div class="col-6">
-                      <label class="form-label fw-bold">Mes a eliminar</label>
-                      <select name="mes" class="form-select" required>
-                          <option value="01">01 - Enero</option>
-                          <option value="02">02 - Febrero</option>
-                          <option value="03">03 - Marzo</option>
-                          <option value="04">04 - Abril</option>
-                          <option value="05">05 - Mayo</option>
-                          <option value="06">06 - Junio</option>
-                          <option value="07">07 - Julio</option>
-                          <option value="08">08 - Agosto</option>
-                          <option value="09">09 - Septiembre</option>
-                          <option value="10">10 - Octubre</option>
-                          <option value="11">11 - Noviembre</option>
-                          <option value="12">12 - Diciembre</option>
-                      </select>
-                  </div>
-                  <div class="col-6">
-                      <label class="form-label fw-bold">Año</label>
-                      <input type="number" name="anio" class="form-control" value="2026" required>
-                  </div>
-              </div>
-          </div>
-          <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-danger px-4 fw-bold shadow">
-                <i class="bi bi-trash3 me-2"></i>Confirmar Borrado
-            </button>
-          </div>
-      </form>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+            <div class="bg-red-500 p-10 text-white text-center">
+                <h5 class="text-2xl font-black tracking-tight italic uppercase">Acción Crítica</h5>
+                <div class="text-[0.65rem] font-black text-white/70 uppercase tracking-widest mt-2 italic">Borrado de Historial de Facturación</div>
+            </div>
+            <form action="{% url 'finanzas:eliminar_periodo' %}" method="post">
+                {% csrf_token %}
+                <div class="p-10 space-y-8">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Mes</label>
+                            <select name="mes" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-[0.7rem] font-black text-brand-dark">
+                                {% for val, label in meses_choices %}
+                                <option value="{{ val }}" {% if val == mes_actual %}selected{% endif %}>{{ label|upper }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                             <label class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Año</label>
+                             <select name="anio" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-[0.7rem] font-black text-brand-dark">
+                                {% for a in anios_disponibles %}
+                                <option value="{{ a }}">{{ a }}</option>
+                                {% endfor %}
+                             </select>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-red-50 rounded-2xl border border-red-100 flex items-start gap-4">
+                        <i class="bi bi-exclamation-triangle text-red-500 text-xl"></i>
+                        <p class="text-[0.65rem] text-red-500 font-bold leading-relaxed italic uppercase">Esta operación eliminará permanentemente todos los registros generados para el periodo indicado.</p>
+                    </div>
+                </div>
+                <div class="px-10 py-8 bg-gray-50 flex gap-4">
+                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="flex-[2] py-4 bg-red-500 text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">EJECUTAR PURGA</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function toggleAbono(aptoId, mostrar) {
-    const campoAbono = document.getElementById('campoAbono' + aptoId);
-    const infoTotal  = document.getElementById('infoTotal' + aptoId);
-    if (mostrar) {
-        campoAbono.style.display = 'block';
-        infoTotal.style.display  = 'none';
-        campoAbono.querySelector('input').required = true;
-    } else {
-        campoAbono.style.display = 'none';
-        infoTotal.style.display  = 'block';
-        campoAbono.querySelector('input').required = false;
-    }
-}
+    $(document).ready(function() {
+        /**
+         * Inicialización Failsafe de DataTables para Cartera.
+         * Se asegura de que la tabla exista antes de procesar para evitar errores ParentNode.
+         */
+        try {
+            const tableEl = document.getElementById('tablaCartera');
+            if (tableEl && !$.fn.DataTable.isDataTable('#tablaCartera')) {
+                // Definición LOCAL de idioma para evitar errores de CORS con el CDN de DataTables
+                const dtLanguage = {
+                    processing: "Procesando...",
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                    infoFiltered: "(filtrado de _MAX_ registros totales)",
+                    loadingRecords: "Cargando...",
+                    zeroRecords: "No se encontraron resultados",
+                    emptyTable: "Ningún dato disponible en esta tabla",
+                    paginate: {
+                        first: "Primero",
+                        previous: "Anterior",
+                        next: "Siguiente",
+                        last: "Último"
+                    }
+                };
+
+                $('#tablaCartera').DataTable({
+                    language: dtLanguage,
+                    order: [[0, 'asc']],
+                    autoWidth: false,
+                    responsive: true,
+                    pageLength: 20,
+                    dom: 't<"flex flex-col md:flex-row justify-between items-center gap-4 p-8 border-t border-gray-50"ip>'
+                });
+            }
+        } catch (e) {
+            console.warn("DataTable Skip (Cartera):", e);
+        }
+    });
 </script>
 {% endblock %}

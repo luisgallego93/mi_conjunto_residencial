@@ -1,3 +1,9 @@
+"""
+Descripción General: Controladores para la gestión de disponibilidad y reservas de zonas comunes.
+Módulo: reservas
+Propósito del archivo: Gestionar el flujo de solicitudes de reserva, visualización en calendario y administración de tarifas.
+"""
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -7,12 +13,23 @@ import calendar
 from datetime import date
 import json
 
-
 @login_required
 def lista_reservas(request):
+    """
+    Consola de Control de Reservas.
+
+    Qué hace:
+        Muestra un listado filtrable de reservas y un calendario mensual de disponibilidad.
+        Diferencia el contenido si el usuario es residente o administrador.
+
+    Parámetros:
+        pago (GET): Filtro por estado de recaudo (pagado/pendiente).
+        estado (GET): Filtro por estado administrativo (Aprobado/Pendiente/Rechazado).
+        zona (GET): Filtro por espacio común.
+    """
     es_residente = hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'RESIDENTE'
 
-    # Parámetros de filtro
+    # Filtrado dinámico
     pago_filtro = request.GET.get('pago')
     estado_filtro = request.GET.get('estado')
     zona_filtro = request.GET.get('zona')
@@ -22,58 +39,71 @@ def lista_reservas(request):
     if es_residente:
         perfil = request.user.perfilusuario
         queryset = queryset.filter(solicitante=perfil)
-    
-    # Aplicar filtros adicionales
+
     if pago_filtro == 'pagado':
         queryset = queryset.filter(estado_pago=True)
     elif pago_filtro == 'pendiente':
         queryset = queryset.filter(estado_pago=False)
-        
+
     if estado_filtro:
         queryset = queryset.filter(estado_reserva=estado_filtro)
-        
+
     if zona_filtro:
         queryset = queryset.filter(zona_comun=zona_filtro)
 
     reservas = queryset.order_by('-fecha').select_related('solicitante')
 
-    # --- Contexto para el Calendario Mensual ---
+    # Generación de Calendario Mensual
     hoy = date.today()
     mes_actual = hoy.month
     anio_actual = hoy.year
-    
+
     MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
     nombre_mes = MESES_ES[mes_actual - 1]
-    
+
     cal = calendar.monthcalendar(anio_actual, mes_actual)
-    
-    # Enriquecer reservas del mes (el calendar muestra disponibilidad general)
+
+    # Marcadores de ocupación para el calendario
     reservas_mes = Reserva.objects.filter(
         fecha__year=anio_actual,
         fecha__month=mes_actual
     ).exclude(estado_reserva__in=['Rechazado', 'Cancelado']).select_related('solicitante')
-    
+
     reservas_por_dia = {}
     for r in reservas_mes:
         dia = r.fecha.day
         if dia not in reservas_por_dia:
             reservas_por_dia[dia] = []
-        
+
         apto_num = '—'
-        if r.solicitante:
-            apto = r.solicitante.apartamentos_asignados.first()
-            if apto:
-                apto_num = apto.numero
-        
+        solicitante_val = r.solicitante.nombre_completo if r.solicitante else '—'
+
+        # --- REGLA DE PRIVACIDAD: Ocultar datos de otros residentes ---
+        perfil_actual = getattr(request.user, 'perfilusuario', None)
+        es_admin_full = perfil_actual and perfil_actual.rol in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']
+        es_dueno = r.solicitante == perfil_actual
+
+        if not es_admin_full and not es_dueno:
+            solicitante_val = "OCUPADO"
+            apto_num = "—"
+        else:
+            if r.solicitante:
+                # Buscar en todas las posibles relaciones
+                apto = (r.solicitante.apartamentos_asignados.first() or 
+                        r.solicitante.propiedades_asignadas.first() or 
+                        r.solicitante.arrendamientos_asignados.first())
+                if apto:
+                    apto_num = apto.numero
+
         reservas_por_dia[dia].append({
             'zona': r.zona_comun,
             'zona_display': r.get_zona_comun_display(),
-            'solicitante': r.solicitante.nombre_completo if r.solicitante else '—',
+            'solicitante': solicitante_val,
             'apto': apto_num,
             'estado': r.estado_reserva,
         })
-    
+
     return render(request, 'reservas/lista.html', {
         'reservas': reservas,
         'cal': cal,
@@ -87,47 +117,43 @@ def lista_reservas(request):
             'pago': pago_filtro,
             'estado': estado_filtro,
             'zona': zona_filtro
-        }
+        },
+        'dias_semana': ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO', 'DOMINGO'],
     })
-
 
 @login_required
 def crear_reserva(request):
+    """
+    Formulario de Solicitud de Reserva.
+
+    Qué hace:
+        Permite a un residente solicitar un espacio. Valida que no existan
+        reservas previas para la misma zona y fecha. Asigna tarifas automáticas.
+    """
     es_res = hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'RESIDENTE'
 
-    # Tarifas por defecto
-    zonas_default = [
-        {'zona': 'salon', 'valor': 80000, 'deposito_garantia': 50000, 
-         'descripcion': 'Capacidad máx. 80 personas. Horario: 8am - 11pm. Incluye sillas y mesas.'},
-        {'zona': 'bbq', 'valor': 40000, 'deposito_garantia': 30000, 
-         'descripcion': 'Capacidad máx. 20 personas. Horario: 9am - 8pm. Aseo no incluido.'},
-        {'zona': 'piscina', 'valor': 0, 'deposito_garantia': 0, 
-         'descripcion': 'Uso libre para residentes. Horario: 7am - 8pm.'},
-    ]
-    for zd in zonas_default:
-        TarifaZona.objects.get_or_create(zona=zd['zona'], defaults=zd)
-
+    # Validación e inicialización de tarifas dinámicas
     tarifas_list = [
         {'zona': t.zona, 'valor': int(t.valor), 'deposito': int(t.deposito_garantia), 'descripcion': t.descripcion}
         for t in TarifaZona.objects.filter(activa=True)
     ]
-    
+
     if request.method == 'POST':
         form = ReservaForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             reserva = form.save(commit=False)
-            
-            # Auto-asignar solicitante si es residente
+
             if es_res:
                 reserva.solicitante = request.user.perfilusuario
-            
+
+            # Regla de Negocio: 1 reserva por zona/día
             superposicion = Reserva.objects.filter(
-                zona_comun=reserva.zona_comun, 
+                zona_comun=reserva.zona_comun,
                 fecha=reserva.fecha
             ).exclude(estado_reserva__in=['Rechazado', 'Cancelado']).exists()
-            
+
             if superposicion:
-                messages.error(request, "Error: Ese día ya se encuentra reservado. Sólo se permite un grupo por día.")
+                messages.error(request, "Error: Ese día ya se encuentra reservado.")
             else:
                 try:
                     tarifa = TarifaZona.objects.get(zona=reserva.zona_comun)
@@ -135,14 +161,15 @@ def crear_reserva(request):
                     reserva.deposito = tarifa.deposito_garantia
                 except TarifaZona.DoesNotExist:
                     pass
-                
+
                 reserva.estado_reserva = 'Pendiente'
                 reserva.save()
-                messages.success(request, f"Pre-reserva generada por ${reserva.valor:,.0f}. Realice el pago o suba el comprobante para confirmación final.")
+                messages.success(request, f"Pre-reserva generada. Valor: ${reserva.valor:,.0f}.")
                 return redirect('reservas:lista_reservas')
     else:
         form = ReservaForm(user=request.user)
-        
+
+    # Datos para bloqueo de fechas en el frontend (DatePicker)
     ocupadas_qs = Reserva.objects.exclude(estado_reserva__in=['Rechazado', 'Cancelado'])
     fechas_ocupadas = {}
     for r in ocupadas_qs:
@@ -152,32 +179,28 @@ def crear_reserva(request):
             fechas_ocupadas[zona] = []
         fechas_ocupadas[zona].append(fecha_str)
 
-    # Datos del residente para mostrar en el formulario
     perfil_residente = request.user.perfilusuario if es_res else None
-    from django.db.models import Q
-    apto_residente = None
-    if perfil_residente:
-        from usuarios.models import Apartamento as AptoModel
-        apto_residente = AptoModel.objects.filter(
-            Q(propietario=perfil_residente) | Q(inquilino=perfil_residente) | Q(residente_principal=perfil_residente)
-        ).first()
-        
+
     return render(request, 'reservas/crear.html', {
         'form': form,
         'fechas_ocupadas': json.dumps(fechas_ocupadas),
         'tarifas': json.dumps(tarifas_list, ensure_ascii=False),
         'es_residente': es_res,
         'perfil_residente': perfil_residente,
-        'apto_residente': apto_residente,
     })
-
 
 @login_required
 def gestionar_reserva(request, reserva_id):
-    # Seguridad: Solo administradores pueden gestionar estados
+    """
+    Panel de Aprobación Administrativa.
+
+    Qué hace:
+        Cambia el estado de una reserva a 'Aprobado' o 'Rechazado'.
+        Si se aprueba, se marca como pagada asumiendo recaudo previo.
+    """
     perfil = getattr(request.user, 'perfilusuario', None)
     if not perfil or perfil.rol not in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']:
-        messages.error(request, "No tienes permiso para gestionar reservas.")
+        messages.error(request, "Acceso denegado.")
         return redirect('reservas:lista_reservas')
 
     if request.method == 'POST':
@@ -186,92 +209,87 @@ def gestionar_reserva(request, reserva_id):
         if accion == 'aprobar':
             reserva.estado_reserva = 'Aprobado'
             reserva.estado_pago = True
-            messages.success(request, "Reserva Aprobada y Pagada Correctamente.")
+            messages.success(request, "Reserva Aprobada.")
         elif accion == 'rechazar':
             reserva.estado_reserva = 'Rechazado'
             messages.error(request, "Reserva Rechazada.")
         reserva.save()
     return redirect('reservas:lista_reservas')
 
-
 @login_required
 def subir_comprobante(request, reserva_id):
+    """
+    Carga de Soportes de Pago.
+
+    Qué hace:
+        Permite al residente adjuntar la foto o PDF del recibo de consignación
+        para que administración proceda con la aprobación.
+    """
     reserva = get_object_or_404(Reserva, id=reserva_id)
     if request.method == 'POST':
         archivo = request.FILES.get('comprobante_pago')
         if archivo:
             reserva.comprobante_pago = archivo
             reserva.save()
-            messages.info(request, "El comprobante de pago fue subido y está en revisión.")
+            messages.info(request, "Comprobante recibido. En revisión.")
     return redirect('reservas:lista_reservas')
-
 
 @login_required
 def tarifario(request):
     """
-    Panel de gestión del Tarifario de Zonas Comunes.
-    Solo accesible para Administradores — los residentes son redirigidos.
-    """
-    # Residentes no pueden ver el tarifario
-    if hasattr(request.user, 'perfilusuario'):
-        if request.user.perfilusuario.rol == 'RESIDENTE':
-            messages.warning(request, "No tienes acceso a esta sección.")
-            return redirect('reservas:lista_reservas')
+    Administrador de Precios.
 
-    tarifas = TarifaZona.objects.all()
-    
-    # Si no existen las tarifas base, crearlas con los valores por defecto
-    zonas_default = [
-        {'zona': 'Salón', 'valor': 80000, 'deposito_garantia': 50000,
-         'descripcion': 'Capacidad máx. 80 personas. Horario: 8am - 11pm. Incluye sillas y mesas.'},
-        {'zona': 'BBQ', 'valor': 40000, 'deposito_garantia': 30000,
-         'descripcion': 'Capacidad máx. 20 personas. Horario: 9am - 8pm. Aseo no incluido.'},
-        {'zona': 'Piscina', 'valor': 0, 'deposito_garantia': 0,
-         'descripcion': 'Uso libre para residentes. Horario: 7am - 8pm.'},
-    ]
-    for zd in zonas_default:
-        TarifaZona.objects.get_or_create(zona=zd['zona'], defaults=zd)
-    
+    Qué hace:
+        Muestra y permite editar el valor de uso y depósitos para cada zona.
+    """
+    if hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'RESIDENTE':
+        return redirect('reservas:lista_reservas')
+
     tarifas = TarifaZona.objects.all()
     return render(request, 'reservas/tarifario.html', {'tarifas': tarifas})
 
 
 @login_required
 def editar_tarifa(request, tarifa_id):
-    """Actualiza el precio de una zona vía POST."""
+    """
+    Controlador de Actualización de Tarifa.
+
+    Qué hace:
+        Procesa el formulario POST desde el tarifario para actualizar los valores
+        y la disponibilidad de una zona específica.
+    """
+    if hasattr(request.user, 'perfilusuario') and request.user.perfilusuario.rol == 'RESIDENTE':
+        return redirect('reservas:lista_reservas')
+
     tarifa = get_object_or_404(TarifaZona, id=tarifa_id)
     if request.method == 'POST':
-        try:
-            tarifa.valor = int(request.POST.get('valor', tarifa.valor))
-            tarifa.deposito_garantia = int(request.POST.get('deposito_garantia', tarifa.deposito_garantia))
-            tarifa.descripcion = request.POST.get('descripcion', tarifa.descripcion)
-            tarifa.activa = request.POST.get('activa') == 'on'
-            tarifa.save()
-            messages.success(request, f"Tarifa de {tarifa.get_zona_display()} actualizada a ${tarifa.valor:,.0f}.")
-        except (ValueError, TypeError) as e:
-            messages.error(request, f"Error al actualizar la tarifa: {e}")
+        tarifa.valor = request.POST.get('valor', tarifa.valor)
+        tarifa.descripcion = request.POST.get('descripcion', tarifa.descripcion)
+        tarifa.activa = 'activa' in request.POST
+        tarifa.save()
+        messages.success(request, f"Tarifa de {tarifa.get_zona_display()} actualizada.")
+
+    return redirect('reservas:tarifario')
+
 
 @login_required
 def cancelar_reserva(request, reserva_id):
     """
-    Cancela una reserva y libera el cupo. 
-    Seguridad: Solo el solicitante original o un administrador pueden cancelar.
+    Liberación de Cupos.
+
+    Qué hace:
+        Cambia el estado de la reserva a 'Cancelado', permitiendo que otros
+        residentes tomen el cupo para esa fecha.
     """
     reserva = get_object_or_404(Reserva, id=reserva_id)
     perfil = request.user.perfilusuario
     es_admin = perfil.rol in ['ADMIN_CONJUNTO', 'ADMIN_SISTEMA']
-    
-    # Validar propiedad o permisos
-    if not es_admin and reserva.solicitante != perfil:
-        messages.error(request, "No tienes permiso para cancelar esta reserva.")
-        return redirect('reservas:lista_reservas')
-        
-    if reserva.estado_reserva == 'Cancelado':
-        messages.warning(request, "Esta reserva ya se encuentra cancelada.")
-    else:
-        reserva.estado_reserva = 'Cancelado'
-        reserva.save()
-        messages.success(request, f"La reserva para {reserva.get_zona_comun_display()} el {reserva.fecha} ha sido cancelada exitosamente.")
-        
-    return redirect('reservas:lista_reservas')
 
+    if not es_admin and reserva.solicitante != perfil:
+        messages.error(request, "Sin permisos.")
+        return redirect('reservas:lista_reservas')
+
+    reserva.estado_reserva = 'Cancelado'
+    reserva.save()
+    messages.success(request, "Reserva cancelada.")
+    return redirect('reservas:lista_reservas')

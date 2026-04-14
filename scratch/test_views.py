@@ -19,12 +19,12 @@ def test_views():
         print("No superuser found")
         return
     c.force_login(user)
-    
+
     urls = [
         ('finanzas:cartera', {}),
         ('reservas:lista_reservas', {}),
     ]
-    
+
     for url_name, kwargs in urls:
         try:
             url = reverse(url_name, kwargs=kwargs)

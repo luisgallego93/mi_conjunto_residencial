@@ -1,310 +1,323 @@
 {% extends 'base.html' %}
 
-{% block title %}Reservas - Mi Conjunto Gestión{% endblock %}
+{% block title %}Gestión de Zonas Comunes - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Calendario de Reservas</h2>
-    <a href="{% url 'reservas:crear_reserva' %}" class="btn btn-sm btn-success shadow-sm">
-        <i class="bi bi-calendar-plus"></i> Ingresar Reserva
-    </a>
+<!-- Header Row -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div class="text-brand-dark">
+        <h2 class="text-3xl font-black tracking-tight uppercase italic">Gestión de Zonas Comunes</h2>
+        <div class="flex items-center gap-3">
+            <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Operación Social</span>
+            <span class="text-gray-400 font-medium text-sm italic">Control de disponibilidad y reservas del conjunto</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        {% if not es_residente %}
+        <a href="{% url 'reservas:tarifario' %}" class="px-5 py-3 bg-white border border-gray-200 text-gray-600 font-black rounded-2xl hover:bg-gray-50 transition-colors shadow-sm text-[0.65rem] uppercase tracking-widest italic">
+            <i class="bi bi-gear-fill mr-2 text-brand-primary"></i> Tarifas
+        </a>
+        {% endif %}
+        <a href="{% url 'reservas:crear_reserva' %}" class="btn-pro-primary flex items-center gap-3 !px-8 !py-4 shadow-xl active:scale-95 text-[0.65rem] uppercase tracking-widest italic">
+            <i class="bi bi-calendar-plus text-lg"></i> Nueva Reserva
+        </a>
+    </div>
 </div>
 
-<div class="card shadow mb-4">
-    <div class="card-header py-3 bg-white border-bottom-0">
-        <form method="GET" class="row g-2 align-items-end">
-            <!-- Filtro por Pago -->
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Estado de Pago</label>
-                <select name="pago" class="form-select form-select-sm">
-                    <option value="">Todos</option>
-                    <option value="pagado" {% if filtros.pago == 'pagado' %}selected{% endif %}>Pagado</option>
-                    <option value="pendiente" {% if filtros.pago == 'pendiente' %}selected{% endif %}>Pendiente</option>
+<!-- Filters & Table Card -->
+<div class="card-pro overflow-hidden border-none shadow-premium mb-10 !p-0">
+    <div class="p-8 bg-gray-50/50 border-b border-gray-100">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+            <div class="md:col-span-3">
+                <label class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest px-1 mb-2 block italic">Estado Pago</label>
+                <select name="pago" class="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none">
+                    <option value="">CUALQUIER ESTADO</option>
+                    <option value="pagado" {% if filtros.pago == 'pagado' %}selected{% endif %}>PAGADO</option>
+                    <option value="pendiente" {% if filtros.pago == 'pendiente' %}selected{% endif %}>PENDIENTE</option>
                 </select>
             </div>
-            <!-- Filtro por Estado de Reserva -->
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Estado Reserva</label>
-                <select name="estado" class="form-select form-select-sm">
-                    <option value="">Todos</option>
-                    <option value="Pendiente" {% if filtros.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
-                    <option value="Aprobado" {% if filtros.estado == 'Aprobado' %}selected{% endif %}>Aprobado</option>
-                    <option value="Rechazado" {% if filtros.estado == 'Rechazado' %}selected{% endif %}>Rechazado</option>
-                    <option value="Cancelado" {% if filtros.estado == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+            <div class="md:col-span-3">
+                <label class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest px-1 mb-2 block italic">Estado Admin</label>
+                <select name="estado" class="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none">
+                    <option value="">CUALQUIER ESTADO</option>
+                    <option value="Pendiente" {% if filtros.estado == 'Pendiente' %}selected{% endif %}>PENDIENTE</option>
+                    <option value="Aprobado" {% if filtros.estado == 'Aprobado' %}selected{% endif %}>APROBADO</option>
+                    <option value="Rechazado" {% if filtros.estado == 'Rechazado' %}selected{% endif %}>RECHAZADO</option>
+                    <option value="Cancelado" {% if filtros.estado == 'Cancelado' %}selected{% endif %}>CANCELADO</option>
                 </select>
             </div>
-            <!-- Filtro por Zona -->
-            <div class="col-md-4">
-                <label class="form-label small fw-bold text-muted">Zona Común</label>
-                <select name="zona" class="form-select form-select-sm">
-                    <option value="">Todas las zonas</option>
-                    <option value="salon" {% if filtros.zona == 'salon' %}selected{% endif %}>Salón Social</option>
-                    <option value="bbq" {% if filtros.zona == 'bbq' %}selected{% endif %}>Zona BBQ</option>
-                    <option value="piscina" {% if filtros.zona == 'piscina' %}selected{% endif %}>Piscina</option>
+            <div class="md:col-span-4">
+                <label class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest px-1 mb-2 block italic">Zona Común</label>
+                <select name="zona" class="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none">
+                    <option value="">TODAS LAS ÁREAS</option>
+                    <option value="salon" {% if filtros.zona == 'salon' %}selected{% endif %}>SALÓN SOCIAL</option>
+                    <option value="bbq" {% if filtros.zona == 'bbq' %}selected{% endif %}>ZONA BBQ</option>
+                    <option value="piscina" {% if filtros.zona == 'piscina' %}selected{% endif %}>PISCINA</option>
                 </select>
             </div>
-            <!-- Botón Filtrar -->
-            <div class="col-md-2">
-                <div class="d-grid shadow-sm">
-                    <button type="submit" class="btn btn-sm btn-dark fw-bold">Filtrar</button>
-                </div>
+            <div class="md:col-span-2">
+                <button type="submit" class="w-full py-3 bg-brand-dark text-white font-black rounded-2xl hover:bg-opacity-90 transition-all shadow-lg text-[0.65rem] flex items-center justify-center gap-2 uppercase tracking-widest italic">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
             </div>
         </form>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table id="tableReservas" class="table-reservas-custom table-bordered table-hover w-100" cellspacing="0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Zona</th>
-                        <th>Residente</th>
-                        <th>Horario</th>
-                        <th>Estado</th>
-                        <th>Pago</th>
-                        <th>Gestión</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for res in reservas %}
-                    <tr>
-                        <td>{{ res.fecha|date:"d M Y" }}</td>
-                        <td class="fw-bold">{{ res.get_zona_comun_display|default:res.zona_comun }}</td>
-                        <td>{{ res.solicitante.nombre_completo|default:"-" }}</td>
-                        <td>{{ res.hora_inicio|time:"H:i" }} - {{ res.hora_fin|time:"H:i" }}</td>
-                        <td>
-                            {% if res.estado_reserva == 'Aprobado' %}
-                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> {{ res.estado_reserva }}</span>
-                            {% elif res.estado_reserva == 'Rechazado' %}
-                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> {{ res.estado_reserva }}</span>
-                            {% else %}
-                                <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> {{ res.estado_reserva }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if res.estado_pago %}
-                                <span class="text-success"><i class="bi bi-check-circle-fill"></i> Pagado</span>
-                            {% else %}
-                                {% if res.comprobante_pago %}
-                                    {% if res.comprobante_pago.name|lower|slice:"-4:" == ".pdf" %}
-                                        <a href="{{ res.comprobante_pago.url }}" target="_blank" class="badge bg-info text-decoration-none">
-                                            <i class="bi bi-file-pdf"></i> Ver PDF
-                                        </a>
-                                    {% else %}
-                                        <a href="{{ res.comprobante_pago.url }}" target="_blank" class="badge bg-info text-decoration-none">
-                                            <i class="bi bi-image"></i> Ver Imagen
-                                        </a>
-                                    {% endif %}
-                                {% else %}
-                                    <button class="btn btn-sm btn-outline-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#pagoModal{{ res.id }}"><i class="bi bi-currency-dollar"></i> Pagar</button>
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if res.estado_reserva == 'Pendiente' and not es_residente %}
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#gestionModal{{ res.id }}">
-                                    <i class="bi bi-gear"></i> Gestionar
-                                </button>
 
-                                <!-- Modal Gestionar -->
-                                <div class="modal fade" id="gestionModal{{ res.id }}" tabindex="-1" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content border-0">
-                                      <div class="modal-header bg-primary text-white">
-                                        <h5 class="modal-title fw-bold">Gestionar Reserva</h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                      </div>
-                                      <div class="modal-body text-start">
-                                        <p>¿Aprobar y registrar pago para la reserva de <strong>{{ res.solicitante.nombre_completo }}</strong> en <strong>{{ res.get_zona_comun_display|default:res.zona_comun }}</strong> el <strong>{{ res.fecha|date:"d/M/Y" }}</strong>?</p>
-                                      </div>
-                                      <div class="modal-footer bg-light">
-                                        <form action="{% url 'reservas:gestionar_reserva' res.id %}" method="post">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="accion" value="rechazar">
-                                            <button type="submit" class="btn btn-danger">Rechazar</button>
-                                        </form>
-                                        <form action="{% url 'reservas:gestionar_reserva' res.id %}" method="post">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="accion" value="aprobar">
-                                            <button type="submit" class="btn btn-success fw-bold"><i class="bi bi-check-circle"></i> Aprobar y Pago Confirmado</button>
-                                        </form>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                            {% elif res.estado_reserva == 'Pendiente' %}
-                                <span class="badge bg-light text-primary border">En revisión</span>
+    <div class="overflow-x-auto">
+        <table id="tableReservas" class="w-full datatable-brand">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Solicitud</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Fecha Reserva</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Zona</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Solicitante</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Horario</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Estado</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Pago</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Acción</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for res in reservas %}
+                <tr class="hover:bg-gray-50/50 transition-colors group">
+                    <td class="px-8 py-6 align-middle">
+                        <div class="flex flex-col">
+                            <span class="text-[0.6rem] font-black text-brand-primary uppercase tracking-tighter italic">REC-{{ res.id|stringformat:"04d" }}</span>
+                            <span class="text-[0.55rem] text-gray-300 font-bold uppercase">{{ res.fecha_registro|date:"d/m/y H:i" }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 align-middle font-black text-brand-dark italic">{{ res.fecha|date:"d M Y" }}</td>
+                    <td class="px-8 py-6 align-middle">
+                        <div class="flex items-center gap-2">
+                            {% if res.zona_comun == 'salon' %}<span class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></span>
+                            {% elif res.zona_comun == 'bbq' %}<span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm"></span>
+                            {% else %}<span class="w-2.5 h-2.5 rounded-full bg-brand-blue shadow-sm"></span>{% endif %}
+                            <span class="text-[0.65rem] font-black text-gray-700 uppercase tracking-widest italic">{{ res.get_zona_comun_display }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        <span class="text-sm font-black text-gray-600 leading-tight">{{ res.solicitante.nombre_completo|default:"-" }}</span>
+                    </td>
+                    <td class="px-8 py-6 align-middle text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">
+                        {{ res.hora_inicio|time:"H:i" }} — {{ res.hora_fin|time:"H:i" }}
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        {% if res.estado_reserva == 'Aprobado' %}
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-brand-primary text-white shadow-md shadow-brand-primary/20 uppercase italic tracking-widest">
+                                <i class="bi bi-check-circle mr-1.5"></i> APROBADO
+                            </span>
+                        {% elif res.estado_reserva == 'Rechazado' %}
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-red-500 text-white shadow-md shadow-red-500/20 uppercase italic tracking-widest">
+                                <i class="bi bi-x-circle mr-1.5"></i> RECHAZADO
+                            </span>
+                        {% elif res.estado_reserva == 'Cancelado' %}
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-gray-100 text-gray-400 uppercase tracking-widest">
+                                CANCELADO
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-brand-lime text-brand-dark shadow-sm uppercase italic tracking-widest">
+                                <i class="bi bi-clock-history mr-1.5"></i> PENDIENTE
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 align-middle">
+                        {% if res.estado_pago %}
+                            <div class="flex items-center text-brand-primary">
+                                <i class="bi bi-patch-check-fill text-lg mr-2 leading-none"></i>
+                                <span class="text-[0.6rem] font-black uppercase tracking-widest italic">RECAUDADO</span>
+                            </div>
+                        {% else %}
+                            {% if res.comprobante_pago %}
+                                <a href="{{ res.comprobante_pago.url }}" target="_blank" class="inline-flex items-center px-3 py-1 bg-brand-blue/5 text-brand-blue text-[0.55rem] font-black uppercase tracking-widest rounded-lg border border-brand-blue/10 hover:bg-brand-blue hover:text-white transition-all italic">
+                                    <i class="bi bi-eye mr-1.5"></i> SOPORTE
+                                </a>
+                            {% else %}
+                                <button class="px-3 py-1 bg-brand-lime/10 text-brand-dark text-[0.55rem] font-black rounded-lg border border-brand-lime/20 hover:bg-brand-lime transition-all uppercase tracking-widest italic" data-bs-toggle="modal" data-bs-target="#pagoModal{{ res.id }}">
+                                    SUBIR PAGO
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 align-middle text-right">
+                        <div class="flex items-center justify-end gap-2">
+                             {% if res.estado_reserva == 'Pendiente' and not es_residente %}
+                                <button type="button" class="w-9 h-9 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:bg-brand-dark hover:text-white transition-all shadow-sm" data-bs-toggle="modal" data-bs-target="#gestionModal{{ res.id }}">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                </button>
                             {% endif %}
 
                             {% if res.estado_reserva != 'Cancelado' and res.estado_reserva != 'Rechazado' %}
-                                <button type="button" class="btn btn-sm btn-outline-danger shadow-sm ms-1" data-bs-toggle="modal" data-bs-target="#cancelarModal{{ res.id }}">
-                                    <i class="bi bi-trash"></i> Cancelar
+                                <button type="button" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-300 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm" data-bs-toggle="modal" data-bs-target="#cancelarModal{{ res.id }}">
+                                    <i class="bi bi-trash3"></i>
                                 </button>
+                            {% endif %}
+                        </div>
 
-                                <!-- Modal Cancelar -->
-                                <div class="modal fade" id="cancelarModal{{ res.id }}" tabindex="-1" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content border-0">
-                                      <div class="modal-header bg-danger text-white">
-                                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle"></i> Cancelar Reserva</h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                      </div>
-                                      <div class="modal-body text-start">
-                                        <p>¿Estás seguro de que deseas <strong>CANCELAR</strong> la reserva de <strong>{{ res.get_zona_comun_display|default:res.zona_comun }}</strong> para el día <strong>{{ res.fecha|date:"d/M/Y" }}</strong>?</p>
-                                        <p class="small text-muted mb-0">Esta acción liberará el espacio para otros residentes inmediatamente.</p>
-                                      </div>
-                                      <div class="modal-footer bg-light">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, mantener</button>
-                                        <a href="{% url 'reservas:cancelar_reserva' res.id %}" class="btn btn-danger fw-bold">Sí, Cancelar Reserva</a>
-                                      </div>
+                        <!-- Modals logically placed here -->
+                        <div class="modal fade" id="gestionModal{{ res.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl text-left">
+                                    <div class="bg-brand-primary p-10 text-white relative">
+                                        <h5 class="text-2xl font-black tracking-tight italic uppercase leading-none">Aprobar Reserva</h5>
+                                        <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-2">Validación Administrativa</p>
+                                        <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
                                     </div>
-                                  </div>
+                                    <div class="p-10 text-gray-600 font-medium italic">
+                                        Confirme la disponibilidad física y el recaudo del pago para habilitar a <strong>{{ res.solicitante.nombre_completo }}</strong>.
+                                    </div>
+                                    <div class="p-8 bg-gray-50 flex gap-4">
+                                        <form action="{% url 'reservas:gestionar_reserva' res.id %}" method="post" class="flex-1">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="accion" value="rechazar">
+                                            <button type="submit" class="w-full py-4 border border-red-100 text-red-400 text-[0.65rem] font-black rounded-2xl hover:bg-red-50 transition-colors uppercase tracking-widest italic">Rechazar</button>
+                                        </form>
+                                        <form action="{% url 'reservas:gestionar_reserva' res.id %}" method="post" class="flex-[2]">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="accion" value="aprobar">
+                                            <button type="submit" class="w-full py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">HABILITAR CUPO</button>
+                                        </form>
+                                    </div>
                                 </div>
-                            {% else %}
-                                <span class="text-muted small">Cerrado</span>
-                            {% endif %}
-
-                            <!-- Modal Subir Comprobante -->
-                            {% if not res.estado_pago and not res.comprobante_pago %}
-                            <div class="modal fade" id="pagoModal{{ res.id }}" tabindex="-1">
-                              <div class="modal-dialog">
-                                <div class="modal-content">
-                                  <div class="modal-header bg-warning">
-                                    <h5 class="modal-title fw-bold">Anexar Comprobante de Pago</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                  </div>
-                                  <form action="{% url 'reservas:subir_comprobante' res.id %}" method="post" enctype="multipart/form-data">
-                                      {% csrf_token %}
-                                      <div class="modal-body text-start">
-                                        <p>Para asegurar su espacio (<strong>{{ res.get_zona_comun_display|default:res.zona_comun }}</strong>), realice el abono o pago y ajunte el soporte aquí.</p>
-                                        <label class="form-label fw-bold">Subir Recibo (Imagen o PDF):</label>
-                                        <input type="file" name="comprobante_pago" class="form-control" required accept="image/*,.pdf">
-                                      </div>
-                                      <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                        <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-upload"></i> Subir Soporte</button>
-                                      </div>
-                                  </form>
-                                </div>
-                              </div>
                             </div>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No hay reservas vigentes registradas.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        </div>
+
+                        <div class="modal fade" id="cancelarModal{{ res.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl text-center">
+                                    <div class="p-10 space-y-6 relative">
+                                        <button type="button" class="absolute top-8 right-8 text-gray-300 hover:text-gray-500 transition-colors" data-bs-dismiss="modal">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                        <div class="w-20 h-20 bg-red-50 text-red-500 rounded-[2rem] flex items-center justify-center mx-auto text-3xl shadow-inner">
+                                            <i class="bi bi-exclamation-octagon"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-2xl font-black text-brand-dark italic uppercase">¿Liberar Calendario?</h3>
+                                            <p class="text-[0.65rem] text-gray-400 font-black uppercase tracking-widest mt-2">Esta acción no se puede deshacer.</p>
+                                        </div>
+                                    </div>
+                                    <div class="p-8 bg-gray-50 flex gap-4">
+                                        <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Mantener</button>
+                                        <a href="{% url 'reservas:cancelar_reserva' res.id %}" class="flex-[2] py-4 bg-red-500 text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest flex items-center justify-center">SÍ, CANCELAR</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="pagoModal{{ res.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl text-left">
+                                    <form action="{% url 'reservas:subir_comprobante' res.id %}" method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <div class="bg-brand-lime p-10 text-brand-dark relative">
+                                            <h5 class="text-2xl font-black italic uppercase leading-none">Reportar Consignación</h5>
+                                            <p class="text-brand-dark/50 font-black text-[0.65rem] tracking-widest uppercase mt-2">{{ res.get_zona_comun_display }}</p>
+                                            <button type="button" class="absolute top-8 right-8 text-brand-dark/30 hover:text-brand-dark transition-colors" data-bs-dismiss="modal">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-10 space-y-8 bg-white">
+                                            <div class="p-6 bg-brand-primary/5 rounded-[1.5rem] border border-brand-primary/10">
+                                                <p class="text-[0.7rem] text-brand-dark font-medium italic leading-relaxed">
+                                                    Adjunte la captura o PDF de su pago bancario. La administración verificará el recaudo para emitir la aprobación final del cupo.
+                                                </p>
+                                            </div>
+                                            <div class="space-y-3">
+                                                <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest italic">Archivo de Soporte</label>
+                                                <input type="file" name="comprobante_pago" required accept="image/*,.pdf"
+                                                       class="w-full px-5 py-6 bg-gray-50 border-2 border-dashed border-gray-100 rounded-2xl text-[0.65rem] font-black text-brand-primary outline-none focus:ring-4 focus:ring-brand-primary/5 uppercase tracking-widest">
+                                            </div>
+                                        </div>
+                                        <div class="p-8 bg-gray-50 flex gap-4">
+                                            <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Cerrar</button>
+                                            <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">ENVIAR COMPROBANTE</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="py-32 text-center">
+                        <div class="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-gray-200 shadow-inner">
+                            <i class="bi bi-calendar-x text-4xl"></i>
+                        </div>
+                        <p class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">Calendario libre. No se registran solicitudes de reserva activos.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
-<style>
-    .calendar-container {
-        border: 1px solid #dee2e6;
-        border-radius: 0.5rem;
-        overflow: hidden;
-    }
-    .table-calendar-custom {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-    }
-    .table-calendar-custom th, .table-calendar-custom td {
-        border: 1px solid #dee2e6;
-        padding: 0.5rem;
-    }
-    .table-reservas {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-    }
-    .table-reservas th, .table-reservas td {
-        padding: 0.75rem;
-        border: 1px solid #dee2e6;
-    }
-    .table-reservas thead {
-        background-color: #f8f9fc;
-    }
-    .table-reservas-custom {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-    }
-    .table-reservas-custom th, .table-reservas-custom td {
-        padding: 0.75rem !important;
-        border: 1px solid #dee2e6 !important;
-    }
-    .table-reservas-custom thead {
-        background-color: #f8f9fc;
-    }
-</style>
-
-<!-- ============================================================ -->
-<!-- CALENDARIO MENSUAL DE DISPONIBILIDAD                         -->
-<!-- ============================================================ -->
-<div class="card shadow mb-4 mt-2">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);">
-        <h6 class="m-0 fw-bold text-white">
-            <i class="bi bi-calendar3 me-2"></i>Disponibilidad del Mes — {{ nombre_mes }} {{ anio_actual }}
-        </h6>
-        <div class="d-flex gap-2">
-            <span class="badge" style="background-color:#198754;">Salón Social</span>
-            <span class="badge" style="background-color:#fd7e14;">Zona BBQ</span>
-            <span class="badge" style="background-color:#0dcaf0; color:#000;">Piscina</span>
-            <span class="badge bg-secondary">Libre</span>
+<!-- Calendar Ocupation Card -->
+<div class="card-pro border-none shadow-premium overflow-hidden !p-0">
+    <div class="p-10 bg-brand-dark text-white flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <div>
+            <h3 class="text-2xl font-black uppercase italic tracking-tight leading-none">Ocupación de Zonas</h3>
+            <p class="text-white/40 font-black text-[0.65rem] uppercase tracking-widest mt-2">{{ nombre_mes }} {{ anio_actual }}</p>
+        </div>
+        <div class="flex flex-wrap gap-6 bg-white/5 p-4 rounded-2xl border border-white/5 shadow-inner">
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-green-500 shadow-sm shadow-green-500/20"></span>
+                <span class="text-[0.55rem] font-black uppercase tracking-widest text-white/50 italic">Salón</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-orange-500 shadow-sm shadow-orange-500/20"></span>
+                <span class="text-[0.55rem] font-black uppercase tracking-widest text-white/50 italic">BBQ</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-brand-lime shadow-sm shadow-brand-lime/20"></span>
+                <span class="text-[0.55rem] font-black uppercase tracking-widest text-brand-lime italic">Piscina</span>
+            </div>
         </div>
     </div>
-    <div class="card-body p-3">
-        <div class="calendar-container">
-            <table class="table-calendar-custom text-center mb-0 w-100">
+    
+    <div class="p-6 md:p-10 bg-white">
+        <div class="border border-gray-50 rounded-[2.5rem] overflow-hidden shadow-sm">
+            <table class="w-full border-collapse table-fixed">
                 <thead>
-                    <tr style="background-color:#f1f5f9;">
-                        <th class="py-2 text-muted small">LUN</th>
-                        <th class="py-2 text-muted small">MAR</th>
-                        <th class="py-2 text-muted small">MIÉ</th>
-                        <th class="py-2 text-muted small">JUE</th>
-                        <th class="py-2 text-muted small">VIE</th>
-                        <th class="py-2 text-muted small fw-bold" style="color:#6366f1;">SÁB</th>
-                        <th class="py-2 text-muted small fw-bold text-danger">DOM</th>
+                    <tr class="bg-gray-50 border-b border-gray-100">
+                        {% for day in dias_semana %}
+                        <th class="py-5 text-[0.55rem] font-black text-gray-400 uppercase tracking-[0.2em] border-x border-gray-100 italic">{{ day }}</th>
+                        {% endfor %}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-100">
                     {% for semana in cal %}
-                    <tr>
+                    <tr class="divide-x divide-gray-100">
                         {% for dia in semana %}
-                        <td class="p-1" style="height:90px; vertical-align:top; {% if dia == hoy_dia %}background-color:#eff6ff; box-shadow: inset 0 0 0 2px #3b82f6;{% elif dia == 0 %}background-color:#f8fafc;{% endif %}">
+                        <td class="h-28 md:h-36 p-3 align-top group transition-all duration-500 {% if dia != 0 %}hover:bg-gray-50/50{% else %}bg-gray-50/20{% endif %} 
+                                   {% if dia == hoy_dia %}bg-brand-lime/5 shadow-inner{% endif %}">
                             {% if dia != 0 %}
-                                <div class="fw-bold small mb-1 {% if dia == hoy_dia %}text-primary{% endif %}">
-                                    {{ dia }}{% if dia == hoy_dia %} <span class="badge bg-primary" style="font-size:0.6rem;">HOY</span>{% endif %}
+                                <div class="flex justify-between items-start mb-3 px-1">
+                                    <span class="text-sm font-black {% if dia == hoy_dia %}text-brand-dark italic{% else %}text-gray-300 group-hover:text-brand-dark transition-colors{% endif %}">
+                                        {{ dia }}
+                                    </span>
+                                    {% if dia == hoy_dia %}
+                                        <div class="flex h-2 w-2 rounded-full bg-brand-lime animate-ping"></div>
+                                    {% endif %}
                                 </div>
-                                {% if reservas_por_dia %}
-                                    {% for k, v in reservas_por_dia.items %}
-                                        {% if k == dia %}
-                                            {% for r in v %}
-                                                {% if r.zona == 'salon' %}
-                                                    <span class="badge w-100 text-start mb-1 d-block lh-sm" style="background-color:#198754; font-size:0.6rem; white-space:normal;" title="{{ r.solicitante }}">
-                                                        <i class="bi bi-house"></i> {{ r.zona_display }}<br>
-                                                        <span style="opacity:0.85;">Apto: {{ r.apto }}</span>
-                                                    </span>
-                                                {% elif r.zona == 'bbq' %}
-                                                    <span class="badge w-100 text-start mb-1 d-block lh-sm" style="background-color:#fd7e14; font-size:0.6rem; white-space:normal;" title="{{ r.solicitante }}">
-                                                        <i class="bi bi-fire"></i> {{ r.zona_display }}<br>
-                                                        <span style="opacity:0.85;">Apto: {{ r.apto }}</span>
-                                                    </span>
-                                                {% else %}
-                                                    <span class="badge w-100 text-start mb-1 d-block lh-sm" style="background-color:#0dcaf0; color:#000; font-size:0.6rem; white-space:normal;" title="{{ r.solicitante }}">
-                                                        <i class="bi bi-water"></i> {{ r.zona_display }}<br>
-                                                        <span style="opacity:0.75;">Apto: {{ r.apto }}</span>
-                                                    </span>
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
+                                <div class="space-y-1.5">
+                                    {% if reservas_por_dia %}
+                                        {% for k, v in reservas_por_dia.items %}
+                                            {% if k == dia %}
+                                                {% for r in v %}
+                                                    <div class="px-3 py-1.5 rounded-xl text-[0.55rem] font-black text-white shadow-xl truncate italic
+                                                               {% if r.zona == 'salon' %}bg-green-500 shadow-green-500/10{% elif r.zona == 'bbq' %}bg-orange-500 shadow-orange-500/10{% else %}bg-brand-blue shadow-brand-blue/10{% endif %}"
+                                                         title="{{ r.solicitante }} - {{ r.zona_display }}">
+                                                        #{{ r.apto }}
+                                                    </div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
                             {% endif %}
                         </td>
                         {% endfor %}
@@ -313,9 +326,15 @@
                 </tbody>
             </table>
         </div>
-        <p class="text-muted small text-center mt-2 mb-0">
-            <i class="bi bi-info-circle"></i> Cada celda muestra la zona y el apartamento reservado. Pase el cursor para ver el nombre del solicitante.
-        </p>
+        <div class="mt-12 p-8 bg-gray-50/50 border border-gray-100 rounded-[2rem] flex flex-col md:flex-row items-center justify-center gap-6 group">
+            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-brand-primary shadow-sm group-hover:scale-110 transition-transform">
+                <i class="bi bi-hand-index-thumb-fill text-xl"></i>
+            </div>
+            <div class="text-center md:text-left">
+                <p class="text-[0.65rem] font-black text-brand-dark uppercase tracking-widest italic">Interacción táctil activa</p>
+                <p class="text-[0.6rem] text-gray-400 font-bold uppercase tracking-widest mt-1">Haga clic sobre las unidades en el calendario para ver detalles de disponibilidad.</p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -327,13 +346,12 @@
             $('#tableReservas').DataTable().destroy();
         }
         $('#tableReservas').DataTable({
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
-            },
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
             order: [[0, 'desc']],
             autoWidth: false,
             responsive: true,
-            pageLength: 10
+            pageLength: 20,
+            dom: 't<"flex flex-col md:flex-row justify-between items-center gap-4 p-10 border-t border-gray-100"ip>'
         });
     });
 </script>

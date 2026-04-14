@@ -1,110 +1,199 @@
 {% extends 'base.html' %}
 
-{% block title %}Nuevo Ingreso - Mi Conjunto Gestión{% endblock %}
+{% block title %}Registrar Ingreso - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Registrar Ingreso a Portería</h2>
-    <a href="{% url 'visitantes:lista_visitantes' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
-        <i class="bi bi-arrow-left"></i> Volver a Bitácora
-    </a>
-</div>
-
-{% if es_residente and apartamento_residente %}
-<div class="alert alert-info border-0 rounded-3 mb-4">
-    <i class="bi bi-house-check-fill me-2"></i>
-    Registrando visita para: <strong>Apto {{ apartamento_residente.numero }} — Torre {{ apartamento_residente.torre }}</strong>.
-    La autorización quedará a tu nombre automáticamente.
-</div>
-{% endif %}
-
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4 border-start border-4 border-primary">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-primary">Detalle del Visitante</h6>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Registrar Ingreso</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Protocolo de Portería</span>
+                <span class="text-gray-400 font-medium text-sm italic">Validación de identidad y destino comercial</span>
             </div>
-            <div class="card-body">
-                {% if form.errors %}
-                <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                    <strong>Error:</strong> por favor corrige los campos marcados abajo.
-                    {{ form.errors }}
+        </div>
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-black uppercase tracking-widest">
+                <li>
+                    <a href="{% url 'visitantes:lista_visitantes' %}" class="text-gray-400 hover:text-brand-primary transition-colors">BITÁCORA</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="bi bi-chevron-right text-[0.6rem] text-gray-300 mx-2"></i>
+                        <span class="text-brand-primary">REGISTRO</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    {% if es_residente and apartamento_residente %}
+    <div class="p-8 bg-brand-primary/5 rounded-[2.5rem] border border-brand-primary/10 flex flex-col md:flex-row md:items-center gap-6 mb-10 shadow-sm">
+        <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-brand-primary text-2xl shadow-sm">
+            <i class="bi bi-house-check"></i>
+        </div>
+        <div>
+            <h4 class="text-xs font-black text-brand-primary uppercase tracking-widest mb-1 italic">Autorización Producida por Residente</h4>
+            <p class="text-sm text-brand-dark/60 font-medium leading-relaxed italic">
+                Usted está autorizando el acceso para la unidad <span class="text-brand-dark font-black">APTO {{ apartamento_residente.numero }} · TORRE {{ apartamento_residente.torre }}</span>.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card-pro shadow-premium !p-0 overflow-hidden border-none">
+        <div class="bg-brand-dark p-8 text-white relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="relative z-10 flex items-center gap-4">
+                <div class="w-10 h-10 bg-brand-primary/20 rounded-xl flex items-center justify-center text-brand-lime">
+                    <i class="bi bi-person-badge"></i>
                 </div>
-                {% endif %}
+                <div>
+                    <h3 class="text-sm font-black uppercase tracking-[0.2em] italic">Identificación del Visitante</h3>
+                    <p class="text-[0.6rem] text-white/40 font-bold uppercase tracking-widest leading-none mt-1">Diligencie los campos obligatorios</p>
+                </div>
+            </div>
+            
+            <!-- Decoración -->
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="p-8 md:p-12">
+            <form method="post" enctype="multipart/form-data" class="space-y-12">
+                {% csrf_token %}
                 
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Documento</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-3">
+                        <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Documento / ID Oficial</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary transition-colors">
+                                <i class="bi bi-card-text"></i>
+                            </div>
                             {{ form.documento }}
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Nombre Completo</label>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Nombre Completo</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary transition-colors">
+                                <i class="bi bi-person"></i>
+                            </div>
                             {{ form.nombre }}
                         </div>
                     </div>
+                </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Tipo de Visitante</label>
-                            {{ form.tipo_visitante }}
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-10">
+                    <div class="md:col-span-4 space-y-3">
+                        <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Tipo de Visitante</label>
+                        {{ form.tipo_visitante }}
+                    </div>
+                    <div class="md:col-span-8 space-y-3">
+                        <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Motivo o Descripción de la Visita</label>
+                        {{ form.motivo_visita }}
+                    </div>
+                </div>
+
+                {% if not es_residente %}
+                <div class="p-8 md:p-10 bg-gray-50 rounded-[2.5rem] border border-gray-100 space-y-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-6 bg-brand-lime rounded-full"></div>
+                        <h4 class="text-xs font-black text-brand-dark uppercase tracking-widest">Protocolo de Seguridad (Portería)</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-brand-primary uppercase tracking-widest">Unidad de Destino</label>
+                            <div class="relative">
+                                {{ form.apartamento_destino }}
+                                <div class="absolute inset-y-0 right-0 pr-5 flex items-center pointer-events-none text-brand-primary/30">
+                                    <i class="bi bi-chevron-down text-xs"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-bold">Motivo (Opcional)</label>
-                            {{ form.motivo_visita }}
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-brand-primary uppercase tracking-widest">Autorizado por</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-brand-primary/30 group-focus-within:text-brand-primary">
+                                    <i class="bi bi-telephone-outbound"></i>
+                                </div>
+                                {{ form.autorizado_por_nombre }}
+                            </div>
                         </div>
                     </div>
 
-                    {% if not es_residente %}
-                    <!-- Solo portería/admin ve y edita estos campos -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-primary">Apto Destino</label>
-                            {{ form.apartamento_destino }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-primary">Voz de Autorización</label>
-                            {{ form.autorizado_por_nombre }}
-                            <small class="text-muted">¿Quién confirmó la entrada por citófono?</small>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary">Vehículo</label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Vehículo</label>
                             {{ form.tipo_vehiculo }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary">Placa</label>
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Placa</label>
                             {{ form.placa }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary">Documento Fotográfico</label>
-                            {{ form.foto_visitante }}
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Fotografía / ID</label>
+                            <div class="relative py-2.5 px-3 bg-white border border-gray-100 rounded-xl">
+                                {{ form.foto_visitante }}
+                            </div>
                         </div>
                     </div>
-                    {% else %}
-                    <!-- Residente: campos ocultos para que el formulario valide correctamente -->
+                </div>
+                {% else %}
+                <div class="space-y-4">
+                    <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Adjuntar Foto del Visitante (Opcional)</label>
+                    <div class="p-6 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-center">
+                        <div class="max-w-[200px] mx-auto overflow-hidden">
+                             {{ form.foto_visitante }}
+                        </div>
+                    </div>
                     <input type="hidden" name="apartamento_destino" value="{{ apartamento_residente.id }}">
                     <input type="hidden" name="autorizado_por_nombre" value="{{ user.perfilusuario.nombre_completo }}">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-secondary">Documento Fotográfico (Opcional)</label>
-                        {{ form.foto_visitante }}
-                    </div>
-                    {% endif %}
+                </div>
+                {% endif %}
 
-                    <hr>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-door-open-fill"></i> Autorizar Ingreso
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="flex flex-col md:flex-row justify-end gap-4 pt-6">
+                    <a href="{% url 'visitantes:lista_visitantes' %}" class="px-8 py-4 bg-gray-50 text-gray-500 text-[0.7rem] font-black rounded-2xl hover:bg-gray-100 transition-all text-center uppercase tracking-widest">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="px-12 py-4 bg-brand-primary text-white text-[0.7rem] font-black rounded-2xl hover:bg-opacity-90 shadow-xl shadow-brand-primary/20 active:scale-95 transition-all uppercase tracking-[0.15em] italic">
+                        Autorizar Ingreso <i class="bi bi-door-open ml-2"></i>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<style>
+    /* Estilización global de widgets Django */
+    select, input[type="text"], input[type="number"], textarea {
+        width: 100%;
+        padding: 1rem 1.25rem 1rem 3rem !important;
+        background-color: #f8fafc !important;
+        border: 1px solid #f1f5f9 !important;
+        border-radius: 1.25rem !important;
+        font-size: 0.8rem !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        outline: none !important;
+        transition: all 0.3s ease !important;
+    }
+    textarea { padding-left: 1.25rem !important; }
+    select { padding-left: 1.25rem !important; appearance: none !important; }
+    
+    select:focus, input:focus, textarea:focus {
+        background-color: white !important;
+        border-color: var(--brand-primary) !important;
+        box-shadow: 0 0 0 5px rgba(103, 76, 52, 0.05) !important;
+    }
+
+    /* Estilo para input file */
+    input[type="file"] {
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        font-size: 0.65rem !important;
+        cursor: pointer !important;
+    }
+</style>
 {% endblock %}

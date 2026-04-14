@@ -1,154 +1,212 @@
 {% extends 'base.html' %}
 
-{% block title %}Inventario de Inmuebles - Mi Conjunto Gestión{% endblock %}
+{% comment %}Propósito: Inventario maestro de inmuebles.
+    Descripción: Permite visualizar el estado de ocupación de cada apartamento y gestionar sus habitantes (Censo).{% endcomment %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Censo de Apartamentos</h2>
-</div>
-
-<div class="card shadow mb-4 border-top-0 border-start border-4 border-info">
-    <div class="card-header py-3 bg-white">
-        <h6 class="m-0 fw-bold text-info">Inventario General de Bienes Privados</h6>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">Censo de Apartamentos</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Gestión de Inmuebles</span>
+                <span class="text-gray-400 font-medium text-sm">Inventario maestro de unidades y residentes</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="px-5 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-3">
+                <div class="w-8 h-8 bg-brand-primary/10 rounded-lg flex items-center justify-center text-brand-primary">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest leading-none">Total Unidades</span>
+                    <span class="text-sm font-black text-brand-dark">460 Apartamentos</span>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle w-100 datatable-basic" cellspacing="0">
-                <thead class="table-light">
+
+    <!-- Tabla Principal -->
+    <div class="card-pro overflow-hidden border-none shadow-premium">
+        <div class="flex items-center gap-3 mb-8">
+            <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary text-xl">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+            </div>
+            <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Inventario General de Bienes Privados</h3>
+        </div>
+
+        <div class="overflow-x-auto -mx-6">
+            <table class="w-full datatable-brand datatable-manual">
+                <thead>
                     <tr>
-                        <th>Torre</th>
-                        <th>Apto</th>
-                        <th>Estado Inmueble</th>
-                        <th>Propietario Legal</th>
-                        <th>Inquilino / Residente Actual</th>
-                        <th>Acción</th>
+                        <th class="text-left py-4 px-6">UNIDAD</th>
+                        <th class="text-left py-4 px-6">ESTADO</th>
+                        <th class="text-left py-4 px-6">PROPIETARIO</th>
+                        <th class="text-left py-4 px-6">RESIDENTE</th>
+                        <th class="text-center py-4 px-6">ACCIONES</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-50">
                 {% for apto in apartamentos %}
-                    <tr class="{% if not apto.propietario and not apto.inquilino %}table-danger{% endif %}">
-                        <td class="fw-bold">Torre {{ apto.torre }}</td>
-                        <td class="fw-bold text-primary">{{ apto.numero }}</td>
-                        <td>
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="align-middle py-4 px-6">
+                            <div class="flex flex-col">
+                                <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest mb-1">TORRE {{ apto.torre }}</span>
+                                <span class="text-lg font-black text-brand-primary group-hover:scale-105 transition-transform origin-left">Apto {{ apto.numero }}</span>
+                            </div>
+                        </td>
+                        <td class="align-middle py-4 px-6">
                             {% if apto.inquilino %}
-                                <span class="badge bg-warning text-dark"><i class="bi bi-people"></i> Arrendado</span>
+                                <span class="inline-flex items-center px-3 py-1 bg-brand-lime text-brand-dark text-[0.65rem] font-black uppercase rounded-lg">
+                                    ARRENDADO
+                                </span>
                             {% elif apto.propietario %}
-                                <span class="badge bg-success"><i class="bi bi-house-check"></i> Habitado Propietario</span>
+                                <span class="inline-flex items-center px-3 py-1 bg-brand-primary text-white text-[0.65rem] font-black uppercase rounded-lg">
+                                    PROPIETARIO
+                                </span>
                             {% else %}
-                                <span class="badge bg-danger"><i class="bi bi-house-exclamation"></i> Vacío / Sin Datos</span>
+                                <span class="inline-flex items-center px-3 py-1 bg-red-100 text-red-500 text-[0.65rem] font-black uppercase rounded-lg">
+                                    VACÍO
+                                </span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="align-middle py-4 px-6">
                             {% if apto.propietario %}
-                                <div class="fw-bold">{{ apto.propietario.nombre_completo }}</div>
-                                <div class="small text-muted"><i class="bi bi-telephone"></i> {{ apto.propietario.telefono }}</div>
-                                <a href="{% url 'usuarios:desvincular_residente' apto.id 'propietario' %}" class="text-danger small text-decoration-none"><i class="bi bi-x-circle"></i> Quitar</a>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-black text-brand-dark">{{ apto.propietario.nombre_completo }}</span>
+                                    <span class="text-xs font-bold text-gray-400 mt-0.5"><i class="bi bi-telephone-fill mr-1 text-[0.6rem]"></i>{{ apto.propietario.telefono }}</span>
+                                    <a href="{% url 'usuarios:desvincular_residente' apto.id 'propietario' %}" class="mt-2 text-[0.65rem] font-black text-red-400 uppercase tracking-widest hover:text-red-600 transition-colors" onclick="return confirm('¿Desvincular propietario?')">DESVINCULAR</a>
+                                </div>
                             {% else %}
-                                <span class="text-muted small fst-italic">Sin propietario</span>
+                                <span class="text-xs font-medium text-gray-400 italic">No asignado</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="align-middle py-4 px-6">
                             {% if apto.inquilino %}
-                                <div class="fw-bold text-info">{{ apto.inquilino.nombre_completo }}</div>
-                                <div class="small text-muted"><i class="bi bi-telephone"></i> {{ apto.inquilino.telefono }}</div>
-                                <a href="{% url 'usuarios:desvincular_residente' apto.id 'inquilino' %}" class="text-danger small text-decoration-none"><i class="bi bi-x-circle"></i> Quitar</a>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-black text-brand-dark">{{ apto.inquilino.nombre_completo }}</span>
+                                    <span class="text-xs font-bold text-gray-400 mt-0.5"><i class="bi bi-telephone-fill mr-1 text-[0.6rem]"></i>{{ apto.inquilino.telefono }}</span>
+                                    <a href="{% url 'usuarios:desvincular_residente' apto.id 'inquilino' %}" class="mt-2 text-[0.65rem] font-black text-red-400 uppercase tracking-widest hover:text-red-600 transition-colors" onclick="return confirm('¿Desvincular inquilino?')">DESVINCULAR</a>
+                                </div>
                             {% else %}
-                                <span class="text-muted small fst-italic">Sin inquilino</span>
+                                <span class="text-xs font-medium text-gray-400 italic">Sin inquilino</span>
                             {% endif %}
                         </td>
-                        <td>
-                            <div class="btn-group shadow-sm">
-                                <button class="btn btn-sm btn-outline-dark fw-bold" data-bs-toggle="modal" data-bs-target="#censoModal{{ apto.id }}" title="Ver Censo Habitantes">
-                                    <i class="bi bi-people"></i>
+                        <td class="text-center align-middle py-4 px-6">
+                            <div class="flex items-center justify-center gap-3">
+                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-brand-dark hover:text-white transition-all active:scale-90" data-bs-toggle="modal" data-bs-target="#censoModal{{ apto.id }}" title="Ver Censo">
+                                    <i class="bi bi-people-fill"></i>
                                 </button>
-                                <a href="{% url 'finanzas:historial_apartamento_admin' apto.id %}" class="btn btn-sm btn-info fw-bold text-white" title="Ver Historial Financiero">
-                                    <i class="bi bi-cash-stack"></i> Historial
+                                <a href="{% url 'finanzas:historial_apartamento_admin' apto.id %}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-brand-lime hover:text-brand-dark transition-all active:scale-90" title="Historial Financiero">
+                                    <i class="bi bi-cash-stack"></i>
                                 </a>
-                                <button class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#vincularModal{{ apto.id }}" title="Vincular Residente">
+                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-brand-primary text-white hover:bg-opacity-90 transition-all active:scale-90 shadow-lg shadow-brand-primary/20" data-bs-toggle="modal" data-bs-target="#vincularModal{{ apto.id }}" title="Vincular Nuevo">
                                     <i class="bi bi-person-plus-fill"></i>
                                 </button>
                             </div>
 
-                            <!-- Modal Ver Censo (Habitantes) -->
-                            <div class="modal fade" id="censoModal{{ apto.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content border-0 shadow-lg">
-                                        <div class="modal-header bg-dark text-white">
-                                            <h5 class="modal-title fw-bold">
-                                                <i class="bi bi-house-door me-2"></i>Habitantes: Apto {{ apto.numero }}
-                                            </h5>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            <!-- Modal Ver Censo -->
+                            <div class="modal fade" id="censoModal{{ apto.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content overflow-hidden border-none rounded-[2rem] shadow-2xl">
+                                        <div class="bg-brand-dark p-8 text-white relative">
+                                            <div class="relative z-10 text-left">
+                                                <h5 class="text-2xl font-black tracking-tight mb-1">Censo Habitantes</h5>
+                                                <p class="text-white/50 text-sm font-bold uppercase tracking-widest">Unidad {{ apto.numero }} · Torre {{ apto.torre }}</p>
+                                            </div>
+                                            <button type="button" class="absolute top-8 right-8 text-white/50 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
                                         </div>
-                                        <div class="modal-body p-0">
-                                            <ul class="list-group list-group-flush">
+                                        <div class="p-0 bg-white max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                            <div class="divide-y divide-gray-50">
                                                 {% for habitante in apto.habitantes.all %}
-                                                <li class="list-group-item py-3">
-                                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                                <div class="p-8 hover:bg-gray-50/50 transition-colors text-left">
+                                                    <div class="flex justify-between items-start mb-6">
                                                         <div>
-                                                            <div class="fw-bold fs-6">{{ habitante.nombre_completo }}</div>
-                                                            <div class="badge bg-light text-dark border-0 p-0 text-muted small">{{ habitante.parentesco }}</div>
+                                                            <h4 class="text-lg font-black text-brand-dark mb-1">{{ habitante.nombre_completo }}</h4>
+                                                            <span class="inline-flex px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.6rem] font-black uppercase tracking-widest rounded-lg">{{ habitante.parentesco }}</span>
                                                         </div>
-                                                        {% if habitante.es_menor_edad %}
-                                                            <span class="badge bg-warning text-dark small"><i class="bi bi-person-fill-exclamation"></i> Menor de Edad</span>
-                                                        {% else %}
-                                                            <span class="badge bg-info text-white small">Adulto</span>
-                                                        {% endif %}
+                                                        <span class="px-4 py-1.5 {% if habitante.es_menor_edad %}bg-brand-lime text-brand-dark{% else %}bg-gray-100 text-gray-500{% endif %} text-[0.65rem] font-black uppercase rounded-full shadow-sm">
+                                                            {% if habitante.es_menor_edad %}MENOR{% else %}ADULTO{% endif %}
+                                                        </span>
                                                     </div>
-                                                    <div class="row g-2 mt-1 small">
-                                                        <div class="col-6">
-                                                            <i class="bi bi-card-text text-muted me-1"></i> CC: {{ habitante.documento|default:"N/A" }}
+                                                    <div class="grid grid-cols-2 gap-6 bg-gray-50 p-4 rounded-3xl">
+                                                        <div class="space-y-1">
+                                                            <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Identificación</span>
+                                                            <span class="text-xs font-black text-brand-dark tracking-tight">{{ habitante.documento|default:"N/A" }}</span>
                                                         </div>
-                                                        <div class="col-6">
-                                                            <i class="bi bi-telephone text-muted me-1"></i> {{ habitante.telefono|default:"N/A" }}
-                                                        </div>
-                                                        <div class="col-12 mt-1">
-                                                            <i class="bi bi-calendar3 text-muted me-1"></i> Edad: {{ habitante.edad|default:"N/A" }} años
+                                                        <div class="space-y-1">
+                                                            <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Teléfono / Celular</span>
+                                                            <span class="text-xs font-black text-brand-dark tracking-tight">{{ habitante.telefono|default:"N/A" }}</span>
                                                         </div>
                                                     </div>
-                                                </li>
+                                                </div>
                                                 {% empty %}
-                                                <li class="list-group-item text-center py-4 text-muted fst-italic">
-                                                    No hay familiares registrados en el censo para este apartamento.
-                                                </li>
+                                                <div class="flex flex-col items-center justify-center py-24 px-10 text-center">
+                                                    <div class="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mb-6 text-gray-200 text-3xl">
+                                                        <i class="bi bi-people"></i>
+                                                    </div>
+                                                    <p class="text-gray-400 font-medium italic">No hay familiares registrados en el censo oficial para esta unidad.</p>
+                                                </div>
                                                 {% endfor %}
-                                            </ul>
+                                            </div>
                                         </div>
-                                        <div class="modal-footer bg-light py-2">
-                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                                        <div class="p-8 bg-gray-50 border-t border-gray-100 flex justify-end">
+                                            <button type="button" class="px-8 py-3 bg-white border border-gray-100 text-gray-500 text-xs font-black rounded-xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-bs-dismiss="modal">CERRAR DETALLE</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Modal Asignar por Cédula -->
-                            <div class="modal fade" id="vincularModal{{ apto.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content border-0 shadow-lg">
+                            <!-- Modal Vincular Residente -->
+                            <div class="modal fade" id="vincularModal{{ apto.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content overflow-hidden border-none rounded-[2rem] shadow-2xl">
                                         <form action="{% url 'usuarios:vincular_residente' apto.id %}" method="post">
                                             {% csrf_token %}
-                                            <div class="modal-header bg-info text-white">
-                                                <h5 class="modal-title fw-bold">
-                                                    <i class="bi bi-link-45deg me-1"></i>
-                                                    Asignar a Apto {{ apto.numero }} · Torre {{ apto.torre }}
-                                                </h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body p-4">
-                                                <div class="alert alert-light border small mb-3">
-                                                    <i class="bi bi-info-circle text-info me-1"></i>
-                                                    El sistema asignará al residente como <strong>Propietario</strong> o <strong>Inquilino</strong> automáticamente según su tipo registrado.
+                                            <div class="bg-brand-primary p-10 text-white relative overflow-hidden">
+                                                <div class="relative z-10 text-left">
+                                                    <h5 class="text-3xl font-black tracking-tight mb-1">Vincular Residente</h5>
+                                                    <p class="text-white/60 text-sm font-bold uppercase tracking-widest">Unidad {{ apto.numero }} · T{{ apto.torre }}</p>
                                                 </div>
-                                                <label class="form-label fw-bold">Número de Cédula del Residente</label>
-                                                <input type="text" name="cedula_buscar" class="form-control form-control-lg fw-bold text-primary"
-                                                       placeholder="Ej: 1234567890" required autofocus>
-                                                <div class="form-text mt-1">
-                                                    <i class="bi bi-search me-1"></i>Ingrese la cédula exacta. Si el residente no está registrado, créelo primero en el Directorio.
+                                                <button type="button" class="absolute top-10 right-10 text-white/50 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                                <div class="absolute -bottom-20 -left-20 w-60 h-60 bg-white/5 rounded-full blur-3xl"></div>
+                                            </div>
+                                            <div class="p-10 space-y-10 text-left">
+                                                <div class="p-6 bg-brand-primary/5 border border-brand-primary/10 rounded-3xl flex gap-5">
+                                                    <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary shrink-0">
+                                                        <i class="bi bi-info-circle-fill"></i>
+                                                    </div>
+                                                    <p class="text-xs text-brand-primary/70 font-bold leading-relaxed">
+                                                        Ingrese el número de cédula del residente. El sistema detectará automáticamente si es <strong>Propietario</strong> o <strong>Inquilino</strong> según el perfil de usuario registrado.
+                                                    </p>
+                                                </div>
+
+                                                <div class="space-y-4">
+                                                    <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest block">Número de Documento / Cédula</label>
+                                                    <div class="relative group">
+                                                        <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary z-20 transition-colors">
+                                                            <i class="bi bi-person-badge"></i>
+                                                        </div>
+                                                        <select name="cedula_buscar" class="select2-pro" required>
+                                                            <option value="">Seleccione o busque un residente por nombre o cédula...</option>
+                                                            {% for r in todos_residentes %}
+                                                            <option value="{{ r.documento }}">
+                                                                {{ r.nombre_completo }} (CC: {{ r.documento }}) - {{ r.rol }}
+                                                            </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="modal-footer bg-light">
-                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                                <button type="submit" class="btn btn-info fw-bold px-4 text-white">
-                                                    <i class="bi bi-save me-1"></i>Vincular
+                                            <div class="p-10 bg-gray-50 border-t border-gray-100 flex flex-col md:flex-row gap-4">
+                                                <button type="button" class="flex-1 py-4 bg-white border border-gray-100 text-gray-400 text-xs font-black rounded-2xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-bs-dismiss="modal">CANCELAR</button>
+                                                <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-xs font-bold font-black rounded-2xl hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 active:scale-95 transition-all tracking-widest">
+                                                    VINCULAR AHORA
                                                 </button>
                                             </div>
                                         </form>
@@ -159,12 +217,78 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No hay apartamentos censados en la base de datos.</td>
+                        <td colspan="5" class="py-24 text-center">
+                            <div class="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 text-gray-200 text-4xl">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <h5 class="text-lg font-black text-brand-dark mb-2">Inventario Vacío</h5>
+                            <p class="text-gray-400 font-medium italic">No se han encontrado apartamentos registrados en la base de datos.</p>
+                        </td>
                     </tr>
-                    {% endfor %}
+                {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // 1. Inicialización de Select2 (Corrección de Posicionamiento y Búsqueda Forzada)
+        $('.modal').on('shown.bs.modal', function() {
+            const $modal = $(this);
+            $modal.find('.select2-pro').select2({
+                placeholder: 'Busque por nombre o documento...',
+                width: '100%',
+                language: 'es',
+                minimumResultsForSearch: 0, // Fuerza que siempre salga el buscador
+                dropdownParent: $modal,
+                dropdownCssClass: 'select2-brand-dropdown',
+                selectionCssClass: 'select2-brand-selection'
+            });
+        });
+
+        // 2. DataTable con Try-Catch para no romper el resto del sitio
+        try {
+            if ($.fn.DataTable.isDataTable('.datatable-manual')) {
+                $('.datatable-manual').DataTable().destroy();
+            }
+            $('.datatable-manual').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+                order: [[0, 'asc']],
+                autoWidth: false,
+                responsive: true,
+                pageLength: 20,
+                dom: 'ft<"flex flex-col md:flex-row justify-between items-center gap-4 p-8 border-t border-gray-50"ip>'
+            });
+        } catch (e) {
+            console.error("Error cargando tabla:", e);
+        }
+    });
+</script>
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f8fafc;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 6px;
+    }
+    /* Fix para que el dropdown de Select2 no flote arriba */
+    /* Fix para que el buscador de Select2 no flote arriba */
+    .select2-container--open {
+        z-index: 9999 !important;
+    }
+</style>
+<script>
+    // Parche global para el foco de Select2 en modales
+    if ($.fn.modal && $.fn.modal.Constructor) {
+        $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+    }
+</script>
+{% endblock %}
 {% endblock %}

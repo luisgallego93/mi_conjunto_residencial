@@ -1,40 +1,92 @@
 {% extends 'base.html' %}
 
-{% block title %}Iniciar Sesión - Mi Conjunto Gestión{% endblock %}
-
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card shadow-sm" style="width: 100%; max-width: 400px; border-radius: 10px; border: none;">
-        <div class="card-body p-5">
-            <div class="text-center mb-4">
-                <h2 class="fw-bold text-primary">Mi Conjunto</h2>
-                <p class="text-muted">Gestión de Conjuntos Residenciales</p>
-            </div>
-            
-            <form method="post" action="{% url 'login' %}">
-                {% csrf_token %}
-                
-                <div class="mb-3">
-                    <label for="id_username" class="form-label">Usuario</label>
-                    <input type="text" name="username" class="form-control" id="id_username" placeholder="Tu usuario" required autofocus>
-                </div>
-                
-                <div class="mb-4">
-                    <label for="id_password" class="form-label">Contraseña</label>
-                    <input type="password" name="password" class="form-control" id="id_password" placeholder="Tu contraseña" required>
-                </div>
+<div class="min-h-[80vh] flex items-center justify-center px-4 py-20 relative overflow-hidden">
+    <!-- Decorative Background Elements -->
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div class="absolute top-1/4 -left-20 w-80 h-80 bg-brand-primary/5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-1/4 -right-20 w-80 h-80 bg-brand-lime/10 rounded-full blur-3xl"></div>
+    </div>
 
-                {% if form.errors %}
-                <div class="alert alert-danger p-2 mb-3 rounded" style="font-size: 0.9rem;">
-                    Usuario o contraseña incorrectos. Por favor, intente de nuevo.
+    <div class="w-full max-w-md relative z-10 transition-all duration-700 animate__animated animate__zoomIn">
+        <div class="card-pro overflow-hidden shadow-2xl border-none !p-0">
+            <!-- Header section with specific brand style -->
+            <div class="bg-brand-dark p-10 text-center relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/10 group-hover:scale-110 transition-transform">
+                        <i class="bi bi-shield-lock-fill text-brand-lime text-2xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-white tracking-tighter uppercase italic">Sauces</h2>
+                    <p class="text-white/40 text-[0.6rem] font-black uppercase tracking-[0.3em] mt-1">Gestión Residencial Inteligente</p>
                 </div>
-                {% endif %}
-                
-                <div class="d-grid mt-4">
-                    <button type="submit" class="btn btn-primary py-2 fw-semibold">Ingresar al Sistema</button>
+                <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+            </div>
+
+            <div class="p-10 bg-white">
+                <form method="post" action="{% url 'login' %}" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-6">
+                        <div class="space-y-3">
+                            <label for="id_username" class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Nombre de Usuario</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <input type="text" name="username" id="id_username" 
+                                       class="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none placeholder-gray-300" 
+                                       placeholder="Su número de documento" required autofocus>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <label for="id_password" class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Contraseña Institucional</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
+                                    <i class="bi bi-key-fill"></i>
+                                </div>
+                                <input type="password" name="password" id="id_password" 
+                                       class="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none placeholder-gray-300" 
+                                       placeholder="••••••••" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if form.errors %}
+                    <div class="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-4 animate__animated animate__shakeX">
+                        <i class="bi bi-exclamation-triangle-fill text-red-400 mt-1"></i>
+                        <p class="text-xs text-red-500 font-bold leading-relaxed">
+                            Credenciales incorrectas. Verifique sus datos y vuelva a intentarlo.
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-5 bg-brand-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-opacity-90 shadow-xl shadow-brand-primary/20 active:scale-95 transition-all">
+                            INICIAR SESIÓN <i class="bi bi-arrow-right-short ml-2 text-lg align-middle"></i>
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" name="next" value="{{ next|default:'' }}">
+                </form>
+
+                <div class="mt-10 text-center">
+                    <p class="text-[0.65rem] text-gray-400 font-bold uppercase tracking-widest">
+                        ¿Olvidó su contraseña? <br>
+                        <span class="text-brand-primary/60 mt-1 block">Contacte con la administración del conjunto</span>
+                    </p>
                 </div>
-                <input type="hidden" name="next" value="{{ next|default:'' }}">
-            </form>
+            </div>
+        </div>
+        
+        <!-- Footer info for login -->
+        <div class="mt-10 text-center">
+            <p class="text-[0.6rem] text-gray-300 font-black uppercase tracking-[0.2em] mb-2">&copy; 2026 Sauces de Ciudad del Valle</p>
+            <div class="flex items-center justify-center gap-4">
+                <span class="w-1 h-1 bg-gray-200 rounded-full"></span>
+                <span class="w-1 h-1 bg-gray-200 rounded-full"></span>
+                <span class="w-1 h-1 bg-gray-200 rounded-full"></span>
+            </div>
         </div>
     </div>
 </div>

@@ -1,120 +1,178 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Paquetería - Mi Conjunto Gestión{% endblock %}
+{% block title %}Correspondencia - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">
-        {% if es_residente %}Mi Correspondencia{% else %}Gestión de Correspondencia{% endif %}
-    </h2>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div class="text-brand-dark">
+        <h2 class="text-3xl font-black tracking-tight uppercase italic">
+            {% if es_residente %}MI CORRESPONDENCIA{% else %}GESTIÓN DE PAQUETERÍA{% endif %}
+        </h2>
+        <div class="flex items-center gap-3">
+            <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Control de Bodega</span>
+            <span class="text-gray-400 font-medium text-sm italic">Historial y entregas en portería</span>
+        </div>
+    </div>
     {% if not es_residente %}
-    <a href="{% url 'correspondencia:recibir_paquete' %}" class="btn btn-sm btn-info text-white shadow-sm fw-bold">
-        <i class="bi bi-box-seam"></i> Recibir Paquete
+    <a href="{% url 'correspondencia:recibir_paquete' %}" class="btn-pro-primary flex items-center gap-3">
+        <i class="bi bi-plus-lg"></i> REGISTRAR PAQUETE
     </a>
     {% endif %}
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow mb-4 border-start border-4 border-info">
-            <div class="card-header py-3 bg-white d-flex justify-content-between align-items-center">
-                <h6 class="m-0 fw-bold text-info">Inventario en Portería e Historial</h6>
-                <input type="text" id="filtroPaquetes" class="form-control form-control-sm w-25" placeholder="Buscar Apto o Destinatario...">
+<div class="card-pro overflow-hidden border-none shadow-premium max-w-6xl mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-10">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-brand-primary/5 rounded-2xl flex items-center justify-center text-brand-primary text-xl">
+                <i class="bi bi-boxes"></i>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle w-100" id="tablaPaquetes" cellspacing="0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Remitente / Guía</th>
-                                <th>Destino</th>
-                                <th>Recepción</th>
-                                <th>Entrega</th>
-                                <th>Estado</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for p in paquetes %}
-                            <tr class="{% if p.estado == 'Recibido' or p.estado == 'Notificado' %}table-primary{% endif %}">
-                                <td>
-                                    <div class="fw-bold">{{ p.transportadora }}</div>
-                                    <div class="small text-muted">Guía: {{ p.guia|default:"N/A" }}</div>
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-primary">{{ p.apartamento }}</div>
-                                    <div class="small text-muted">{{ p.destinatario }}</div>
-                                </td>
-                                <td>
-                                    <div class="fw-bold">{{ p.fecha_recepcion|date:"d M, H:i" }}</div>
-                                    <div class="small text-info fw-bold"><i class="bi bi-person-badge"></i> {{ p.recibido_por.username|default:"Sistema" }}</div>
-                                </td>
-                                <td>
-                                    {% if p.fecha_entrega %}
-                                        <div class="fw-bold">{{ p.fecha_entrega|date:"d M, H:i" }}</div>
-                                        <div class="small text-success fw-bold"><i class="bi bi-person-check-fill"></i> {{ p.entregado_por.username|default:"-" }}</div>
-                                        <div class="small text-muted"><i class="bi bi-box-arrow-right"></i> {{ p.quien_recoge }}</div>
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if p.estado == 'Entregado' %}
-                                        <span class="badge bg-success px-2 py-1"><i class="bi bi-check-all"></i> Entregado</span>
-                                    {% else %}
-                                        <span class="badge bg-primary px-2 py-1"><i class="bi bi-box"></i> En Portería</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if not es_residente and p.estado == 'Recibido' or not es_residente and p.estado == 'Notificado' %}
-                                        <button type="button" class="btn btn-sm btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#entregaModal{{ p.id }}">
-                                            <i class="bi bi-send-check"></i> Entregar
-                                        </button>
-                                        
-                                        <!-- Modal Entrega -->
-                                        <div class="modal fade" id="entregaModal{{ p.id }}" tabindex="-1" aria-hidden="true">
-                                          <div class="modal-dialog">
-                                            <div class="modal-content">
-                                              <form action="{% url 'correspondencia:entregar_paquete' p.id %}" method="post">
-                                                  {% csrf_token %}
-                                                  <div class="modal-header bg-success text-white">
-                                                    <h5 class="modal-title"><i class="bi bi-person-check"></i> Confirmar Entrega</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                  </div>
-                                                  <div class="modal-body">
-                                                    <p>Entregando paquete de <strong>{{ p.transportadora }}</strong> al apartamento <strong>{{ p.apartamento }}</strong>. Por favor, registre el nombre completo de quien lo recibe.</p>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">Nombre de Quien Recibe:</label>
-                                                        <input type="text" name="quien_recoge" class="form-control" placeholder="Ej. Juan Pérez (Propietario)" required>
-                                                    </div>
-                                                  </div>
-                                                  <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                    <button type="submit" class="btn btn-success">Registrar Entrega</button>
-                                                  </div>
-                                              </form>
-                                            </div>
-                                          </div>
-                                        </div>
-                                    {% elif p.estado == 'Recibido' or p.estado == 'Notificado' %}
-                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pendiente de entrega</span>
-                                    {% else %}
-                                        <span class="text-muted small">Finalizado</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">La estantería de portería está vacía en este momento.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div>
+                <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest leading-none">Inventario Activo</h3>
+                <p class="text-[0.6rem] text-gray-400 font-bold uppercase tracking-tighter mt-1 italic">Mostrando paquetes pendientes por retirar</p>
             </div>
         </div>
+        
+        <div class="relative w-full md:w-96 group">
+            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
+                <i class="bi bi-search"></i>
+            </div>
+            <input type="text" id="filtroPaquetes" 
+                   class="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm" 
+                   placeholder="BUSCAR POR APTO, GUÍA O REMITENTE...">
+        </div>
+    </div>
+
+    <div class="overflow-x-auto -mx-6">
+        <table class="w-full datatable-brand" id="tablaPaquetes">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Origen / Empresa</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Residente / Unidad</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Recepción</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Estado</th>
+                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Detalle</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for p in paquetes %}
+                <tr class="hover:bg-gray-50/30 transition-colors group">
+                    <td class="px-8 py-5 align-middle">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-black text-brand-dark italic">{{ p.transportadora }}</span>
+                            <span class="text-[0.6rem] font-bold text-gray-400 uppercase mt-1">Guía: {{ p.guia|default:"N/A" }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5 align-middle">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-black text-brand-primary">Apto {{ p.apartamento.numero }}</span>
+                            <span class="text-[0.65rem] text-gray-500 font-bold uppercase truncate max-w-[150px]">{{ p.destinatario }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5 align-middle">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-black text-gray-700 italic">{{ p.fecha_recepcion|date:"H:i" }}</span>
+                            <span class="text-[0.6rem] font-bold text-gray-400 uppercase mt-0.5">{{ p.fecha_recepcion|date:"d M, Y" }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5 align-middle">
+                        {% if p.estado == 'Entregado' %}
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 bg-brand-primary text-white text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic shadow-sm">ENTREGADO</span>
+                                <div class="text-[0.55rem] text-gray-400 font-black uppercase leading-none italic">
+                                    <span class="block">{{ p.fecha_entrega|date:"d/m" }}</span>
+                                    <span>por {{ p.quien_recoge|truncatechars:10 }}</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <span class="px-3 py-1 bg-brand-lime text-brand-dark text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic animate-pulse-subtle shadow-sm inline-flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-brand-dark shadow-sm"></span>EN BODEGA
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-5 align-middle text-right">
+                        {% if not es_residente and p.estado != 'Entregado' %}
+                            <button type="button" class="btn-pro-primary !py-2 !px-4 text-[0.6rem] shadow-none flex items-center gap-2 ml-auto" data-bs-toggle="modal" data-bs-target="#entregaModal{{ p.id }}">
+                                CONFIRMAR <i class="bi bi-arrow-right-short text-lg"></i>
+                            </button>
+                            
+                            <!-- Modal de Entrega -->
+                            <div class="modal fade" id="entregaModal{{ p.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+                                        <form action="{% url 'correspondencia:entregar_paquete' p.id %}" method="post">
+                                            {% csrf_token %}
+                                            <div class="bg-brand-dark p-8 md:p-10 text-white relative">
+                                                <div class="relative z-10 text-left">
+                                                    <h5 class="text-2xl font-black tracking-tight italic uppercase">Confirmar Salida</h5>
+                                                    <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-1">APARTAMENTO {{ p.apartamento }}</p>
+                                                </div>
+                                                <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
+                                            <div class="p-10 space-y-8 text-left">
+                                                <div class="p-5 bg-brand-primary/5 border border-brand-primary/10 rounded-2xl flex gap-5">
+                                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-brand-primary shadow-sm shrink-0">
+                                                        <i class="bi bi-shield-check"></i>
+                                                    </div>
+                                                    <p class="text-xs text-brand-dark/60 font-medium leading-relaxed italic">
+                                                        Verifique el documento de identidad del residente antes de registrar la salida definitiva del paquete.
+                                                    </p>
+                                                </div>
+
+                                                <div class="space-y-3">
+                                                    <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest border-l-4 border-brand-primary ml-1 pl-3">Nombre de quien retira</label>
+                                                    <input type="text" name="quien_recoge" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl text-lg font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white outline-none transition-all shadow-sm"
+                                                           placeholder="Ej. Juan Pérez" required>
+                                                </div>
+                                            </div>
+                                            <div class="px-10 py-8 bg-gray-50 flex gap-4">
+                                                <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-colors uppercase tracking-widest" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl shadow-brand-primary/20 hover:bg-opacity-95 active:scale-95 transition-all uppercase tracking-[0.2em] italic">
+                                                    REGISTRAR SALIDA <i class="bi bi-check2-all ml-2 text-brand-lime"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif p.estado == 'Entregado' %}
+                            <div class="flex items-center justify-end text-brand-primary/40 group-hover:text-brand-primary transition-colors">
+                                <i class="bi bi-patch-check-fill text-xl"></i>
+                            </div>
+                        {% else %}
+                            <div class="flex items-center justify-end text-brand-primary">
+                                <i class="bi bi-info-circle mr-2"></i>
+                                <span class="text-[0.6rem] font-black tracking-widest uppercase italic">Reclamar en Portería</span>
+                            </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="py-24 text-center">
+                        <div class="w-20 h-20 bg-gray-50 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 text-gray-200">
+                            <i class="bi bi-inbox text-4xl"></i>
+                        </div>
+                        <p class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] italic">No hay correspondencia pendiente en bodega</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+
+<style>
+    .animate-pulse-subtle {
+        animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-subtle {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(0.98); }
+    }
+</style>
 
 <script>
     document.getElementById('filtroPaquetes').addEventListener('keyup', function() {

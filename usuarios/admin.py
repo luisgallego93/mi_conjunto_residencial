@@ -9,10 +9,10 @@ class OcupanteInline(admin.TabularInline):
 class ApartamentoAdmin(admin.ModelAdmin):
     # Definimos qué columnas ver y cuál será el enlace principal
     list_display = ('id', 'mostrar_identificador', 'torre', 'propietario', 'inquilino', 'residente_principal')
-    
+
     # Hacemos que el enlace principal sea nuestro nuevo identificador formateado
     list_display_links = ('mostrar_identificador',)
-    
+
     list_filter = ('torre', 'piso')
     search_fields = ('numero', 'torre', 'propietario__nombre_completo', 'inquilino__nombre_completo')
     inlines = [OcupanteInline]
@@ -32,4 +32,4 @@ class PerfilUsuarioAdmin(admin.ModelAdmin):
 class OcupanteAdmin(admin.ModelAdmin):
     list_display = ('nombre_completo', 'apartamento', 'parentesco', 'es_menor_edad')
     list_filter = ('es_menor_edad', 'parentesco')
-    search_fields = ('nombre_completo', 'apartamento__numero')
+    search_fields = ('nombre_completo', 'apartamento__numero')

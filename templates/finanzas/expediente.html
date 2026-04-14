@@ -1,175 +1,295 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}Expediente Cartera - Mi Conjunto Gestión{% endblock %}
+{% comment %}Propósito: CRM de Cobranza (Expediente de Cartera).
+    Descripción: Permite a la administración llevar una bitácora detallada de gestiones de cobro, acuerdos de pago y seguimiento a morosos para un apartamento específico.{% endcomment %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Expediente de Cobranza: Apto {{ apto.numero }}</h2>
-    <a href="{% url 'finanzas:cartera' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
-        <i class="bi bi-arrow-left"></i> Volver a Cartera Master
-    </a>
-</div>
-
-<div class="row">
-    <!-- Panel Izquierdo: Resumen Financiero y Perfil -->
-    <div class="col-lg-4">
-        <!-- Tarjeta de Deuda -->
-        <div class="card shadow mb-4 border-start border-4 border-danger">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-danger">Estado Financiero</h6>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-3">
-                    <h3 class="text-danger fw-bold">$ {{ total_deuda|intcomma }}</h3>
-                    <div class="badge bg-danger">En Mora Activa</div>
-                </div>
-                <hr>
-                <div class="small fw-bold text-muted mb-2">Desglose Facturas Pendientes:</div>
-                <ul class="list-group list-group-flush small mb-3">
-                    {% for f in facturas %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <span>Admin {{ f.mes_referencia }}/{{ f.anio }}</span>
-                            <span class="text-danger">$ {{ f.valor_base|intcomma }}</span>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item text-muted px-0">Sin facturas corrientes</li>
-                    {% endfor %}
-                </ul>
-                <div class="small fw-bold text-muted mb-2">Desglose Multas:</div>
-                <ul class="list-group list-group-flush small">
-                    {% for m in multas %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <span>Sanción: {{ m.tipo }}</span>
-                            <span class="text-danger">$ {{ m.valor|intcomma }}</span>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item text-muted px-0">Sin multas cargadas</li>
-                    {% endfor %}
-                </ul>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">Expediente de Cobranza</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Apto {{ apto.numero }}</span>
+                <span class="text-gray-400 font-medium text-sm">Bitácora de gestión y acuerdos</span>
             </div>
         </div>
+        <a href="{% url 'finanzas:cartera' %}" class="inline-flex items-center px-6 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-black text-gray-500 hover:text-brand-primary transition-all shadow-sm">
+            <i class="bi bi-arrow-left mr-2"></i> VOLVER A CARTERA
+        </a>
+    </div>
 
-        <!-- Tarjeta de Residente -->
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-primary">Información del Contacto</h6>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- Panel Izquierdo: Resumen Financiero y Perfil (4 columns) -->
+        <div class="lg:col-span-4 space-y-8">
+            <!-- Tarjeta de Deuda -->
+            <div class="card-pro !p-0 overflow-hidden shadow-premium group">
+                <div class="h-2 bg-red-500 w-full"></div>
+                <div class="p-8">
+                    <div class="text-center mb-8">
+                        <div class="text-[0.65rem] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Deuda Total Consolidada</div>
+                        <h2 class="text-4xl font-black text-brand-dark mb-4">$ {{ total_deuda|intcomma }}</h2>
+                        <span class="inline-flex px-4 py-1.5 bg-red-500 text-white text-[0.65rem] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-red-500/20">MOROSIDAD ACTIVA</span>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="space-y-3">
+                            <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 block pb-2">Facturas Pendientes</span>
+                            <div class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                {% for f in facturas %}
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="text-xs font-bold text-gray-500 uppercase tracking-tight">Periodo {{ f.mes_referencia }}/{{ f.anio }}</span>
+                                    <span class="text-xs font-black text-brand-dark">$ {{ f.valor_base|intcomma }}</span>
+                                </div>
+                                {% empty %}
+                                <div class="text-xs text-gray-400 italic">Sin facturas corrientes pendientes</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 block pb-2">Sanciones / Multas</span>
+                            <div class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                {% for m in multas %}
+                                <div class="flex justify-between items-center py-2 group/item">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-gray-500 uppercase tracking-tight">{{ m.tipo }}</span>
+                                        <span class="text-[0.6rem] text-gray-400 italic">{{ m.fecha_suceso|date:"d/m/y" }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs font-black text-red-500">$ {{ m.valor|intcomma }}</span>
+                                        <button type="button" 
+                                                class="text-red-300 hover:text-red-500 transition-colors opacity-50 hover:opacity-100 z-10 cursor-pointer border-none bg-transparent btn-global-confirm"
+                                                data-url="{% url 'finanzas:eliminar_multa' m.id %}"
+                                                data-msg="¿Eliminar esta sanción permanentemente?">
+                                            <i class="bi bi-trash3 text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-xs text-gray-400 italic">Sin multas cargadas</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
+
+            <!-- Tarjeta de Residente -->
+            <div class="card-pro shadow-premium">
+                <div class="flex items-center gap-3 mb-8 pb-4 border-b border-gray-50">
+                    <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </div>
+                    <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Información del Deudor</h3>
+                </div>
+
                 {% if apto.residente_principal %}
-                    <p class="mb-1 fw-bold fs-5">{{ apto.residente_principal.nombre_completo }}</p>
-                    <p class="mb-1 text-muted"><i class="bi bi-person-badge"></i> {{ apto.residente_principal.tipo_ocupacion }}</p>
-                    <p class="mb-1"><i class="bi bi-telephone"></i> <a href="tel:{{ apto.residente_principal.telefono }}">{{ apto.residente_principal.telefono }}</a></p>
-                    <p class="mb-1"><i class="bi bi-envelope"></i> {{ apto.residente_principal.email_personal }}</p>
-                    <hr>
-                    <p class="mb-1 fw-bold text-danger"><i class="bi bi-heart-pulse"></i> Contacto Emergencia:</p>
-                    <p class="mb-0 small">{{ apto.residente_principal.emergencia_nombre }} ({{ apto.residente_principal.emergencia_telefono }})</p>
+                <div class="space-y-6">
+                    <div>
+                        <h5 class="text-xl font-black text-brand-dark tracking-tight">{{ apto.residente_principal.nombre_completo }}</h5>
+                        <span class="inline-block mt-2 px-3 py-1 bg-gray-100 text-gray-500 text-[0.65rem] font-black uppercase rounded-lg">{{ apto.residente_principal.tipo_ocupacion }}</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-2xl group/link hover:bg-brand-primary/5 transition-colors">
+                            <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest block mb-1">WhatsApp / Celular</span>
+                            <a href="https://wa.me/57{{ apto.residente_principal.telefono }}" target="_blank" class="flex items-center text-sm font-black text-brand-dark group-hover/link:text-brand-primary transition-colors">
+                                <i class="bi bi-whatsapp mr-2 text-green-500"></i> {{ apto.residente_principal.telefono }}
+                            </a>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-2xl">
+                            <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest block mb-1">Correo Electrónico</span>
+                            <span class="text-xs font-bold text-brand-dark truncate block">{{ apto.residente_principal.email_personal }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-red-50 rounded-3xl space-y-3">
+                        <div class="flex items-center gap-2 text-red-500 text-[0.7rem] font-black uppercase tracking-widest">
+                            <i class="bi bi-heart-pulse-fill"></i> Contacto de Emergencia
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-brand-dark">{{ apto.residente_principal.emergencia_nombre }}</p>
+                            <p class="text-xs font-bold text-gray-500 mt-0.5">{{ apto.residente_principal.emergencia_telefono }}</p>
+                        </div>
+                    </div>
+                </div>
                 {% else %}
-                    <div class="alert alert-secondary">No hay residente principal parametrizado en la Ficha del apartamento.</div>
+                <div class="py-6 text-center text-gray-400 font-medium">
+                    <i class="bi bi-info-circle text-2xl mb-3 block opacity-20"></i>
+                    <p class="text-sm">No hay un residente principal censado para este apartamento.</p>
+                </div>
                 {% endif %}
             </div>
         </div>
-    </div>
 
-    <!-- Panel Derecho: Gestiones y Anotaciones CRM -->
-    <div class="col-lg-8">
-        <!-- Formulario Inyección de Novedad -->
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-primary text-white">
-                <h6 class="m-0 fw-bold"><i class="bi bi-pencil-square"></i> Registrar Nueva Gestión de Cobro</h6>
-            </div>
-            <div class="card-body bg-light">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Canal / Medio de Gestión</label>
-                            <select name="tipo_gestion" class="form-select" required>
-                                <option value="Llamada Telefonica">Llamada Telefonica</option>
-                                <option value="WhatsApp / Mensaje">WhatsApp / Mensaje de Texto</option>
-                                <option value="Carta Notificatoria">Envió Carta en Físico/Email</option>
-                                <option value="Acuerdo de Pago">Acuerdo de Pago Presencial</option>
-                                <option value="Visita">Visita Domiciliaria al Apto</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Soporte Evidencia (Opcional)</label>
-                            <input type="file" name="evidencia" class="form-control" accept=".pdf,image/*">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Describa la Conversación / Resultados</label>
-                        <textarea class="form-control" name="observaciones" rows="2" placeholder="Ej: Se compromete a pagar mañana. / No contesta llamadas." required></textarea>
-                    </div>
-                    
-                    <div class="card border-warning mb-3">
-                        <div class="card-body py-2">
-                            <div class="form-check form-switch fw-bold text-dark">
-                              <input class="form-check-input" type="checkbox" id="acuerdoSwitch" name="acuerdo_pago">
-                              <label class="form-check-label" for="acuerdoSwitch">
-                                ¿Se cerró un Promesa / Acuerdo de Pago Fijo con el residente?
-                              </label>
+        <!-- Panel Derecho: Gestiones y Anotaciones CRM (8 columns) -->
+        <div class="lg:col-span-8 space-y-12">
+            <!-- Formulario de Nueva Gestión -->
+            <div class="card-pro !p-0 shadow-premium overflow-hidden">
+                <div class="bg-brand-primary p-6 md:px-10 flex items-center gap-4 text-white">
+                    <i class="bi bi-pencil-square text-xl"></i>
+                    <h3 class="font-black uppercase tracking-widest text-sm">Registrar Nueva Acción de Cobro</h3>
+                </div>
+                <div class="p-8 md:p-10 bg-gray-50/50">
+                    <form method="post" enctype="multipart/form-data" class="space-y-8">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-3">
+                                <label class="px-1 text-[0.75rem] font-black text-gray-400 uppercase tracking-widest">Canal de Gestión</label>
+                                <select name="tipo_gestion" class="w-full px-6 py-4 bg-white border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none appearance-none cursor-pointer transition-all shadow-sm" required>
+                                    <option value="Llamada Telefonica">📞 Llamada Telefónica</option>
+                                    <option value="WhatsApp / Mensaje">💬 WhatsApp / Mensaje de Texto</option>
+                                    <option value="Carta Notificatoria">✉ Comunicación (Físico/Email)</option>
+                                    <option value="Acuerdo de Pago">🤝 Acuerdo de Pago Presencial</option>
+                                    <option value="Visita">🏠 Visita Domiciliaria</option>
+                                    <option value="Otro">➕ Otro Medio</option>
+                                </select>
                             </div>
-                            <div class="mt-2" id="divFechaAcuerdo" style="display:none;">
-                                <label class="form-label small">Fecha Límite Ofertada:</label>
-                                <input type="date" name="fecha_compromiso" class="form-control form-control-sm w-50">
+                            <div class="space-y-3">
+                                <label class="px-1 text-[0.75rem] font-black text-gray-400 uppercase tracking-widest">Evidencia (PDF/IMG)</label>
+                                <input type="file" name="evidencia" class="w-full px-6 py-[0.85rem] bg-white border-none rounded-2xl text-xs font-black text-gray-400 file:bg-brand-primary file:text-white file:border-none file:px-4 file:py-1 file:rounded-lg file:mr-4 file:text-[0.6rem] file:font-black focus:ring-4 focus:ring-brand-primary/5 outline-none cursor-pointer shadow-sm" accept=".pdf,image/*">
                             </div>
                         </div>
-                    </div>
 
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-primary fw-bold px-4"><i class="bi bi-floppy"></i> Guardar Bitácora</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.75rem] font-black text-gray-400 uppercase tracking-widest">Bitácora de la Gestión</label>
+                            <textarea name="observaciones" rows="4" class="w-full p-6 bg-white border-none rounded-2xl text-sm font-medium text-gray-600 focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm placeholder-gray-300" placeholder="Detalle aquí lo conversado con el residente y acuerdos logrados..." required></textarea>
+                        </div>
+                        
+                        <div class="p-6 bg-brand-lime/10 border border-brand-lime/20 rounded-3xl space-y-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-brand-lime rounded-xl flex items-center justify-center text-brand-dark shadow-sm">
+                                        <i class="bi bi-hand-thumbs-up-fill"></i>
+                                    </div>
+                                    <span class="text-sm font-black text-brand-dark uppercase tracking-tight">Compromiso de pago formal</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="acuerdoSwitch" name="acuerdo_pago" class="sr-only peer">
+                                    <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-6 after:transition-all peer-checked:bg-brand-primary"></div>
+                                </label>
+                            </div>
+                            
+                            <div id="divFechaAcuerdo" class="hidden animate-fade-in">
+                                <div class="flex flex-col md:flex-row items-center gap-6 p-4 bg-white/50 rounded-2xl">
+                                    <div class="w-full md:w-auto">
+                                        <label class="text-[0.7rem] font-black text-gray-400 uppercase tracking-widest block mb-2">Fecha de Compromiso</label>
+                                        <input type="date" name="fecha_compromiso" class="px-6 py-3 bg-white border-none rounded-xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none shadow-sm">
+                                    </div>
+                                    <div class="flex-grow">
+                                        <p class="text-xs text-brand-dark/60 font-medium italic"><i class="bi bi-info-circle mr-1"></i> Esta fecha se monitoreará automáticamente para verificar el cumplimiento del deudor.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- Hilo o Timeline de Anotaciones -->
-        <h5 class="fw-bold text-gray-800 mb-3"><i class="bi bi-clock-history"></i> Historial de Cobranza</h5>
-        
-        <div class="timeline-container">
-            {% for an in historial %}
-            <div class="card shadow-sm mb-3 border-start border-4 border-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold mb-0 text-dark">
-                            <i class="bi bi-box-arrow-in-right"></i> {{ an.tipo_gestion }}
-                        </h6>
-                        <span class="badge bg-secondary">{{ an.fecha_registro|date:"d M, Y H:i" }}</span>
-                    </div>
-                    <p class="mb-2 text-muted fst-italic">"{{ an.observaciones }}"</p>
-                    
-                    {% if an.acuerdo_pago %}
-                    <div class="alert alert-warning py-1 mb-2 d-inline-block small border-warning">
-                        <strong><i class="bi bi-calendar-event"></i> Promesa Pago:</strong> {{ an.fecha_compromiso|date:"d M Y"|default:"Sin Fecha" }}
-                    </div>
-                    {% endif %}
-                    
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <small class="text-muted"><i class="bi bi-person"></i> Operador: {{ an.gestor.get_full_name|default:an.gestor.username }}</small>
-                        {% if an.evidencia %}
-                        <a href="{{ an.evidencia.url }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill"><i class="bi bi-paperclip"></i> Evidencia Adjunta</a>
-                        {% endif %}
-                    </div>
+                        <div class="flex justify-end pt-4">
+                            <button type="submit" class="w-full md:w-auto px-12 py-4 bg-brand-primary text-white font-black rounded-2xl hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 active:scale-95 transition-all text-sm uppercase tracking-widest">
+                                <i class="bi bi-save2-fill mr-2"></i>Guardar Gestión
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            {% empty %}
-                <div class="alert alert-light text-center border text-muted">
-                    <i class="bi bi-inbox fs-2"></i><br>
-                    Aún no se ha registrado ninguna labor de cobranza para este deudor.
+
+            <!-- Hilo de Gestión Histórico -->
+            <div>
+                <div class="flex items-center gap-4 mb-8">
+                    <h3 class="text-xl font-black text-brand-dark tracking-tight">Línea de Tiempo de Cobranza</h3>
+                    <div class="h-[2px] bg-gray-100 flex-grow"></div>
                 </div>
-            {% endfor %}
+                
+                <div class="relative pl-8 space-y-8 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-[2px] before:bg-gray-100">
+                    {% for an in historial %}
+                    <div class="relative group">
+                        <div class="absolute -left-10 top-2 w-[24px] h-[24px] bg-white border-4 border-brand-primary rounded-full z-10 shadow-sm group-hover:scale-125 transition-transform"></div>
+                        
+                        <div class="card-pro !p-6 shadow-sm hover:shadow-premium transition-all">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-3 py-1 bg-brand-dark text-white text-[0.6rem] font-black uppercase tracking-widest rounded-lg">
+                                        {{ an.tipo_gestion }}
+                                    </span>
+                                    <span class="text-[0.7rem] font-bold text-gray-300">
+                                        {{ an.fecha_registro|date:"d M, Y" }} · {{ an.fecha_registro|time:"H:i" }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[0.6rem] text-gray-500 font-black uppercase">
+                                       {{ an.gestor.username|slice:":1" }}
+                                    </div>
+                                    <span class="text-[0.7rem] font-black text-gray-400">{{ an.gestor.get_full_name|default:an.gestor.username }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-5 bg-gray-50/50 rounded-2xl mb-4 border border-gray-100">
+                                <p class="text-sm text-gray-600 font-medium leading-relaxed italic">"{{ an.observaciones }}"</p>
+                            </div>
+                            
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                {% if an.acuerdo_pago %}
+                                <div class="inline-flex items-center px-4 py-2 bg-brand-lime text-brand-dark text-[0.65rem] font-black rounded-lg shadow-sm border border-brand-lime/20 animate-pulse-subtle">
+                                    <i class="bi bi-calendar-check-fill mr-2 text-xs"></i>COMPROMISO: {{ an.fecha_compromiso|date:"d M, Y"|default:"Sin definir" }}
+                                </div>
+                                {% else %}
+                                <div></div>
+                                {% endif %}
+
+                                {% if an.evidencia %}
+                                <a href="{{ an.evidencia.url }}" target="_blank" class="px-4 py-2 bg-white border border-gray-100 text-brand-primary text-[0.65rem] font-black rounded-lg hover:border-brand-primary transition-colors flex items-center">
+                                    <i class="bi bi-paperclip mr-1 text-xs"></i> VER EVIDENCIA
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="py-20 text-center bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-100">
+                        <i class="bi bi-journal-x text-5xl text-gray-200 mb-4 block"></i>
+                        <p class="text-gray-400 font-medium italic">No se han registrado gestiones de cobranza aún.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.getElementById('acuerdoSwitch').addEventListener('change', function() {
-        document.getElementById('divFechaAcuerdo').style.display = this.checked ? 'block' : 'none';
-        const dateInput = document.querySelector('input[name="fecha_compromiso"]');
-        if(this.checked) dateInput.required = true;
-        else { dateInput.required = false; dateInput.value = ''; }
+    $(document).ready(function() {
+        $('#acuerdoSwitch').on('change', function() {
+            const div = $('#divFechaAcuerdo');
+            const dateInput = $('input[name="fecha_compromiso"]');
+            
+            if (this.checked) {
+                div.removeClass('hidden').addClass('block');
+                dateInput.attr('required', true);
+            } else {
+                div.removeClass('block').addClass('hidden');
+                dateInput.removeAttr('required').val('');
+            }
+        });
     });
 </script>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f8fafc;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 4px;
+    }
+    .animate-pulse-subtle {
+        animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-subtle {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+</style>
 {% endblock %}

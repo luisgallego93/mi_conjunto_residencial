@@ -1,224 +1,232 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}Dashboard - Mi Conjunto Gestión{% endblock %}
-
 {% block content %}
 {% if user.perfilusuario.rol != 'RESIDENTE' %}
-<!-- Welcome Row -->
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Centro de Monitoreo Gerencial</h1>
-    <a href="{% url 'dashboard:informes' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-            class="bi bi-download fa-sm text-white-50"></i> Generar Reporte PDF</a>
+<!-- Header Row -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+    <div>
+        <h1 class="text-4xl font-black text-brand-dark tracking-tighter">Panel de Comando</h1>
+        <p class="text-gray-500 font-medium">Monitoreo ejecutivo en tiempo real para Sauces</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="{% url 'dashboard:informes' %}" class="btn-pro-primary flex items-center gap-2">
+            <i class="bi bi-file-earmark-pdf"></i> Generar Reporte
+        </a>
+    </div>
 </div>
 
-<!-- Key Performance Indicators Row -->
-<div class="row">
+{% include 'dashboard/_filtros.html' %}
+
+<!-- Key Performance Indicators Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
     <!-- Dinero en Mora -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-4 border-danger shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-danger text-uppercase mb-1">
-                            Cartera en Mora Vencida</div>
-                        <div class="h5 mb-0 fw-bold text-gray-800">$ {{ gran_total_mora|intcomma }}</div>
-                        <small class="text-muted">{{ cuentas_pendientes_count }} facturas por cobrar</small>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-wallet fs-2 text-danger opacity-50"></i>
-                    </div>
-                </div>
+    <div class="card-pro border-l-[6px] border-red-500 group hover:scale-[1.02] transition-transform">
+        <div class="flex justify-between items-start mb-4">
+            <div class="p-3 bg-red-50 rounded-xl text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                <i class="bi bi-wallet-fill text-xl"></i>
             </div>
+            <span class="text-[0.65rem] font-black text-red-400 uppercase tracking-widest mt-1">Cartera Vencida</span>
         </div>
+        <h3 class="text-2xl font-black text-brand-dark mb-1">$ {{ gran_total_mora|intcomma }}</h3>
+        <p class="text-xs text-gray-500 font-medium">{{ cuentas_pendientes_count }} facturas pendientes</p>
     </div>
 
-    <!-- Censo / CRM -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-4 border-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-info text-uppercase mb-1">Censo Poblacional</div>
-                        <div class="row no-gutters align-items-center">
-                            <div class="col-auto">
-                                <div class="h5 mb-0 mr-3 fw-bold text-gray-800">{{ residentes_activos }} Hab.</div>
-                            </div>
-                        </div>
-                        <small class="text-muted">En {{ aptos_registrados }} apartamentos reales</small>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-people fs-2 text-info opacity-50"></i>
-                    </div>
-                </div>
+    <!-- Censo -->
+    <div class="card-pro border-l-[6px] border-blue-500 group hover:scale-[1.02] transition-transform">
+        <div class="flex justify-between items-start mb-4">
+            <div class="p-3 bg-blue-50 rounded-xl text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                <i class="bi bi-people-fill text-xl"></i>
             </div>
+            <span class="text-[0.65rem] font-black text-blue-400 uppercase tracking-widest mt-1">Censo Activo</span>
         </div>
+        <h3 class="text-2xl font-black text-brand-dark mb-1">{{ residentes_activos }} Hab.</h3>
+        <p class="text-xs text-gray-500 font-medium">En {{ aptos_registrados }} unidades reales</p>
     </div>
 
-    <!-- PQRS Abiertas -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-4 border-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                            PQRS Abiertas / En Proceso</div>
-                        <div class="h5 mb-0 fw-bold text-gray-800">{{ pqrs_abiertos }} Casos</div>
-                        <small class="text-muted">Evita problemas legales</small>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-exclamation-triangle fs-2 text-warning opacity-50"></i>
-                    </div>
-                </div>
+    <!-- PQRS -->
+    <div class="card-pro border-l-[6px] border-orange-500 group hover:scale-[1.02] transition-transform">
+        <div class="flex justify-between items-start mb-4">
+            <div class="p-3 bg-orange-50 rounded-xl text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                <i class="bi bi-chat-left-dots-fill text-xl"></i>
             </div>
+            <span class="text-[0.65rem] font-black text-orange-400 uppercase tracking-widest mt-1">Gestión PQRS</span>
         </div>
+        <h3 class="text-2xl font-black text-brand-dark mb-1">{{ pqrs_abiertos }} Casos</h3>
+        <p class="text-xs text-gray-500 font-medium">Tickets en proceso de atención</p>
     </div>
 
     <!-- Portería -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-4 border-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                            Novedades Portería</div>
-                        <div class="h5 mb-0 fw-bold text-gray-800">Operativa</div>
-                        <small class="text-muted">Visitas adentros: {{ visitantes_sitio }} | Paquetes: {{ paquetes_porteria }}</small>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-shield-lock fs-2 text-success opacity-50"></i>
-                    </div>
-                </div>
+    <div class="card-pro border-l-[6px] border-brand-primary group hover:scale-[1.02] transition-transform">
+        <div class="flex justify-between items-start mb-4">
+            <div class="p-3 bg-brand-primary-light rounded-xl text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-colors">
+                <i class="bi bi-shield-check text-xl"></i>
             </div>
+            <span class="text-[0.65rem] font-black text-brand-primary uppercase tracking-widest mt-1">Portería OK</span>
         </div>
+        <h3 class="text-2xl font-black text-brand-dark mb-1">Activo</h3>
+        <p class="text-xs text-gray-500 font-medium">{{ visitantes_sitio }} Visitas | {{ paquetes_porteria }} Paquetes</p>
     </div>
 </div>
 
-<!-- Detailed Metrics Row -->
-<div class="row">
-    <!-- Progress Bars -->
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 fw-bold text-primary">Estado de Avance Operativo (Vista de Pájaro)</h6>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Operational Progress -->
+    <div class="card-pro">
+        <h3 class="text-xl font-black text-brand-dark mb-8 flex items-center gap-2">
+            <i class="bi bi-bar-chart-line text-brand-primary"></i> Avance Operativo
+        </h3>
+        
+        <div class="space-y-8">
+            <div>
+                <div class="flex justify-between text-xs font-black uppercase tracking-widest mb-2">
+                    <span class="text-gray-500">PQRS: Eficiencia ({{ periodo_txt }})</span>
+                    <span class="text-brand-primary">{{ eficiencia_pqrs }}%</span>
+                </div>
+                <div class="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-brand-primary transition-all duration-1000" style="width: {{ eficiencia_pqrs }}%"></div>
+                </div>
             </div>
-            <div class="card-body">
-                <h4 class="small fw-bold">Eficiencia PQRS Cerradas <span class="float-end">{{ eficiencia_pqrs }}%</span></h4>
-                <div class="progress mb-4">
-                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ eficiencia_pqrs }}%" aria-valuenow="{{ eficiencia_pqrs }}" aria-valuemin="0" aria-valuemax="100"></div>
+
+            <div>
+                <div class="flex justify-between text-xs font-black uppercase tracking-widest mb-2">
+                    <span class="text-gray-500">Recaudo Administrativo ({{ periodo_txt }})</span>
+                    <span class="text-orange-500">{{ recaudo_porcentaje }}%</span>
                 </div>
-                
-                <h4 class="small fw-bold">Recaudo Logrado (vs Total) <span class="float-end">{{ recaudo_porcentaje }}%</span></h4>
-                <div class="progress mb-4">
-                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ recaudo_porcentaje }}%" aria-valuenow="{{ recaudo_porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-orange-500 transition-all duration-1000" style="width: {{ recaudo_porcentaje }}%"></div>
                 </div>
-                
-                <h4 class="small fw-bold">Ocupación / Inmuebles Habitados <span class="float-end">{{ ocupacion_porcentaje }}%</span></h4>
-                <div class="progress mb-4">
-                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ ocupacion_porcentaje }}%" aria-valuenow="{{ ocupacion_porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-xs font-black uppercase tracking-widest mb-2">
+                    <span class="text-gray-500">Ocupación del Conjunto</span>
+                    <span class="text-blue-500">{{ ocupacion_porcentaje }}%</span>
                 </div>
-                
-                <h4 class="small fw-bold">Eficiencia Aprobación Zonas Comunes <span class="float-end">{{ eficiencia_reservas }}%</span></h4>
-                <div class="progress">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ eficiencia_reservas }}%" aria-valuenow="{{ eficiencia_reservas }}" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 transition-all duration-1000" style="width: {{ ocupacion_porcentaje }}%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-xs font-black uppercase tracking-widest mb-2">
+                    <span class="text-gray-500">Reservas: Eficiencia ({{ periodo_txt }})</span>
+                    <span class="text-brand-lime">{{ eficiencia_reservas }}%</span>
+                </div>
+                <div class="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-brand-lime transition-all duration-1000" style="width: {{ eficiencia_reservas }}%"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Actions Panel -->
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 fw-bold text-primary">Accesos Directos (Menú Inteligente)</h6>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-4">
-                    <div class="alert shadow-sm border border-success rounded py-3" style="background-color: #f0fff4;">
-                        <i class="bi bi-cash-coin fs-1 text-success mb-2 d-block"></i>
-                        <h3 class="fw-bold text-success mb-1">$ {{ recaudo_reservas|intcomma }} COP</h3>
-                        <p class="mb-0 fw-bold text-uppercase small text-muted">Recaudo Extraordinario (Zonas Comunes)</p>
-                        <hr class="my-2 opacity-25">
-                        <div class="small text-muted">
-                            <i class="bi bi-info-circle"></i> Este valor se suma automáticamente al proceso de conciliación mensual.
-                        </div>
-                    </div>
+    <!-- Quick Actions -->
+    <div class="space-y-6">
+        <div class="card-pro bg-brand-primary text-white border-none shadow-brand relative overflow-hidden">
+            <div class="relative z-10 flex flex-col h-full justify-between">
+                <div>
+                    <span class="text-[0.65rem] font-black text-white/60 uppercase tracking-widest">Fondo Extraordinario</span>
+                    <h3 class="text-3xl font-black mt-2 mb-4">$ {{ recaudo_reservas|intcomma }}</h3>
                 </div>
+                <p class="text-sm font-medium text-white/70 leading-relaxed max-w-xs">
+                    Recaudo por reservas de zonas comunes. Este valor se concilia automáticamente con la caja mensual.
+                </p>
+                <div class="mt-8">
+                    <i class="bi bi-info-circle mr-2 opacity-50"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest opacity-80">Conciliación Activa</span>
+                </div>
+            </div>
+            <!-- Decorative Pattern -->
+            <div class="absolute top-0 right-0 w-48 h-48 bg-white opacity-[0.05] rounded-full blur-3xl -trandlate-y-1/2 translate-x-1/2"></div>
+        </div>
 
-                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-                    <a href="{% url 'finanzas:generar_facturacion' %}" class="btn btn-outline-danger">
-                        <i class="bi bi-file-earmark-spreadsheet"></i> Lanzar Deudas
-                    </a>
-                    <a href="{% url 'correspondencia:recibir_paquete' %}" class="btn btn-outline-info">
-                        <i class="bi bi-box"></i> Nuevo Paquete
-                    </a>
-                    <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn btn-outline-warning">
-                        <i class="bi bi-envelope"></i> Reportar Falla
-                    </a>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <a href="{% url 'finanzas:generar_facturacion' %}" class="card-pro bg-white p-6 hover:bg-red-50 hover:border-red-100 transition-all text-center group">
+                <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="bi bi-file-earmark-spreadsheet text-xl"></i>
                 </div>
-            </div>
+                <span class="text-xs font-black text-gray-500 uppercase tracking-widest">Facturación</span>
+            </a>
+            <a href="{% url 'correspondencia:recibir_paquete' %}" class="card-pro bg-white p-6 hover:bg-blue-50 hover:border-blue-100 transition-all text-center group">
+                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="bi bi-box-seam text-xl"></i>
+                </div>
+                <span class="text-xs font-black text-gray-500 uppercase tracking-widest">Nuevo Paquete</span>
+            </a>
+            <a href="{% url 'comunicacion:crear_pqrs' %}" class="card-pro bg-white p-6 hover:bg-orange-50 hover:border-orange-100 transition-all text-center group">
+                <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="bi bi-megaphone text-xl"></i>
+                </div>
+                <span class="text-xs font-black text-gray-500 uppercase tracking-widest">Reportar Falla</span>
+            </a>
         </div>
     </div>
 </div>
 
 {% else %}
 <!-- RESIDENT VIEW -->
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Panel del Residente</h1>
+<div class="mb-12">
+    <h1 class="text-4xl font-black text-brand-dark tracking-tighter">Hola, {{ user.perfilusuario.nombre_completo|truncatewords:1 }}</h1>
+    <p class="text-gray-500 font-medium">Bienvenido a tu panel de residencia en Sauces</p>
 </div>
 
-<div class="row">
-    <!-- User Info Card -->
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow border-0 text-center p-4 h-100">
-            <div class="rounded-circle bg-primary text-white mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
-                <i class="bi bi-person"></i>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Profile Mini Card -->
+    <div class="lg:col-span-1">
+        <div class="card-pro flex flex-col items-center text-center">
+            <div class="w-24 h-24 rounded-3xl bg-brand-primary/10 border-4 border-white shadow-xl flex items-center justify-center text-brand-primary mb-6">
+                <i class="bi bi-person-fill text-4xl"></i>
             </div>
-            <h4 class="fw-bold mb-1">{{ user.perfilusuario.nombre_completo }}</h4>
-            <p class="text-muted mb-3">{{ user.perfilusuario.tipo_ocupacion }}</p>
-            <div class="d-grid">
-                <a href="{% url 'usuarios:mi_perfil' %}" class="btn btn-primary btn-sm rounded-pill shadow-sm">
-                    <i class="bi bi-pencil-square me-1"></i> Actualizar Mis Datos
+            <h3 class="text-xl font-black text-brand-dark mb-1">{{ user.perfilusuario.nombre_completo }}</h3>
+            <span class="inline-block px-3 py-1 bg-brand-primary-light text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full mb-6">
+                {{ user.perfilusuario.tipo_ocupacion|default:"Residente" }}
+            </span>
+            <div class="w-full pt-6 border-t border-gray-100">
+                <a href="{% url 'usuarios:mi_perfil' %}" class="btn-pro-primary w-full block text-sm">
+                    Mi Perfil Digital
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Quick Access Metrics -->
-    <div class="col-lg-8">
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card border-0 shadow-sm h-100 bg-primary text-white p-4">
-                    <h6 class="text-uppercase small fw-bold opacity-75">Mi Estado de Cuenta</h6>
-                    <h2 class="fw-bold mb-0">Ver Movimientos</h2>
-                    <a href="{% url 'finanzas:mi_estado_cuenta' %}" class="mt-auto text-white text-decoration-none small">
-                        Consultar pagos y facturas <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
+    <!-- Resident Quick Actions -->
+    <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <a href="{% url 'finanzas:mi_estado_cuenta' %}" class="card-pro bg-gradient-to-br from-brand-blue to-blue-900 border-none group transform hover:-translate-y-2 transition-all">
+            <div class="p-4 bg-white/10 rounded-2xl w-fit text-white mb-6 group-hover:scale-110 transition-transform">
+                <i class="bi bi-wallet2 text-2xl"></i>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card border-0 shadow-sm h-100 bg-info text-white p-4">
-                    <h6 class="text-uppercase small fw-bold opacity-75">Control de Visitas</h6>
-                    <h2 class="fw-bold mb-0">Autorizar Ingreso</h2>
-                    <a href="{% url 'visitantes:registrar_visitante' %}" class="mt-auto text-white text-decoration-none small">
-                        Registrar un nuevo visitante <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
+            <h4 class="text-xl font-black text-white mb-2">Mi Estado de Cuenta</h4>
+            <p class="text-white/60 text-sm font-medium mb-6">Consulta tus pagos, facturas y saldos pendientes en tiempo real.</p>
+            <span class="text-brand-lime text-xs font-black uppercase tracking-widest">Consultar Movimientos <i class="bi bi-arrow-right ml-2"></i></span>
+        </a>
+
+        <a href="{% url 'visitantes:registrar_visitante' %}" class="card-pro bg-gradient-to-br from-brand-primary to-green-900 border-none group transform hover:-translate-y-2 transition-all">
+            <div class="p-4 bg-white/10 rounded-2xl w-fit text-white mb-6 group-hover:scale-110 transition-transform">
+                <i class="bi bi-shield-check text-2xl"></i>
             </div>
-            <div class="col-md-12 mb-4">
-                <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center justify-content-between" style="background-color: #f8f9fc;">
-                    <div>
-                        <h6 class="fw-bold text-primary mb-1">¿Necesitas ayuda o reportar algo?</h6>
-                        <p class="text-muted small mb-0">Crea una PQRS para que la administración te atienda.</p>
+            <h4 class="text-xl font-black text-white mb-2">Autorizar Visita</h4>
+            <p class="text-white/60 text-sm font-medium mb-6">Agiliza el ingreso de tus visitantes autorizándolos desde aquí.</p>
+            <span class="text-brand-lime text-xs font-black uppercase tracking-widest">Registrar Ahora <i class="bi bi-arrow-right ml-2"></i></span>
+        </a>
+
+        <div class="md:col-span-2 card-pro overflow-hidden relative group">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                <div class="flex items-center gap-6">
+                    <div class="p-4 bg-orange-50 text-orange-500 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-all">
+                        <i class="bi bi-megaphone-fill text-2xl"></i>
                     </div>
-                    <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn btn-warning fw-bold shadow-sm">
-                        <i class="bi bi-envelope-paper me-1"></i> Nueva PQRS
-                    </a>
+                    <div>
+                        <h4 class="text-lg font-black text-brand-dark">Peticiones y Reclamos</h4>
+                        <p class="text-sm text-gray-500 font-medium">¿Algo no va bien? Reporta daños o sugerencias aquí.</p>
+                    </div>
                 </div>
+                <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn-pro-lime text-sm whitespace-nowrap">
+                    Nueva PQRS
+                </a>
             </div>
+            <!-- Background Decoration -->
+            <div class="absolute -right-16 -bottom-16 w-48 h-48 bg-orange-50/50 rounded-full group-hover:scale-150 transition-transform"></div>
         </div>
     </div>
 </div>
 {% endif %}
-
 {% endblock %}

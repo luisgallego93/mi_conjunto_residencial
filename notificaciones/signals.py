@@ -51,11 +51,11 @@ def notificador_maestro(sender, instance, created, **kwargs):
     # 1. Correspondencia
     if Paquete and isinstance(instance, Paquete):
         Notificacion.objects.create(usuario=user, tipo='PAQUETE', mensaje=f"Paquete de {instance.transportadora} recibido en porteria.")
-    
+
     # 2. Finanzas
     elif (CuentaCobro and isinstance(instance, CuentaCobro)) or (Multa and isinstance(instance, Multa)):
         Notificacion.objects.create(usuario=user, tipo='PAGO', mensaje="Se ha generado un nuevo registro financiero.")
-    
+
     # 3. Reservas
     elif Reserva and isinstance(instance, Reserva):
         Notificacion.objects.create(usuario=user, tipo='RESERVA', mensaje=f"Reserva de {instance.espacio_comun} registrada.")

@@ -1,127 +1,197 @@
 {% extends 'base.html' %}
 {% load humanize %}
-
-{% block title %}Reportes Gerenciales y Mora - Mi Conjunto{% endblock %}
-
 {% block content %}
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Analítica de Cartera (Edades de Mora)</h1>
-    <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="window.print()">
-        <i class="bi bi-printer fa-sm text-white-50"></i> Imprimir Reporte
-    </button>
-</div>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Analítica de Cartera</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Reporte Gerencial</span>
+                <span class="text-gray-400 font-medium text-sm italic">Desglose por edades de mora y salud financiera</span>
+            </div>
+        </div>
+        <button class="px-6 py-3 bg-white border border-gray-200 text-brand-dark text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2" onclick="window.print()">
+            <i class="bi bi-printer"></i> Imprimir Reporte
+        </button>
+    </div>
 
-<!-- Tarjetas Resumen Salud Cartera -->
-<div class="row">
-    <div class="col-xl-6 col-md-6 mb-4">
-        <div class="card border-start border-4 border-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                            Apartamentos Totalmente Al Día</div>
-                        <div class="h3 mb-0 fw-bold text-gray-800">{{ aptos_al_dia }} <span class="fs-6 fw-normal text-muted">de {{ total_aptos }}</span></div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-emoji-smile fs-1 text-success opacity-50"></i>
-                    </div>
+    {% include 'dashboard/_filtros.html' %}
+
+    <!-- Tarjetas de Resumen General -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div class="card-pro !border-l-4 !border-l-brand-lime shadow-premium h-full">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <p class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest mb-1">Apartamentos Al Día</p>
+                    <h3 class="text-4xl font-black text-brand-dark tracking-tighter">
+                        {{ aptos_al_dia }} <span class="text-lg font-bold text-gray-300">/ {{ total_aptos }}</span>
+                    </h3>
                 </div>
+                <div class="w-16 h-16 bg-brand-lime/10 rounded-2xl flex items-center justify-center text-brand-lime text-3xl">
+                    <i class="bi bi-emoji-smile"></i>
+                </div>
+            </div>
+            <!-- Gráfico de Dona para Composición de Ingresos -->
+            <div class="relative h-64">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card-pro shadow-premium h-full flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-[0.65rem] font-black text-brand-primary uppercase tracking-widest mb-1">Tendencia de Recaudo</p>
+                    <span class="text-[0.6rem] text-gray-400 font-bold uppercase tracking-widest">Ingresos Mensuales Realizados</span>
+                </div>
+                <div class="w-12 h-12 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary text-xl">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+            </div>
+            <div class="relative h-64">
+                <canvas id="trendChart"></canvas>
             </div>
         </div>
     </div>
-    
-    <div class="col-xl-6 col-md-6 mb-4">
-        <div class="card border-start border-4 border-danger shadow h-100 py-2 bg-light">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs fw-bold text-danger text-uppercase mb-1">
-                            Residentes con Saldo Vencido (Morosos)</div>
-                        <div class="h3 mb-0 fw-bold text-danger">{{ deudores_count }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-exclamation-octagon fs-1 text-danger opacity-50"></i>
-                    </div>
+
+    <!-- Panel de Edades de Mora -->
+    <div class="card-pro shadow-premium !p-0 overflow-hidden border-none">
+        <div class="p-8 border-b border-gray-50 bg-white">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary text-xl">
+                    <i class="bi bi-bar-chart-steps"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Envejecimiento de Cartera</h3>
+                    <p class="text-[0.6rem] text-gray-400 font-bold uppercase tracking-widest">Cuentas por administración y cuotas extras</p>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Panel Desglose Edades de Mora -->
-<div class="card shadow mb-4">
-    <div class="card-header py-3 bg-dark text-white">
-        <h6 class="m-0 fw-bold"><i class="bi bi-bar-chart-steps"></i> Desglose por Edad de Vencimiento de Cartera (Cuentas Administración)</h6>
-    </div>
-    <div class="card-body p-4">
-        <div class="row text-center">
-            
-            <!-- Canasta 30 Dias -->
-            <div class="col-lg mb-4">
-                <div class="card border-0 shadow-sm h-100" style="background-color: #fef9c3;">
-                    <div class="card-body">
-                        <h6 class="fw-bold text-dark mb-1">Corriente (0 - 30 Días)</h6>
-                        <small class="text-muted d-block mb-3">Retrasos Cortos</small>
-                        <h4 class="fw-bold text-warning-emphasis mb-2">$ {{ mora_30.dinero|intcomma }}</h4>
-                        <div class="badge bg-warning text-dark">{{ mora_30.cantidad }} Facturas</div>
+        <div class="p-8 md:p-12">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 text-center">
+                
+                <!-- Canasta 30 Dias -->
+                <div class="p-8 rounded-[2rem] bg-amber-50 border border-amber-100/50 flex flex-col items-center justify-between group hover:shadow-xl transition-all">
+                    <div>
+                        <h6 class="text-[0.6rem] font-black text-amber-600 uppercase tracking-widest mb-2">Corriente</h6>
+                        <p class="text-[0.55rem] font-bold text-gray-400 uppercase tracking-tighter mb-4 italic">0 - 30 Días</p>
                     </div>
+                    <div class="text-xl font-black text-brand-dark mb-4">$ {{ mora_30.dinero|intcomma }}</div>
+                    <span class="px-3 py-1 bg-amber-200 text-amber-900 text-[0.6rem] font-black rounded-lg uppercase tracking-widest">{{ mora_30.cantidad }} Fact</span>
                 </div>
-            </div>
-            
-            <!-- Canasta 60 Dias -->
-            <div class="col-lg mb-4">
-                <div class="card border-0 shadow-sm h-100" style="background-color: #ffedd5;">
-                    <div class="card-body">
-                        <h6 class="fw-bold text-dark mb-1">Preventivo (31 - 60 Días)</h6>
-                        <small class="text-muted d-block mb-3">Requerimiento Verbal</small>
-                        <h4 class="fw-bold text-orange mb-2" style="color: #ea580c;">$ {{ mora_60.dinero|intcomma }}</h4>
-                        <div class="badge bg-warning text-dark" style="background-color: #f97316 !important; color: white !important;">{{ mora_60.cantidad }} Facturas</div>
+                
+                <!-- Canasta 60 Dias -->
+                <div class="p-8 rounded-[2rem] bg-orange-50 border border-orange-100/50 flex flex-col items-center justify-between group hover:shadow-xl transition-all">
+                    <div>
+                        <h6 class="text-[0.6rem] font-black text-orange-600 uppercase tracking-widest mb-2">Preventivo</h6>
+                        <p class="text-[0.55rem] font-bold text-gray-400 uppercase tracking-tighter mb-4 italic">31 - 60 Días</p>
                     </div>
+                    <div class="text-xl font-black text-brand-dark mb-4">$ {{ mora_60.dinero|intcomma }}</div>
+                    <span class="px-3 py-1 bg-orange-200 text-orange-900 text-[0.6rem] font-black rounded-lg uppercase tracking-widest">{{ mora_60.cantidad }} Fact</span>
                 </div>
-            </div>
 
-            <!-- Canasta 90 Dias -->
-            <div class="col-lg mb-4">
-                <div class="card border-0 shadow-sm h-100" style="background-color: #fee2e2;">
-                    <div class="card-body">
-                        <h6 class="fw-bold text-dark mb-1">Crítica (61 - 90 Días)</h6>
-                        <small class="text-muted d-block mb-3">Pre-Jurídico</small>
-                        <h4 class="fw-bold text-danger mb-2">$ {{ mora_90.dinero|intcomma }}</h4>
-                        <div class="badge bg-danger">{{ mora_90.cantidad }} Facturas</div>
+                <!-- Canasta 90 Dias -->
+                <div class="p-8 rounded-[2rem] bg-red-50 border border-red-100/50 flex flex-col items-center justify-between group hover:shadow-xl transition-all">
+                    <div>
+                        <h6 class="text-[0.6rem] font-black text-red-600 uppercase tracking-widest mb-2">Crítica</h6>
+                        <p class="text-[0.55rem] font-bold text-gray-400 uppercase tracking-tighter mb-4 italic">61 - 90 Días</p>
                     </div>
+                    <div class="text-xl font-black text-red-700 mb-4">$ {{ mora_90.dinero|intcomma }}</div>
+                    <span class="px-3 py-1 bg-red-200 text-red-900 text-[0.6rem] font-black rounded-lg uppercase tracking-widest">{{ mora_90.cantidad }} Fact</span>
                 </div>
-            </div>
-            
-            <!-- Canasta 120 Dias -->
-            <div class="col-lg mb-4">
-                <div class="card border-0 shadow-sm h-100 bg-danger text-white">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-1 text-white">Pérdida (91 - 120 Días)</h6>
-                        <small class="text-light opacity-75 d-block mb-3">Cobro Jurídico</small>
-                        <h4 class="fw-bold mb-2">$ {{ mora_120.dinero|intcomma }}</h4>
-                        <div class="badge bg-white text-danger">{{ mora_120.cantidad }} Facturas</div>
+                
+                <!-- Canasta 120 Dias -->
+                <div class="p-8 rounded-[2rem] bg-red-600 border border-red-700 flex flex-col items-center justify-between group hover:shadow-xl transition-all text-white">
+                    <div>
+                        <h6 class="text-[0.6rem] font-black text-red-100 uppercase tracking-widest mb-2">Pérdida</h6>
+                        <p class="text-[0.55rem] font-bold text-white/50 uppercase tracking-tighter mb-4 italic">91 - 120 Días</p>
                     </div>
+                    <div class="text-xl font-black mb-4">$ {{ mora_120.dinero|intcomma }}</div>
+                    <span class="px-3 py-1 bg-white text-red-600 text-[0.6rem] font-black rounded-lg uppercase tracking-widest">{{ mora_120.cantidad }} Fact</span>
                 </div>
-            </div>
-            
-            <!-- Mas de 120 Dias -->
-            <div class="col-lg mb-4">
-                <div class="card border-0 shadow-sm h-100 bg-dark text-white">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-1 text-white">Incobrable (> 120 Días)</h6>
-                        <small class="text-light opacity-75 d-block mb-3">Demanda Activa</small>
-                        <h4 class="fw-bold mb-2">$ {{ mas_120.dinero|intcomma }}</h4>
-                        <div class="badge bg-white text-dark">{{ mas_120.cantidad }} Facturas</div>
+                
+                <!-- Mas de 120 Dias -->
+                <div class="p-8 rounded-[2rem] bg-gray-900 border border-gray-800 flex flex-col items-center justify-between group hover:shadow-xl transition-all text-white">
+                    <div>
+                        <h6 class="text-[0.6rem] font-black text-brand-lime uppercase tracking-widest mb-2">Incobrable</h6>
+                        <p class="text-[0.55rem] font-bold text-white/40 uppercase tracking-tighter mb-4 italic">> 120 Días</p>
                     </div>
+                    <div class="text-xl font-black mb-4 text-brand-lime">$ {{ mas_120.dinero|intcomma }}</div>
+                    <span class="px-3 py-1 bg-white/10 text-white text-[0.6rem] font-black rounded-lg uppercase tracking-widest">{{ mas_120.cantidad }} Fact</span>
                 </div>
-            </div>
 
+            </div>
         </div>
         
-        <hr>
-        <div class="text-center mt-3">
-            <p class="text-muted small mb-0"><i class="bi bi-info-circle"></i> Los valores expresados arriba corresponden exclusivamente al capital base de las expensas comunes (Administración) organizados por antigüedad real según ciclo de facturación.</p>
+        <div class="p-8 bg-gray-50 text-center border-t border-gray-100">
+            <p class="text-[0.65rem] text-gray-400 font-bold uppercase tracking-widest italic leading-relaxed">
+                 <i class="bi bi-info-circle mr-2"></i> Los valores corresponden exclusivamente al capital base organizado por antigüedad real según ciclo de facturación institucional.
+            </p>
         </div>
     </div>
 </div>
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- 1. Gráfico de Tendencia (Line) ---
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+        new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Recaudo Total ($)',
+                    data: {{ chart_data|safe }},
+                    borderColor: '#148C44',
+                    backgroundColor: 'rgba(20, 140, 68, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#148C44'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { font: { size: 10, weight: 'bold' } }
+                    },
+                    x: { ticks: { font: { size: 10, weight: 'bold' } } }
+                }
+            }
+        });
+
+        // --- 2. Gráfico de Categorías (Doughnut) ---
+        const ctxCat = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: {{ cat_labels|safe }},
+                datasets: [{
+                    data: {{ cat_values|safe }},
+                    backgroundColor: ['#148C44', '#DC3545', '#9DC33D', '#2E3192'],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { font: { size: 10, weight: 'bold' }, padding: 15 }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

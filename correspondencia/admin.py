@@ -7,13 +7,13 @@ class PaqueteAdmin(admin.ModelAdmin):
     list_display = ('apartamento', 'transportadora', 'destinatario', 'estado', 'fecha_recepcion')
     list_filter = ('estado', 'transportadora')
     search_fields = ('apartamento__numero', 'destinatario', 'guia')
-    
+
     actions = ['marcar_como_entregado']
 
     @admin.action(description="Marcar como ENTREGADO al residente")
     def marcar_como_entregado(self, request, queryset):
         queryset.update(
-            estado='Entregado', 
+            estado='Entregado',
             fecha_entrega=timezone.now(),
             observaciones="Retirado en portería"
         )

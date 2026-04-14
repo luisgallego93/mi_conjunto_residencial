@@ -1,99 +1,204 @@
 {% extends 'base.html' %}
 
-{% block title %}Nueva PQR - Mi Conjunto Gestión{% endblock %}
+{% block title %}Radicar Comunicación - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Radicar Nueva Comunicación</h2>
-    <a href="{% url 'comunicacion:lista_pqrs' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
-        <i class="bi bi-arrow-left"></i> Volver al Listado
-    </a>
-</div>
-
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-primary">Formulario de Registro (PQRS)</h6>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Radicar Comunicación</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full shadow-inner">PQRSD Digital</span>
+                <span class="text-gray-400 font-medium text-sm italic">Registro oficial de requerimientos institucionales</span>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+        </div>
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3 text-[0.6rem] font-black uppercase tracking-[0.15em]">
+                <li>
+                    <a href="{% url 'comunicacion:lista_pqrs' %}" class="text-gray-400 hover:text-brand-primary transition-colors">BUZÓN</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="bi bi-chevron-right text-[0.5rem] text-gray-300 mx-1"></i>
+                        <span class="text-brand-primary">RADICACIÓN</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- Formulario Principal -->
+        <div class="lg:col-span-8">
+            <div class="card-pro shadow-premium !p-0 overflow-hidden border-none">
+                <div class="p-8 md:p-10 bg-white border-b border-gray-50 flex items-center gap-5">
+                    <div class="w-14 h-14 bg-brand-primary rounded-[1.25rem] flex items-center justify-center text-white text-2xl shadow-lg shadow-brand-primary/20">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-brand-dark tracking-tight uppercase italic">Ficha de Registro</h3>
+                        <p class="text-[0.65rem] text-gray-400 font-bold uppercase tracking-widest italic mt-1">Diligencie los campos para trazabilidad de ley</p>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="p-8 md:p-12 space-y-10">
                     {% csrf_token %}
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Residente Solicitante</label>
-                            {{ form.solicitante }}
-                            {% if form.solicitante.errors %}<div class="text-danger small">{{ form.solicitante.errors }}</div>{% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div class="space-y-4">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest italic">Radicador Principal</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
+                                    <i class="bi bi-person-badge"></i>
+                                </div>
+                                {{ form.solicitante }}
+                            </div>
+                            {% if form.solicitante.errors %}<p class="text-[0.6rem] text-red-500 font-bold uppercase mt-1 px-1">{{ form.solicitante.errors.0 }}</p>{% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Tipo de Solicitud</label>
-                            {{ form.tipo }}
-                            {% if form.tipo.errors %}<div class="text-danger small">{{ form.tipo.errors }}</div>{% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="form-label fw-bold">Asunto / Título</label>
-                            {{ form.titulo }}
-                            {% if form.titulo.errors %}<div class="text-danger small">{{ form.titulo.errors }}</div>{% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="form-label fw-bold">Descripción Detallada</label>
-                            {{ form.descripcion }}
-                            {% if form.descripcion.errors %}<div class="text-danger small">{{ form.descripcion.errors }}</div>{% endif %}
+                        <div class="space-y-4">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest italic">Tipo de Trámite</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
+                                    <i class="bi bi-filter-circle"></i>
+                                </div>
+                                {{ form.tipo }}
+                            </div>
+                            {% if form.tipo.errors %}<p class="text-[0.6rem] text-red-500 font-bold uppercase mt-1 px-1">{{ form.tipo.errors.0 }}</p>{% endif %}
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Prioridad</label>
+                    <div class="space-y-4">
+                        <label class="px-1 text-[0.7rem] font-black text-brand-primary uppercase tracking-widest italic">Título del Requerimiento</label>
+                        {{ form.titulo }}
+                        {% if form.titulo.errors %}<p class="text-[0.6rem] text-red-500 font-bold uppercase mt-1 px-1">{{ form.titulo.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="space-y-4">
+                        <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest italic">Descripción y Sustento Legal</label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.errors %}<p class="text-[0.6rem] text-red-500 font-bold uppercase mt-1 px-1">{{ form.descripcion.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest italic">Prioridad</label>
                             {{ form.prioridad }}
-                            {% if form.prioridad.errors %}<div class="text-danger small">{{ form.prioridad.errors }}</div>{% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Zona Afectada</label>
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest italic">Área / Zona</label>
                             {{ form.zona_afectada }}
-                            {% if form.zona_afectada.errors %}<div class="text-danger small">{{ form.zona_afectada.errors }}</div>{% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Ubicación Específica</label>
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest italic">Ubicación</label>
                             {{ form.ubicacion_especifica }}
-                            {% if form.ubicacion_especifica.errors %}<div class="text-danger small">{{ form.ubicacion_especifica.errors }}</div>{% endif %}
                         </div>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <label class="form-label fw-bold">Evidencia (Foto) - Opcional</label>
-                            {{ form.imagen_evidencia }}
-                            {% if form.imagen_evidencia.errors %}<div class="text-danger small">{{ form.imagen_evidencia.errors }}</div>{% endif %}
+                    <div class="space-y-4 px-2">
+                        <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest italic">Evidencia y Soportes (Opcional)</label>
+                        <div class="p-10 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-100 transition-all hover:bg-white hover:border-brand-primary/30 group relative overflow-hidden text-center">
+                            <div class="relative z-10 flex flex-col items-center">
+                                <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-gray-200 mb-6 shadow-sm group-hover:text-brand-primary transition-colors duration-500">
+                                    <i class="bi bi-cloud-arrow-up text-3xl"></i>
+                                </div>
+                                <div class="w-full max-w-[320px] mx-auto opacity-70 hover:opacity-100 transition-opacity">
+                                    {{ form.imagen_evidencia }}
+                                </div>
+                                <p class="text-[0.6rem] text-gray-300 font-black uppercase tracking-[0.2em] mt-6 leading-none">Formatos admitidos: JPG, PNG, PDF</p>
+                            </div>
                         </div>
                     </div>
 
-                    <hr>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar y Radicar</button>
+                    <div class="pt-10 border-t border-gray-50 flex flex-col md:flex-row justify-end gap-5">
+                        <a href="{% url 'comunicacion:lista_pqrs' %}" class="px-10 py-5 bg-white border border-gray-100 text-gray-400 text-[0.65rem] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all text-center">
+                            Descartar
+                        </a>
+                        <button type="submit" class="px-14 py-5 bg-brand-primary text-white text-[0.65rem] font-black uppercase tracking-[0.25em] rounded-2xl hover:bg-opacity-95 shadow-2xl shadow-brand-primary/20 active:scale-95 transition-all outline-none italic">
+                            RADICAR SOLICITUD <i class="bi bi-send-check ml-3 text-brand-lime"></i>
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-    
-    <div class="col-lg-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-info"><i class="bi bi-info-circle"></i> Instrucciones</h6>
+
+        <!-- Sidebar Informativo -->
+        <div class="lg:col-span-4 space-y-8">
+            <div class="card-pro !bg-brand-dark text-white border-none shadow-premium overflow-hidden relative">
+                <div class="relative z-10">
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="w-10 h-10 bg-brand-lime rounded-xl flex items-center justify-center text-brand-dark text-lg shadow-lg shadow-brand-lime/10">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h4 class="text-sm font-black uppercase tracking-[0.15em] italic">Seguridad Jurídica</h4>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <div class="flex gap-5">
+                            <div class="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-[0.6rem] font-black text-brand-lime shrink-0 border border-white/10 italic">01</div>
+                            <div>
+                                <h5 class="text-[0.6rem] font-black uppercase tracking-widest mb-2 text-white/90 leading-none">Radicado Único</h5>
+                                <p class="text-[0.7rem] text-white/40 font-medium leading-relaxed italic">Su comunicación genera una estampa cronológica inalterable en el sistema de gestión.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-5">
+                            <div class="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-[0.6rem] font-black text-brand-lime shrink-0 border border-white/10 italic">02</div>
+                            <div>
+                                <h5 class="text-[0.6rem] font-black uppercase tracking-widest mb-2 text-white/90 leading-none">Trazabilidad</h5>
+                                <p class="text-[0.7rem] text-white/40 font-medium leading-relaxed italic">Administración recibirá notificación inmediata para diagnóstico y asignación de términos.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-5">
+                            <div class="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-[0.6rem] font-black text-brand-lime shrink-0 border border-white/10 italic">03</div>
+                            <div>
+                                <h5 class="text-[0.6rem] font-black uppercase tracking-widest mb-2 text-white/90 leading-none">Soportes Reales</h5>
+                                <p class="text-[0.7rem] text-white/40 font-medium leading-relaxed italic">Incluir fotografías precisas reduce los tiempos de respuesta técnica hasta en un 60%.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Decoración -->
+                <div class="absolute -bottom-20 -right-20 w-60 h-60 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none"></div>
             </div>
-            <div class="card-body">
-                <p class="small text-muted">Complete los campos de forma clara. Al guardar, el ticket quedará en estado <strong>Abierto</strong> y la fecha de creación se asignará automáticamente.</p>
-                <p class="small text-muted">La prioridad determinará el tiempo límite sugerido por ley para responder al residente.</p>
+
+            <div class="p-10 bg-brand-primary/5 rounded-[2.5rem] border border-brand-primary/10">
+                <p class="text-[0.65rem] text-brand-primary font-black uppercase tracking-[0.2em] text-center italic leading-relaxed">
+                    "Transparencia digital para una mejor calidad de vida en comunidad."
+                </p>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Inyección de estilos de formulario Django con Premium Standard */
+    select, input[type="text"], textarea {
+        width: 100%;
+        padding: 1.25rem 1.75rem !important;
+        background-color: #f9fafb !important;
+        border: none !important;
+        border-radius: 1.25rem !important;
+        font-size: 0.825rem !important;
+        font-weight: 800 !important;
+        color: #1e293b !important;
+        outline: none !important;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+    }
+    textarea { height: 180px; resize: none; }
+    select:focus, input:focus, textarea:focus {
+        background-color: white !important;
+        box-shadow: 0 10px 40px -10px rgba(20, 140, 68, 0.1) !important;
+    }
+    select {
+        cursor: pointer;
+        padding-left: 3.5rem !important;
+    }
+    input[type="file"] {
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--brand-primary);
+        cursor: pointer;
+    }
+</style>
 {% endblock %}

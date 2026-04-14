@@ -5,7 +5,7 @@ class VisitanteForm(forms.ModelForm):
     class Meta:
         model = Visitante
         fields = ['nombre', 'documento', 'tipo_visitante', 'motivo_visita', 'apartamento_destino', 'autorizado_por_nombre', 'tipo_vehiculo', 'placa', 'foto_visitante']
-        
+
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del visitante o domiciliario'}),
             'documento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cédula o NIT'}),

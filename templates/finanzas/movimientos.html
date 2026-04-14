@@ -1,180 +1,258 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}Mis Movimientos - Mi Conjunto Gestión{% endblock %}
+{% block title %}Estado de Cuenta - Sauces de Ciudad del Valle{% endblock %}
+
+{% block extra_css %}
+<style>
+    .select2-brand-selection {
+        height: 60px !important;
+        border: none !important;
+        border-radius: 1.5rem !important;
+        background-color: #f8fafc !important;
+        display: flex !important;
+        align-items: center !important;
+        padding-left: 3.5rem !important;
+        font-weight: 800 !important;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #1D1D1B !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        display: none !important;
+    }
+    .select2-brand-dropdown {
+        border-radius: 1.5rem !important;
+        border: none !important;
+        box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25) !important;
+        overflow: hidden !important;
+        margin-top: 10px !important;
+    }
+    .animate-pulse-subtle {
+        animation: pulse-subtle 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-subtle {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(0.99); }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- Cabecera de Estado -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card shadow border-0 overflow-hidden" style="border-radius: 1rem;">
-            {% if vista_admin %}
-            <div class="card-header bg-dark d-flex justify-content-between align-items-center py-2">
-                <a href="{% url 'finanzas:cartera' %}" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i> Volver a Cartera</a>
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-info dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-search"></i> Cambiar Apartamento
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg" style="width: 300px;">
-                        <form method="get" action="{% url 'finanzas:mi_estado_cuenta' %}">
-                            <label class="form-label small fw-bold">Buscar Inmueble:</label>
-                            <select name="apartamento_id" class="form-select form-select-sm mb-2" onchange="this.form.submit()">
-                                <option value="">-- Seleccionar --</option>
-                                {% for a in apartamentos_lista %}
-                                    <option value="{{ a.id }}" {% if apartamento and a.id == apartamento.id %}selected{% endif %}>
-                                        Torre {{ a.torre }} - Apto {{ a.numero }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </form>
-                    </div>
-                </div>
+<div class="mb-10">
+    {% if vista_admin %}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Extracto de Cuenta</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Auditoría Financiera</span>
             </div>
-            {% endif %}
+        </div>
+        <div class="flex flex-col md:flex-row items-center gap-6">
+            <!-- Compact Switcher for Admin -->
+            <form method="get" class="relative group min-w-[300px]">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary z-20">
+                    <i class="bi bi-search text-xs"></i>
+                </div>
+                <select name="apartamento_id" class="select2-compact" onchange="this.form.submit()">
+                    <option value="">Cambiar Unidad...</option>
+                    {% for a in apartamentos_lista %}
+                    <option value="{{ a.id }}" {% if a.id == apartamento.id %}selected{% endif %}>
+                        Apto {{ a.numero }} - Torre {{ a.torre }} ({{ a.residente_principal.nombre_completo|truncatechars:15|default:"Sin censo" }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
 
-            {% if seleccion_necesaria %}
-            <!-- Vista inicial para Administrador: Pantalla de Selección -->
-            <div class="card-body p-5 text-center bg-light">
-                <div class="mb-4">
-                    <i class="bi bi-search text-info opacity-50" style="font-size: 5rem;"></i>
-                </div>
-                <h3 class="fw-bold text-dark">Auditoría de Movimientos</h3>
-                <p class="text-muted mb-4">Selecciona un apartamento del listado para visualizar su historial financiero tal cual lo ve el residente.</p>
-                <div class="row justify-content-center">
-                    <div class="col-md-6">
-                        <form method="get" class="card p-4 shadow-sm">
-                            <label class="form-label fw-bold text-start">Selecciona Apartamento:</label>
-                            <select name="apartamento_id" class="form-select form-select-lg mb-4" required>
-                                <option value="">Elija una unidad...</option>
-                                {% for a in apartamentos_lista %}
-                                <option value="{{ a.id }}">Torre {{ a.torre }} - Apto {{ a.numero }} ({{ a.residente_principal.nombre_completo|default:"Sin asignar" }})</option>
-                                {% endfor %}
-                            </select>
-                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
-                                <i class="bi bi-eye"></i> Ver Estados de Cuenta
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="card-body p-0">
-                <div class="row g-0">
-                    <div class="col-md-8 p-4 bg-white">
-                        <h2 class="h4 fw-bold mb-1">Estado de Cuenta: {{ apartamento }}</h2>
-                        <p class="text-muted small mb-3">Consolidado histórico de obligaciones y pagos realizados.</p>
-                        <div class="d-flex gap-4">
-                            <div>
-                                <span class="text-muted small d-block">Residente Principal / Inquilino</span>
-                                <span class="fw-bold">
-                                    {% if apartamento.residente_principal %}
-                                        {{ apartamento.residente_principal.nombre_completo }}
-                                    {% elif apartamento.inquilino %}
-                                        {{ apartamento.inquilino.nombre_completo }}
-                                    {% elif apartamento.propietario %}
-                                        {{ apartamento.propietario.nombre_completo }}
-                                    {% else %}
-                                        Sin asignar
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div>
-                                <span class="text-muted small d-block">Referencia Única de Pago</span>
-                                <span class="badge bg-light text-dark border">{{ apartamento.codigo_pago|default:"No asignado" }}</span>
-                            </div>
-                            {% if apartamento.saldo_a_favor > 0 %}
-                            <div>
-                                <span class="text-info small d-block fw-bold"><i class="bi bi-star-fill"></i> Saldo a Favor</span>
-                                <span class="fw-bold text-info fs-5">${{ apartamento.saldo_a_favor|intcomma }}</span>
-                            </div>
-                            {% endif %}
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-black uppercase tracking-widest">
+                    <li>
+                        <a href="{% url 'finanzas:cartera' %}" class="text-gray-400 hover:text-brand-primary transition-colors">CARTERA</a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="bi bi-chevron-right text-[0.6rem] text-gray-300 mx-2"></i>
+                            <span class="text-brand-primary">MOVIMIENTOS</span>
                         </div>
-                    </div>
-                    <div class="col-md-4 p-4 d-flex align-items-center justify-content-center {% if al_dia %}bg-success{% else %}bg-danger{% endif %} text-white">
-                        <div class="text-center">
-                            {% if al_dia %}
-                                <i class="bi bi-check-circle-fill display-4 mb-2"></i>
-                                <h3 class="fw-bold mb-0">¡Al Día!</h3>
-                                <p class="small mb-0 opacity-75">No registras deudas pendientes</p>
-                            {% else %}
-                                <i class="bi bi-exclamation-triangle-fill display-4 mb-2"></i>
-                                <h3 class="fw-bold mb-0">Pendiente</h3>
-                                <p class="small mb-0 opacity-75">Revisa tus facturas abiertas</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
+                    </li>
+                </ol>
+            </nav>
         </div>
     </div>
-</div>
+    {% endif %}
 
-{% if not seleccion_necesaria %}
-<!-- Tabs de Navegación -->
-<div class="card shadow border-0 mb-4" style="border-radius: 1rem;">
-    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-        <ul class="nav nav-pills card-header-pills" id="pills-tab" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active fw-bold" id="pills-admin-tab" data-bs-toggle="pill" data-bs-target="#pills-admin" type="button"><i class="bi bi-building me-1"></i> Administración</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold" id="pills-multas-tab" data-bs-toggle="pill" data-bs-target="#pills-multas" type="button"><i class="bi bi-file-earmark-text me-1"></i> Multas</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold" id="pills-reservas-tab" data-bs-toggle="pill" data-bs-target="#pills-reservas" type="button"><i class="bi bi-calendar-event me-1"></i> Reservas</button>
-            </li>
-        </ul>
+    {% if seleccion_necesaria %}
+    <!-- Vista de Selección Premium -->
+    <div class="max-w-3xl mx-auto py-12 md:py-20 text-center">
+        <div class="w-24 h-24 bg-brand-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-lg shadow-brand-primary/5 group">
+            <i class="bi bi-person-workspace text-4xl text-brand-primary group-hover:scale-110 transition-transform duration-500"></i>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-black text-brand-dark mb-4 tracking-tight uppercase italic">Auditoría de Movimientos</h2>
+        <p class="text-gray-400 font-medium mb-12 max-w-xl mx-auto leading-relaxed">Seleccione una unidad para visualizar su historial financiero consolidado y verificar su estado de cartera en tiempo real.</p>
         
-        <!-- Filtro por año -->
-        <form method="get" class="d-flex align-items-center gap-2">
-            <label class="small fw-bold text-muted text-uppercase mb-0">Filtrar Año:</label>
-            <select name="anio_filtro" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
-                <option value="todos" {% if not anio_filtro or anio_filtro == 'todos' %}selected{% endif %}>Ver Todos</option>
-                {% for a in anios_disponibles %}
-                    <option value="{{ a }}" {% if anio_filtro == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>
-                {% endfor %}
-            </select>
+        <form method="get" class="card-pro p-8 md:p-12 text-left space-y-8 shadow-2xl border-none">
+            <div class="space-y-3">
+                <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest border-l-4 border-brand-primary ml-1 pl-3">Inmueble a Consultar</label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <select name="apartamento_id" id="selectAptoAdmin" class="w-full pl-14 pr-12 py-5 bg-gray-50 border-none rounded-3xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 appearance-none cursor-pointer outline-none transition-all shadow-sm" required>
+                        <option value="">Escriba número de torre o apartamento...</option>
+                        {% for a in apartamentos_lista %}
+                        <option value="{{ a.id }}">Torre {{ a.torre }} - Apto {{ a.numero }} ({{ a.residente_principal.nombre_completo|default:"Sin censo" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="w-full py-5 bg-brand-primary text-white font-black rounded-3xl hover:bg-opacity-90 shadow-xl shadow-brand-primary/20 active:scale-95 transition-all text-sm uppercase tracking-[0.2em] italic">
+                Ver Estado de Cuenta <i class="bi bi-arrow-right ml-2 text-brand-lime"></i>
+            </button>
         </form>
     </div>
-    <div class="card-body">
-        <div class="tab-content" id="pills-tabContent">
+    {% else %}
+    <!-- Estado Consolidado -->
+    <div class="card-pro !p-0 overflow-hidden mb-10 border-none shadow-premium group">
+        <div class="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            <div class="flex-grow p-8 md:p-12">
+                <div class="flex items-center gap-4 mb-10">
+                    <div class="w-14 h-14 bg-brand-primary/5 rounded-2xl flex items-center justify-center text-2xl text-brand-primary shadow-sm">
+                        <i class="bi bi-house-door"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-3xl font-black text-brand-dark tracking-tighter uppercase italic">Apto {{ apartamento.numero }}</h3>
+                        <span class="text-[0.65rem] font-black text-brand-primary uppercase tracking-[0.3em]">Torre {{ apartamento.torre }}</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                    <div class="space-y-2">
+                        <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest block pl-1">Responsable Económico</span>
+                        <div class="text-lg font-black text-brand-dark border-l-2 border-brand-primary/20 pl-4 py-1">
+                            {% if apartamento.residente_principal %}
+                                {{ apartamento.residente_principal.nombre_completo }}
+                            {% elif apartamento.inquilino %}
+                                {{ apartamento.inquilino.nombre_completo }}
+                            {% elif apartamento.propietario %}
+                                {{ apartamento.propietario.nombre_completo }}
+                            {% else %}
+                                <span class="text-red-400 italic">No identificado en censo</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest block pl-1">Identificador de Recaudo</span>
+                        <div class="inline-flex px-6 py-2 bg-brand-dark text-white rounded-xl font-black text-xs tracking-[0.2em] shadow-lg">
+                            {{ apartamento.codigo_pago|default:"REF-PND" }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if apartamento.saldo_a_favor > 0 %}
+                <div class="mt-10 p-5 bg-brand-blue/5 border border-brand-blue/10 rounded-2xl flex items-center gap-4 animate-pulse-subtle">
+                    <div class="w-10 h-10 bg-brand-blue/20 rounded-xl flex items-center justify-center text-brand-blue">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] font-black text-brand-blue uppercase tracking-widest mb-1 italic">Crédito a Favor</p>
+                        <p class="text-lg font-black text-brand-dark leading-none">$ {{ apartamento.saldo_a_favor|intcomma }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="w-full md:w-96 flex flex-col items-center justify-center p-12 {% if al_dia %}bg-brand-lime{% else %}bg-red-500{% endif %} transition-colors duration-700 relative overflow-hidden">
+                <!-- Decoración -->
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-[10rem] rotate-12">
+                    {% if al_dia %}<i class="bi bi-shield-check"></i>{% else %}<i class="bi bi-exclamation-triangle"></i>{% endif %}
+                </div>
+                
+                <div class="text-center relative z-10">
+                    <div class="text-[0.65rem] font-black {% if al_dia %}text-brand-dark/40{% else %}text-white/40{% endif %} uppercase tracking-[0.3em] mb-4">Estatus Financiero</div>
+                    <div class="text-4xl font-black mb-2 uppercase tracking-tighter italic {% if al_dia %}text-brand-dark{% else %}text-white{% endif %}">
+                        {% if al_dia %}PAZ Y SALVO{% else %}PENDIENTE{% endif %}
+                    </div>
+                    <p class="text-[0.6rem] font-black {% if al_dia %}text-brand-dark/60{% else %}text-white/60{% endif %} uppercase tracking-widest italic leading-relaxed">
+                        {% if al_dia %}Sauces de Ciudad del Valle agradece su cumplimiento.{% else %}Existen obligaciones comerciales por liquidar.{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secciones del Estado de Cuenta -->
+    <div class="card-pro overflow-hidden border-none shadow-premium bg-white">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 p-2">
+            <div class="flex p-1.5 bg-gray-100 rounded-[1.5rem] w-full md:w-auto">
+                <button class="tab-btn flex-1 md:flex-none px-8 py-3 rounded-2xl text-[0.6rem] font-black uppercase tracking-widest transition-all active bg-white text-brand-primary shadow-sm" data-target="panel-admin">
+                    ADMINISTRACIÓN
+                </button>
+                <button class="tab-btn flex-1 md:flex-none px-8 py-3 rounded-2xl text-[0.6rem] font-black uppercase tracking-widest transition-all text-gray-400 hover:text-brand-dark" data-target="panel-multas">
+                    MULTAS
+                </button>
+                <button class="tab-btn flex-1 md:flex-none px-8 py-3 rounded-2xl text-[0.6rem] font-black uppercase tracking-widest transition-all text-gray-400 hover:text-brand-dark" data-target="panel-reservas">
+                    RESERVAS
+                </button>
+            </div>
+
+            <form method="get" class="flex items-center gap-4 bg-gray-50 px-6 py-2 rounded-2xl border border-gray-100">
+                {% if vista_admin %}<input type="hidden" name="apartamento_id" value="{{ apartamento.id }}">{% endif %}
+                <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-[0.2em]">FILTRAR AÑO</span>
+                <select name="anio_filtro" class="bg-transparent border-none text-[0.65rem] font-black text-brand-dark outline-none cursor-pointer focus:ring-0" onchange="this.form.submit()">
+                    <option value="todos" {% if not anio_filtro or anio_filtro == 'todos' %}selected{% endif %}>TODOS</option>
+                    {% for a in anios_disponibles %}
+                        <option value="{{ a }}" {% if anio_filtro == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+                <i class="bi bi-calendar2-week text-brand-primary/30"></i>
+            </form>
+        </div>
+
+        <div class="tab-panels">
             <!-- PESTAÑA ADMINISTRACIÓN -->
-            <div class="tab-pane fade show active" id="pills-admin" role="tabpanel">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Periodo</th>
-                                <th>Concepto</th>
-                                <th>Valor Facturado</th>
-                                <th>Abonado</th>
-                                <th>Saldo</th>
-                                <th>Estado</th>
+            <div id="panel-admin" class="tab-panel animate-fadeIn">
+                <div class="overflow-x-auto">
+                    <table id="adminTable" class="w-full datatable-brand datatable-manual">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Periodo</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Concepto Detallado</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Facturado</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Abonos</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Pendiente</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Estado</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-50">
                             {% for c in cuentas %}
-                            <tr>
-                                <td class="fw-bold">{{ c.mes_referencia }}/{{ c.anio }}</td>
-                                <td>Cuota de Administración Ordinaria</td>
-                                <td>${{ c.valor_base|intcomma }}</td>
-                                <td class="text-success">${{ c.valor_abonado|intcomma }}</td>
-                                <td class="fw-bold {% if c.saldo_pendiente > 0 %}text-danger{% endif %}">${{ c.saldo_pendiente|intcomma }}</td>
-                                <td>
+                            <tr class="hover:bg-gray-50/30 transition-colors">
+                                <td class="px-8 py-5">
+                                    <span class="text-xs font-black text-brand-primary uppercase italic">{{ c.mes_referencia }} / {{ c.anio }}</span>
+                                </td>
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center text-xs font-bold text-gray-600">
+                                        <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mr-3 text-gray-400"><i class="bi bi-receipt"></i></div>
+                                        Cuota Administración Ordinaria
+                                    </div>
+                                </td>
+                                <td class="px-8 py-5 text-right font-bold text-gray-700">$ {{ c.valor_base|intcomma }}</td>
+                                <td class="px-8 py-5 text-right font-black text-brand-lime">$ {{ c.valor_abonado|intcomma }}</td>
+                                <td class="px-8 py-5 text-right font-black {% if c.saldo_pendiente > 0 %}text-red-500{% else %}text-gray-300{% endif %}">$ {{ c.saldo_pendiente|intcomma }}</td>
+                                <td class="px-8 py-5 text-right">
                                     {% if c.estado == 'Pagado' %}
-                                        <span class="badge bg-success">Pagado</span>
+                                        <span class="inline-flex px-3 py-1 bg-brand-lime text-brand-dark text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Pagado</span>
                                     {% else %}
                                         {% if c.anio < anio_actual or c.anio == anio_actual and c.mes_referencia < mes_actual %}
-                                            <span class="badge bg-danger"><i class="bi bi-clock-history"></i> En Mora</span>
+                                            <span class="inline-flex px-3 py-1 bg-red-100 text-red-600 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">En Mora</span>
                                         {% else %}
-                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                            <span class="inline-flex px-3 py-1 bg-yellow-100 text-yellow-700 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Vigente</span>
                                         {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="6" class="text-center text-muted py-4">No hay registros de facturación.</td></tr>
+                            <tr><td colspan="6" class="py-24 text-center text-gray-400 text-xs font-black uppercase tracking-[0.2em] italic">No hay registros de facturación generados.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -182,35 +260,50 @@
             </div>
 
             <!-- PESTAÑA MULTAS -->
-            <div class="tab-pane fade" id="pills-multas" role="tabpanel">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Tipo</th>
-                                <th>Descripción</th>
-                                <th>Valor</th>
-                                <th>Estado</th>
+            <div id="panel-multas" class="tab-panel hidden animate-fadeIn">
+                <div class="overflow-x-auto">
+                    <table id="multasTable" class="w-full datatable-brand datatable-manual">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Fecha Suceso</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Tipo de Infracción</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Descripción Técnica</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Valor Sanción</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Estatus</th>
+                                {% if vista_admin %}
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Acciones</th>
+                                {% endif %}
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-50">
                             {% for m in multas %}
-                            <tr>
-                                <td>{{ m.fecha_suceso }}</td>
-                                <td><span class="badge bg-outline-danger border border-danger text-danger">{{ m.tipo }}</span></td>
-                                <td class="small">{{ m.descripcion }}</td>
-                                <td class="fw-bold">${{ m.valor|intcomma }}</td>
-                                <td>
+                            <tr class="hover:bg-gray-50/30 transition-colors">
+                                <td class="px-8 py-5 text-xs font-bold text-gray-800 italic">{{ m.fecha_suceso|date:"d M, Y" }}</td>
+                                <td class="px-8 py-5">
+                                    <span class="px-3 py-1 bg-red-50 text-red-500 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic border border-red-100">{{ m.tipo }}</span>
+                                </td>
+                                <td class="px-8 py-5 text-[0.65rem] text-gray-500 font-medium max-w-xs truncate italic" title="{{ m.descripcion }}">{{ m.descripcion }}</td>
+                                <td class="px-8 py-5 text-right font-black text-brand-dark">$ {{ m.valor|intcomma }}</td>
+                                <td class="px-8 py-5 text-right">
                                     {% if m.aplicada_en_cobro %}
-                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Pagado</span>
+                                        <span class="inline-flex px-3 py-1 bg-brand-lime text-brand-dark text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Liquidado</span>
                                     {% else %}
-                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pendiente</span>
+                                        <span class="inline-flex px-3 py-1 bg-gray-100 text-gray-400 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Pendiente de Cruce</span>
                                     {% endif %}
                                 </td>
+                                {% if vista_admin %}
+                                <td class="px-8 py-5 text-right">
+                                    <button type="button" 
+                                            class="w-8 h-8 inline-flex items-center justify-center bg-red-50 text-red-500 rounded-lg opacity-50 hover:opacity-100 hover:bg-red-500 hover:text-white transition-all shadow-sm z-10 cursor-pointer border-none btn-global-confirm" 
+                                            data-url="{% url 'finanzas:eliminar_multa' m.id %}"
+                                            data-msg="¿Eliminar multa permanentemente?">
+                                        <i class="bi bi-trash3 text-xs"></i>
+                                    </button>
+                                </td>
+                                {% endif %}
                             </tr>
                             {% empty %}
-                            <tr><td colspan="5" class="text-center text-muted py-4">Sin registro de multas o sanciones.</td></tr>
+                            <tr><td colspan="{% if vista_admin %}6{% else %}5{% endif %}" class="py-24 text-center text-gray-400 text-xs font-black uppercase tracking-[0.2em] italic">No registra sanciones en el periodo consultado.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -218,38 +311,41 @@
             </div>
 
             <!-- PESTAÑA RESERVAS -->
-            <div class="tab-pane fade" id="pills-reservas" role="tabpanel">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Fecha Reserva</th>
-                                <th>Zona</th>
-                                <th>Motivo</th>
-                                <th>Costo de Reserva</th>
-                                <th>Estado de Pago</th>
+            <div id="panel-reservas" class="tab-panel hidden animate-fadeIn">
+                <div class="overflow-x-auto">
+                    <table id="reservasTable" class="w-full datatable-brand datatable-manual">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Día y Franja</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Espacio Común</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Propósito</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Costo Uso</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Estado Recaudo</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-50">
                             {% for r in reservas %}
-                            <tr>
-                                <td>{{ r.fecha }} <small class="text-muted d-block">{{ r.hora_inicio|time:"H:i" }} - {{ r.hora_fin|time:"H:i" }}</small></td>
-                                <td>
-                                    {% if r.zona_comun == 'salon' %}<i class="bi bi-house text-success"></i> {% elif r.zona_comun == 'bbq' %}<i class="bi bi-fire text-warning"></i> {% else %}<i class="bi bi-water text-info"></i> {% endif %}
+                            <tr class="hover:bg-gray-50/30 transition-colors">
+                                <td class="px-8 py-5">
+                                    <div class="text-xs font-black text-brand-dark uppercase italic tracking-tight">{{ r.fecha|date:"D, d M Y" }}</div>
+                                    <div class="text-[0.6rem] font-bold text-gray-400 mt-1"><i class="bi bi-clock mr-1"></i>{{ r.hora_inicio|time:"H:i" }} - {{ r.hora_fin|time:"H:i" }}</div>
+                                </td>
+                                <td class="px-8 py-5 text-xs font-bold text-gray-700">
+                                    {% if r.zona_comun == 'salon' %}<i class="bi bi-house-door text-brand-lime mr-2"></i>{% elif r.zona_comun == 'bbq' %}<i class="bi bi-fire text-red-400 mr-2"></i>{% else %}<i class="bi bi-water text-brand-blue mr-2"></i>{% endif %}
                                     {{ r.get_zona_comun_display }}
                                 </td>
-                                <td class="small">{{ r.motivo|default:"--N/A--" }}</td>
-                                <td class="fw-bold">${{ r.valor|intcomma }}</td>
-                                <td>
+                                <td class="px-8 py-5 text-[0.65rem] text-gray-500 italic font-medium truncate max-w-[150px]">{{ r.motivo|default:"No especificado" }}</td>
+                                <td class="px-8 py-5 text-right font-black text-brand-dark">$ {{ r.valor|intcomma }}</td>
+                                <td class="px-8 py-5 text-right">
                                     {% if r.estado_pago %}
-                                        <span class="badge bg-success">Liquidado</span>
+                                         <span class="inline-flex px-3 py-1 bg-brand-primary text-white text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic shadow-sm">Facturado</span>
                                     {% else %}
-                                        <span class="badge bg-warning text-dark">Pendiente Pago</span>
+                                         <span class="inline-flex px-3 py-1 bg-gray-100 text-gray-400 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Por Liquidar</span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="5" class="text-center text-muted py-4">No has realizado reservas de zonas comunes.</td></tr>
+                            <tr><td colspan="5" class="py-24 text-center text-gray-400 text-xs font-black uppercase tracking-[0.2em] italic">Sin reservas de zonas comunes registradas.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -257,16 +353,81 @@
             </div>
         </div>
     </div>
-</div>
 
-<div class="alert alert-info border-0 shadow-sm" style="border-radius: 1rem;">
-    <div class="d-flex align-items-center">
-        <i class="bi bi-info-square fs-3 me-3"></i>
-        <div>
-            <h6 class="fw-bold mb-1">Nota sobre tus movimientos</h6>
-            <p class="small mb-0">Si realizaste un pago y no aparece reflejado aquí, por favor recuerda que la conciliación bancaria puede tardar hasta 48 horas hábiles. Para reportar pagos inmediatos, envía el soporte al correo de administración o vía WhatsApp.</p>
+    <!-- Informativo Bottom -->
+    <div class="mt-12 p-8 md:p-12 bg-brand-dark text-white rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+        <div class="absolute -right-20 -top-20 opacity-5 text-[15rem]"><i class="bi bi-info-circle"></i></div>
+        <div class="flex flex-col md:flex-row items-center gap-10 relative z-10">
+            <div class="w-20 h-20 bg-white/10 rounded-[1.5rem] flex items-center justify-center text-3xl text-brand-lime shrink-0 shadow-inner">
+                <i class="bi bi-file-earmark-lock2"></i>
+            </div>
+            <div class="space-y-4">
+                <h6 class="text-xl font-black uppercase tracking-widest italic text-brand-lime">Garantía de Conciliación Bancaria</h6>
+                <p class="text-white/50 text-sm font-medium leading-relaxed max-w-4xl italic">
+                    Si un pago realizado por consignación bancaria o transferencia electrónica no aparece reflejado en su historial, recuerde que el proceso de auditoría y descarga de extractos toma de <span class="text-white font-black">24 a 48 horas hábiles</span>. 
+                    Asegúrese de reportar su soporte de pago a través de la oficina virtual para agilizar la validación financiera.
+                </p>
+                <div class="pt-4 flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-brand-lime"></div>
+                        <span class="text-[0.6rem] font-black uppercase tracking-widest text-white/40">Auditado por Revisoría Fiscal</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-brand-primary"></div>
+                        <span class="text-[0.6rem] font-black uppercase tracking-widest text-white/40">Cumple Ley 675 de 2001</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+    {% endif %}
 </div>
-{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // 1. Simple Tab Logic (Initialize FIRST to ensure responsiveness)
+        $('.tab-btn').on('click', function() {
+            const target = $(this).data('target');
+            $('.tab-btn').removeClass('bg-white text-brand-primary shadow-sm').addClass('text-gray-400 hover:text-brand-dark');
+            $(this).addClass('bg-white text-brand-primary shadow-sm').removeClass('text-gray-400 hover:text-brand-dark');
+            $('.tab-panel').addClass('hidden');
+            $('#' + target).removeClass('hidden');
+
+            // Force DataTables correction for newly visible tables
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust().draw();
+        });
+
+        // 2. Inicialización de Select2 con tema Pro (Ambas versiones)
+        $('#selectAptoAdmin, .select2-compact').select2({
+            placeholder: 'Escriba número de torre o apartamento...',
+            width: '100%',
+            language: 'es',
+            dropdownCssClass: 'select2-brand-dropdown',
+            selectionCssClass: 'select2-brand-selection'
+        });
+
+        // 3. DataTable initialization per table with failsafe check
+        const commonConfig = {
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+            order: [[0, 'desc']],
+            autoWidth: false,
+            responsive: true,
+            pageLength: 10,
+            destroy: true,
+            dom: 't<"flex flex-col md:flex-row justify-between items-center gap-4 p-8 border-t border-gray-50"ip>'
+        };
+
+        if (!$.fn.DataTable.isDataTable('#adminTable')) {
+            $('#adminTable').DataTable(commonConfig);
+        }
+        if (!$.fn.DataTable.isDataTable('#multasTable')) {
+            $('#multasTable').DataTable(commonConfig);
+        }
+        if (!$.fn.DataTable.isDataTable('#reservasTable')) {
+            $('#reservasTable').DataTable(commonConfig);
+        }
+    });
+</script>
 {% endblock %}

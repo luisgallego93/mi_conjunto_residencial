@@ -1,325 +1,352 @@
+{% load static %}
+{% comment %}Propósito: Estructura base maestra del ecosistema "Sauces de Ciudad del Valle".
+    Descripción: Controla el layout principal, navegación lateral, barra superior y carga de librerías globales.
+    Incluye lógica de permisos para visibilidad de módulos según el rol del usuario.{% endcomment %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mi Conjunto - Conjunto Residencial{% endblock %}</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Select2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-    <!-- DataTables CSS -->
-    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <title>{% block title %}Mi Conjunto - Sauces de Ciudad del Valle{% endblock %}</title>
+
+    <!-- Sistema de Gestión de Marca y Estilos -->
     
-    <style>
-        body {
-            min-height: 100vh;
-            display: flex;
-            background-color: #f8f9fa;
-        }
+    <!-- Librerías de Estilo Base -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-        .sidebar {
-            width: 250px;
-            background-color: #0f172a; /* Slate Premium Dark */
-            color: #fff;
-            min-height: 100vh;
-            flex-shrink: 0;
-            transition: all 0.3s;
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#148C44',
+                            'primary-light': '#e8f5e9',
+                            lime: '#9DC33D',
+                            'lime-light': '#f1f8e9',
+                            blue: '#2E3192',
+                            dark: '#1D1D1B',
+                            accent: '#DC3545',
+                            gray: '#F8F9FA',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+                        'brand': '0 4px 14px 0 rgba(20, 140, 68, 0.25)',
+                    }
+                }
+            }
         }
+    </script>
 
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, .75);
-            padding: 15px 20px;
-        }
-
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: #fff;
-            background-color: rgba(255, 255, 255, .1);
-        }
-
-        .sidebar .nav-link i {
-            margin-right: 10px;
-        }
-        
-        .sidebar .text-muted {
-            color: #94a3b8 !important;
-            letter-spacing: 1.5px;
-            font-weight: bold;
-        }
-
-        .content-wrapper {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .top-navbar {
-            background-color: #fff;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            padding: 15px 20px;
-        }
-
-        .main-content {
-            padding: 30px;
-            overflow-y: auto;
-        }
-        
-        .card-stat {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-        
-        .card-stat:hover {
-            transform: translateY(-5px);
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn-pro-primary {
+                @apply bg-brand-primary text-white font-semibold py-2 px-6 rounded-xl transition-all duration-300 hover:bg-opacity-90 hover:-translate-y-0.5 shadow-brand active:scale-95;
+            }
+            .btn-pro-lime {
+                @apply bg-brand-lime text-brand-dark font-semibold py-2 px-6 rounded-xl transition-all duration-300 hover:bg-opacity-90 hover:-translate-y-0.5 active:scale-95;
+            }
+            .card-pro {
+                @apply bg-white rounded-2xl border border-gray-100 shadow-premium p-6;
+            }
+            .sidebar-link {
+                @apply flex items-center px-6 py-3 text-gray-400 font-medium transition-all duration-200 border-l-4 border-transparent hover:bg-white/5 hover:text-brand-lime;
+            }
+            .sidebar-link.active {
+                @apply bg-white/10 text-brand-lime border-brand-lime;
+            }
         }
     </style>
+
+    <!-- Sistema de Diseño de la Marca (Legacy Support) -->
+    <link href="{% static 'css/style_brand.css' %}" rel="stylesheet">
+    
+    <!-- Librerías de Componentes Específicos -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
 
     {% if user.is_authenticated %}
-    <!-- Sidebar -->
-    <div class="sidebar d-flex flex-column" id="sidebar">
-        <div class="p-3">
-            <a href="{% url 'dashboard:index' %}" class="text-decoration-none">
-                <h4 class="text-center text-white my-3 fw-bold">Mi Conjunto</h4>
-            </a>
-        </div>
-        <ul class="nav flex-column mb-auto">
+    <!-- Barra Lateral de Navegación (Sidebar) -->
+    <aside class="fixed inset-y-0 left-0 z-50 w-72 bg-brand-dark transition-all duration-300 -translate-x-full lg:translate-x-0 overflow-y-auto shadow-2xl" id="sidebar">
+        <div class="flex flex-col h-full">
+            <div class="p-8 border-b border-white/5">
+                <a href="{% url 'dashboard:index' %}" class="block group">
+                    <h1 class="text-2xl font-black text-white tracking-tighter transition-all group-hover:scale-105">SAUCES</h1>
+                    <p class="text-[0.6rem] font-bold text-brand-lime tracking-[0.2em] uppercase">Ciudad del Valle</p>
+                </a>
+            </div>
+            
+            <nav class="flex-1 py-6 space-y-1">
+                {% with rol=user.perfilusuario.rol %}
+                
+                {% if rol != 'RESIDENTE' %}
+                <a href="{% url 'dashboard:index' %}" class="sidebar-link {% if request.resolver_match.app_name == 'dashboard' and request.resolver_match.url_name == 'index' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill mr-4"></i> Dashboard
+                </a>
+                {% endif %}
 
-            {% with rol=user.perfilusuario.rol %}
+                <a href="{% url 'documentos:lista' %}" class="sidebar-link {% if request.resolver_match.app_name == 'documentos' %}active{% endif %}">
+                    <i class="bi bi-folder-fill mr-4"></i> Documentos
+                </a>
 
-            {% if rol != 'RESIDENTE' %}
-            <li class="nav-item">
-                <a href="{% url 'dashboard:index' %}" class="nav-link {% if request.resolver_match.app_name == 'dashboard' and request.resolver_match.url_name == 'index' %}active{% endif %}">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'dashboard:informes' %}" class="nav-link {% if request.resolver_match.url_name == 'informes' %}active{% endif %}">
-                    <i class="bi bi-file-earmark-bar-graph"></i> Informes
-                </a>
-            </li>
-            <li class="nav-item mt-3">
-                <span class="nav-link text-muted"><small>DIRECTORIO</small></span>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'usuarios:directorio_residentes' %}" class="nav-link {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'directorio_residentes' %}active{% endif %}">
-                    <i class="bi bi-people"></i> Residentes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'usuarios:directorio_apartamentos' %}" class="nav-link {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'directorio_apartamentos' %}active{% endif %}">
-                    <i class="bi bi-building"></i> Inmuebles
-                </a>
-            </li>
-            {% endif %}
-
-            <li class="nav-item {% if rol != 'RESIDENTE' %}{% else %}mt-3{% endif %}">
-                <a href="{% url 'documentos:lista' %}" class="nav-link {% if request.resolver_match.app_name == 'documentos' %}active{% endif %}">
-                    <i class="bi bi-file-earmark-pdf"></i> Documentos
-                </a>
-            </li>
-
-            <li class="nav-item mt-3">
-                <span class="nav-link text-muted"><small>PORTERÍA</small></span>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'visitantes:lista_visitantes' %}" class="nav-link {% if request.resolver_match.app_name == 'visitantes' %}active{% endif %}">
-                    <i class="bi bi-person-badge"></i> Control de Acceso
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'correspondencia:lista_paquetes' %}" class="nav-link {% if request.resolver_match.app_name == 'correspondencia' %}active{% endif %}">
-                    <i class="bi bi-box"></i> Paquetería
-                </a>
-            </li>
-
-            <li class="nav-item mt-3">
-                <span class="nav-link text-muted"><small>GESTIÓN</small></span>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'comunicacion:lista_pqrs' %}" class="nav-link {% if request.resolver_match.app_name == 'comunicacion' %}active{% endif %}">
-                    <i class="bi bi-envelope-paper"></i> PQRS
-                </a>
-            </li>
-            {% if user.perfilusuario.rol == 'RESIDENTE' %}
-            <li class="nav-item">
-                <a href="{% url 'usuarios:gestionar_familia' %}" class="nav-link {% if request.resolver_match.url_name == 'gestionar_familia' %}active{% endif %}">
-                    <i class="bi bi-people-fill"></i> Mi Familia (Censo)
-                </a>
-            </li>
-            {% endif %}
-            <li class="nav-item">
-                <a href="{% url 'reservas:lista_reservas' %}" class="nav-link {% if request.resolver_match.app_name == 'reservas' and request.resolver_match.url_name == 'lista_reservas' or request.resolver_match.url_name == 'crear_reserva' %}active{% endif %}">
-                    <i class="bi bi-calendar-check"></i> Reservas
-                </a>
-            </li>
-            {% if rol != 'RESIDENTE' %}
-            <li class="nav-item">
-                <a href="{% url 'reservas:tarifario' %}" class="nav-link {% if request.resolver_match.url_name == 'tarifario' %}active{% endif %}" style="padding-left: 40px; font-size: 0.88rem; color: rgba(255,255,255,.55);">
-                    <i class="bi bi-tags"></i> Tarifario Zonas
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'finanzas:cartera' %}" class="nav-link {% if request.resolver_match.app_name == 'finanzas' and request.resolver_match.url_name != 'mi_estado_cuenta' %}active{% endif %}">
-                    <i class="bi bi-cash-stack"></i> Cartera y Finanzas
-                </a>
-            </li>
-            {% endif %}
-            <li class="nav-item">
-                <a href="{% url 'finanzas:mi_estado_cuenta' %}" class="nav-link {% if request.resolver_match.url_name == 'mi_estado_cuenta' %}active{% endif %}" style="padding-left: {% if rol != 'RESIDENTE' %}40{% else %}20{% endif %}px; font-size: 0.88rem; color: rgba(255,255,255,.55);">
-                    <i class="bi bi-journal-text"></i> Mis Movimientos
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'usuarios:mi_perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'mi_perfil' %}active{% endif %}" style="padding-left: {% if rol != 'RESIDENTE' %}40{% else %}20{% endif %}px; font-size: 0.88rem; color: rgba(255,255,255,.55);">
-                    <i class="bi bi-person-gear"></i> Mi Perfil
-                </a>
-            </li>
-
-            {% endwith %}
-        </ul>
-        <div class="p-3 mt-auto">
-            <form action="{% url 'logout' %}" method="post" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-light w-100">
-                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                </button>
-            </form>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Content Wrapper -->
-    <div class="content-wrapper">
-        {% if user.is_authenticated %}
-        <header class="top-navbar d-flex justify-content-between align-items-center">
-            <button class="btn btn-light d-md-none" id="sidebarToggle">
-                <i class="bi bi-list"></i>
-            </button>
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <!-- Nombre del usuario -->
-                <div class="text-end">
-                    {% if user.perfilusuario %}
-                        <div class="fw-bold lh-1" style="font-size:.95rem;">
-                            {{ user.perfilusuario.nombre_completo }}
-                        </div>
-                        <div class="text-muted" style="font-size:.75rem;">
-                            {{ user.perfilusuario.get_rol_display }}
-                        </div>
-                    {% else %}
-                        <div class="fw-bold lh-1">{{ user.get_full_name|default:user.username }}</div>
-                    {% endif %}
+                <div class="px-8 mt-10 mb-2">
+                    <p class="text-[0.65rem] font-bold text-gray-500 uppercase tracking-widest">Control Portería</p>
                 </div>
-                <!-- Ícono de usuario -->
-                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white"
-                     style="width:36px;height:36px;font-size:1rem; flex-shrink:0;">
-                    <i class="bi bi-person-fill"></i>
+                <a href="{% url 'visitantes:lista_visitantes' %}" class="sidebar-link {% if request.resolver_match.app_name == 'visitantes' %}active{% endif %}">
+                    <i class="bi bi-shield-lock-fill mr-4"></i> Control de Acceso
+                </a>
+                <a href="{% url 'correspondencia:lista_paquetes' %}" class="sidebar-link {% if request.resolver_match.app_name == 'correspondencia' %}active{% endif %}">
+                    <i class="bi bi-box-seam-fill mr-4"></i> Paquetería
+                </a>
+
+                <div class="px-8 mt-10 mb-2">
+                    <p class="text-[0.65rem] font-bold text-gray-500 uppercase tracking-widest">Servicios Residente</p>
                 </div>
-                <!-- Botón cerrar sesión -->
-                <form action="{% url 'logout' %}" method="post" class="d-inline m-0">
+                <a href="{% url 'comunicacion:lista_pqrs' %}" class="sidebar-link {% if request.resolver_match.app_name == 'comunicacion' %}active{% endif %}">
+                    <i class="bi bi-chat-left-dots-fill mr-4"></i> Mis PQRS
+                </a>
+                <a href="{% url 'reservas:lista_reservas' %}" class="sidebar-link {% if request.resolver_match.app_name == 'reservas' %}active{% endif %}">
+                    <i class="bi bi-calendar-check-fill mr-4"></i> Reservas Zonas
+                </a>
+                <a href="{% url 'finanzas:mi_estado_cuenta' %}" class="sidebar-link {% if request.resolver_match.url_name == 'mi_estado_cuenta' %}active{% endif %}">
+                    <i class="bi bi-wallet-fill mr-4"></i> Estado de Cuenta
+                </a>
+
+                <div class="px-8 mt-10 mb-2">
+                    <p class="text-[0.65rem] font-bold text-gray-500 uppercase tracking-widest">Mi Información</p>
+                </div>
+                <a href="{% url 'usuarios:mi_perfil' %}" class="sidebar-link {% if request.resolver_match.url_name == 'mi_perfil' %}active{% endif %}">
+                    <i class="bi bi-person-badge-fill mr-4"></i> Perfil
+                </a>
+                {% if rol == 'RESIDENTE' %}
+                <a href="{% url 'usuarios:gestionar_familia' %}" class="sidebar-link {% if request.resolver_match.url_name == 'gestionar_familia' %}active{% endif %}">
+                    <i class="bi bi-people-fill mr-4"></i> Censo Familiar
+                </a>
+                {% endif %}
+
+                {% if rol != 'RESIDENTE' %}
+                <div class="px-8 mt-10 mb-2">
+                    <p class="text-[0.65rem] font-bold text-gray-500 uppercase tracking-widest">Administración</p>
+                </div>
+                <a href="{% url 'usuarios:directorio_residentes' %}" class="sidebar-link {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'directorio_residentes' %}active{% endif %}">
+                    <i class="bi bi-people-fill mr-4"></i> Propietarios
+                </a>
+                <a href="{% url 'usuarios:directorio_apartamentos' %}" class="sidebar-link {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'directorio_apartamentos' %}active{% endif %}">
+                    <i class="bi bi-building-fill-check mr-4"></i> Censo Inmuebles
+                </a>
+                <a href="{% url 'finanzas:cartera' %}" class="sidebar-link {% if request.resolver_match.app_name == 'finanzas' and request.resolver_match.url_name != 'mi_estado_cuenta' %}active{% endif %}">
+                    <i class="bi bi-bank2 mr-4"></i> Gestión Cartera
+                </a>
+                <a href="{% url 'dashboard:informes' %}" class="sidebar-link {% if request.resolver_match.url_name == 'informes' %}active{% endif %}">
+                    <i class="bi bi-pie-chart-fill mr-4"></i> Analítica Cartera
+                </a>
+                {% endif %}
+
+                {% endwith %}
+            </nav>
+
+            <div class="p-8 border-t border-white/5">
+                <form action="{% url 'logout' %}" method="post" class="m-0">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm fw-bold px-3"
-                            title="Cerrar Sesión">
-                        <i class="bi bi-box-arrow-right me-1"></i>Salir
+                    <button type="submit" class="w-full bg-brand-lime hover:bg-opacity-90 text-brand-dark px-4 py-3 rounded-xl font-bold flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg group">
+                        <i class="bi bi-power mr-2 transition-transform group-hover:rotate-90"></i> SALIR
                     </button>
                 </form>
+            </div>
+        </div>
+    </aside>
+    {% endif %}
+
+    <!-- Envoltorio de Contenido (Content Wrapper) -->
+    <div class="lg:ml-72 min-h-screen flex flex-col transition-all duration-300" id="content-wrapper">
+        {% if user.is_authenticated %}
+        <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex items-center justify-between shadow-sm">
+            <button class="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors" id="sidebarToggle">
+                <i class="bi bi-list text-2xl"></i>
+            </button>
+            
+            <div class="flex items-center gap-6 ml-auto">
+                <div class="hidden sm:block text-right">
+                    <p class="text-sm font-bold text-brand-dark leading-none mb-1">{{ user.perfilusuario.nombre_completo|default:user.username }}</p>
+                    <span class="text-[0.65rem] font-bold text-brand-primary uppercase tracking-widest">{{ user.perfilusuario.get_rol_display|default:"Usuario" }}</span>
+                </div>
+                <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-brand-primary/10 border border-brand-primary/20 transition-transform hover:scale-110">
+                    <i class="bi bi-person-fill text-brand-primary text-xl"></i>
+                </div>
             </div>
         </header>
         {% endif %}
 
-        <!-- Main Content -->
-        <main class="main-content">
-            {% block content %}
-            {% endblock %}
+        <main class="flex-grow p-6 lg:p-10 {% if not user.is_authenticated %}p-0{% endif %}">
+            {% block content %}{% endblock %}
         </main>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery JS (Select2 requirement) -->
+    <!-- Scripts Globales -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
-    <!-- SweetAlert2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Toggle de la barra lateral para móviles (Simple)
-        const sidebarToggle = document.body.querySelector('#sidebarToggle');
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', event => {
-                event.preventDefault();
-                document.body.classList.toggle('sidebar-toggled');
-                const sidebar = document.getElementById('sidebar');
-                if(sidebar.style.display === 'none'){
-                    sidebar.style.display = 'flex';
-                } else {
-                    sidebar.style.display = 'none';
-                }
-            });
-        }
-
-        // Inicializar Select2 en los campos con clase form-select
         $(document).ready(function() {
+            // Unificador de Tablas con Estilo de Marca (Ignoring manual ones)
+            // Definición LOCAL de idioma para evitar errores de CORS con el CDN de DataTables
+            const dtLanguage = {
+                processing: "Procesando...",
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                infoFiltered: "(filtrado de _MAX_ registros totales)",
+                loadingRecords: "Cargando...",
+                zeroRecords: "No se encontraron resultados",
+                emptyTable: "Ningún dato disponible en esta tabla",
+                paginate: {
+                    first: "Primero",
+                    previous: "Anterior",
+                    next: "Siguiente",
+                    last: "Último"
+                }
+            };
+
+            $('.datatable-brand:not(.datatable-manual)').DataTable({
+                language: dtLanguage,
+                pageLength: 25,
+                responsive: true,
+                order: []
+            });
+
+            // Inicialización de Select2 Premium
             $('.form-select').select2({
                 theme: 'bootstrap-5',
                 width: '100%',
-                language: 'es',
-                placeholder: "Seleccione una opción",
-                allowClear: true,
-                dropdownParent: $('#registrarModal').length ? $('#registrarModal') : $(document.body)
+                language: 'es'
             });
+
+            // Sidebar Toggle Logic
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
             
-            // Inicializar DataTables globalmente en las tablas
-            $('.datatable-basic').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
-                },
-                pageLength: 10,
-                responsive: true
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+                
+                // Close sidebar on click outside (for mobile)
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth < 1024) {
+                        if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                            sidebar.classList.add('-translate-x-full');
+                        }
+                    }
+                });
+            }
+
+            // --- MOTOR DE BORRADO GLOBAL (DELEGADO Y PREMIUM CON SWEETALERT2) ---
+            $(document).on('click', '.btn-global-confirm', function(e) {
+                e.preventDefault();
+                const btn = $(this);
+                const url = btn.data('url');
+                const msg = btn.data('msg') || '¿Está seguro de realizar esta acción permanentemente?';
+                
+                Swal.fire({
+                    title: '¿Confirmar Acción?',
+                    text: msg,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#148C44', // brand-primary
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    background: '#ffffff',
+                    borderRadius: '1.25rem',
+                    customClass: {
+                        confirmButton: 'rounded-xl font-bold uppercase tracking-widest text-xs px-6 py-3',
+                        cancelButton: 'rounded-xl font-bold uppercase tracking-widest text-xs px-6 py-3'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = $('#fm-global-delete');
+                        if (form.length) {
+                            form.attr('action', url);
+                            form.submit();
+                        } else {
+                            const f = $('<form>', {
+                                'method': 'POST',
+                                'action': url
+                            }).append($('<input>', {
+                                'type': 'hidden',
+                                'name': 'csrfmiddlewaretoken',
+                                'value': '{{ csrf_token }}'
+                            }));
+                            $('body').append(f);
+                            f.submit();
+                        }
+                    }
+                });
             });
         });
 
-        // Alertas Dinámicas Premium con SweetAlert2 Toasts
+        // Alertas Toasts Dynamic
         {% if messages %}
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
-            timer: 4000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-            }
+            timer: 4500,
+            timerProgressBar: true
         });
-        
-        $(document).ready(function() {
-            {% for message in messages %}
-                {% if message.tags == 'error' %}
-                    Toast.fire({icon: 'error', title: '{{ message }}'})
-                {% elif message.tags == 'success' %}
-                    Toast.fire({icon: 'success', title: '{{ message }}'})
-                {% else %}
-                    Toast.fire({icon: 'info', title: '{{ message }}'})
-                {% endif %}
-            {% endfor %}
-        });
+        {% for message in messages %}
+            Toast.fire({
+                icon: '{{ message.tags|default:"info" }}' === 'error' ? 'error' : 'success',
+                title: '{{ message|escapejs }}'
+            });
+        {% endfor %}
         {% endif %}
     </script>
+
+    <style>
+        body { background-color: #f8fafc; }
+        .datatable-brand_wrapper .dataTables_length select,
+        .datatable-brand_wrapper .dataTables_filter input {
+            @apply border-gray-200 rounded-lg text-sm focus:ring-brand-primary focus:border-brand-primary !important;
+        }
+        .datatable-brand thead th {
+             @apply bg-gray-50 text-gray-500 uppercase text-[0.65rem] font-black tracking-widest border-b border-gray-100 px-6 py-4 !important;
+        }
+        .datatable-brand tbody td {
+            @apply px-6 py-4 text-sm text-gray-600 border-b border-gray-50 !important;
+        }
+        .select2-container--bootstrap-5 .select2-selection {
+            @apply border-gray-200 rounded-xl focus:ring-brand-primary focus:border-brand-primary !important;
+        }
+    </style>
+    
     {% block extra_js %}{% endblock %}
+
+    <form id="fm-global-delete" method="post" style="display:none;">
+        {% csrf_token %}
+    </form>
 </body>
 </html>

@@ -1,74 +1,107 @@
 {% extends 'base.html' %}
 
-{% block title %}Directorio de Residentes - Mi Conjunto Gestión{% endblock %}
+{% comment %}Propósito: Directorio institucional de residentes y personal.
+    Descripción: Permite a la administración gestionar perfiles de usuario, roles y estados de acceso.{% endcomment %}
+
+{% block title %}Directorio de Perfiles - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Directorio de Perfiles</h2>
-    <a href="#" class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#registrarModal">
-        <i class="bi bi-person-plus"></i> Nuevo Residente
-    </a>
-</div>
-
-<div class="card shadow mb-4 border-top-0 border-start border-4 border-primary">
-    <div class="card-header py-3 bg-white">
-        <h6 class="m-0 fw-bold text-primary">Residentes, Administradores y Personal</h6>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Directorio de Perfiles</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Base de Datos Humana</span>
+                <span class="text-gray-400 font-medium text-sm italic">Residentes, personal y administración</span>
+            </div>
+        </div>
+        <button class="inline-flex items-center px-6 py-3 bg-brand-primary text-white rounded-2xl text-[0.65rem] font-black hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95 uppercase tracking-widest italic" data-bs-toggle="modal" data-bs-target="#registrarModal">
+            <i class="bi bi-person-plus-fill mr-2"></i> NUEVO RESIDENTE
+        </button>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle w-100 datatable-basic" id="tablaResidentes">
-                <thead class="table-light">
-                    <tr>
-                        <th>Residente</th>
-                        <th>Cédula</th>
-                        <th>Rol / Tipo</th>
-                        <th>Inmueble(s)</th>
-                        <th>Contacto</th>
-                        <th class="text-center">Estado</th>
-                        <th class="text-center">Acciones</th>
+
+    <div class="card-pro overflow-hidden border-none shadow-premium !p-0">
+        <div class="p-8 border-b border-gray-50 flex items-center gap-3 bg-white">
+            <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary text-xl shadow-inner">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Registros Institucionales</h3>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full datatable-brand datatable-manual" id="tablaPerfiles">
+                <thead>
+                    <tr class="bg-gray-50/50">
+                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Residente</th>
+                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Cédula</th>
+                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Rol / Tipo</th>
+                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Inmueble(s)</th>
+                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Contacto</th>
+                        <th class="text-center py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Estado</th>
+                        <th class="text-right py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-50">
                     {% for r in residentes %}
-                    <tr>
-                        <td>
-                            <div class="fw-bold text-dark">{{ r.nombre_completo }}</div>
-                            <div class="small text-muted d-md-none">CC: {{ r.documento }}</div>
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="align-middle py-6 px-8">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-brand-dark italic leading-snug">{{ r.nombre_completo }}</span>
+                                <span class="text-[0.6rem] font-bold text-gray-400 uppercase tracking-tighter md:hidden">CC: {{ r.documento }}</span>
+                            </div>
                         </td>
-                        <td class="small">{{ r.documento }}</td>
-                        <td>
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">{{ r.rol }}</span>
-                            <div class="small text-muted">{{ r.tipo_ocupacion }}</div>
+                        <td class="align-middle py-6 px-8">
+                            <span class="text-xs font-black text-gray-400 tracking-widest leading-none">{{ r.documento }}</span>
                         </td>
-                        <td>
-                            {% for apto in r.apartamentos_asignados.all %}
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">T{{ apto.torre }} - {{ apto.numero }}</span>
-                            {% empty %}
-                                {% for apto in r.arrendamientos_asignados.all %}
-                                    <span class="badge bg-info-subtle text-info border border-info-subtle">T{{ apto.torre }} - {{ apto.numero }}</span>
+                        <td class="align-middle py-6 px-8">
+                            <div class="flex flex-col gap-1.5">
+                                <span class="inline-flex w-fit px-2 py-0.5 bg-brand-primary/10 text-brand-primary text-[0.6rem] font-black uppercase rounded-md tracking-tighter">
+                                    {{ r.rol }}
+                                </span>
+                                <span class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-tight italic">{{ r.tipo_ocupacion }}</span>
+                            </div>
+                        </td>
+                        <td class="align-middle py-6 px-8">
+                            <div class="flex flex-wrap gap-1.5 max-w-[150px]">
+                                {% for apto in r.apartamentos_asignados.all %}
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[0.6rem] font-black rounded-md border border-gray-200">
+                                        T{{ apto.torre }}-{{ apto.numero }}
+                                    </span>
                                 {% empty %}
-                                    <span class="text-muted small fst-italic">No asignado</span>
+                                    {% for apto in r.arrendamientos_asignados.all %}
+                                        <span class="px-2 py-0.5 bg-brand-lime/20 text-brand-dark text-[0.6rem] font-black rounded-md border border-brand-lime/20">
+                                            T{{ apto.torre }}-{{ apto.numero }}
+                                        </span>
+                                    {% empty %}
+                                        <span class="text-[0.65rem] text-gray-300 font-bold italic uppercase tracking-tighter">Sin asignar</span>
+                                    {% endfor %}
                                 {% endfor %}
-                            {% endfor %}
+                            </div>
                         </td>
-                        <td>
-                            <div class="small"><i class="bi bi-telephone text-primary"></i> {{ r.telefono }}</div>
-                            <div class="small text-muted"><i class="bi bi-envelope text-primary"></i> {{ r.email_personal|default:"-" }}</div>
+                        <td class="align-middle py-6 px-8">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-1.5 text-xs font-black text-brand-dark">
+                                    <i class="bi bi-telephone text-brand-primary"></i> {{ r.telefono }}
+                                </div>
+                                <div class="flex items-center gap-1.5 text-[0.65rem] font-bold text-gray-400 group-hover:text-brand-primary transition-colors italic">
+                                    <i class="bi bi-envelope"></i> {{ r.email_personal|default:"-" }}
+                                </div>
+                            </div>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center align-middle py-6 px-8">
                             {% if r.activo %}
-                                <span class="badge bg-success rounded-pill px-3">Activo</span>
+                                <span class="inline-flex px-3 py-1 bg-brand-lime text-brand-dark text-[0.55rem] font-black uppercase rounded-lg italic tracking-widest shadow-sm">ACTIVO</span>
                             {% else %}
-                                <span class="badge bg-danger rounded-pill px-3">Inactivo</span>
+                                <span class="inline-flex px-3 py-1 bg-red-100 text-red-500 text-[0.55rem] font-black uppercase rounded-lg italic tracking-widest">INACTIVO</span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
-                            <div class="btn-group shadow-sm">
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarPerfilModal{{ r.id }}" title="Editar Información">
+                        <td class="text-right align-middle py-6 px-8">
+                            <div class="flex items-center justify-end gap-3">
+                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-brand-dark hover:text-white transition-all active:scale-95 shadow-sm" data-bs-toggle="modal" data-bs-target="#editarPerfilModal{{ r.id }}" title="Editar Perfil">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
                                 <a href="{% url 'usuarios:alternar_estado_residente' r.id %}" 
-                                   class="btn btn-sm {% if r.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                   class="w-10 h-10 flex items-center justify-center rounded-xl {% if r.activo %}bg-red-50 text-red-400 hover:bg-red-500 hover:text-white shadow-red-500/10{% else %}bg-brand-lime/10 text-brand-dark hover:bg-brand-lime shadow-brand-lime/10{% endif %} transition-all active:scale-95 shadow-lg"
                                    title="{% if r.activo %}Desactivar Cuenta{% else %}Activar Cuenta{% endif %}"
                                    onclick="return confirm('¿Está seguro de que desea cambiar el estado de acceso para {{ r.nombre_completo }}?')">
                                     <i class="bi {% if r.activo %}bi-person-x{% else %}bi-person-check{% endif %}"></i>
@@ -76,7 +109,6 @@
                             </div>
                         </td>
                     </tr>
-
                     {% endfor %}
                 </tbody>
             </table>
@@ -84,140 +116,204 @@
     </div>
 </div>
 
-<!-- Modales de Edición (Fuera de la tabla para evitar errores de DataTables) -->
+<!-- Modales de Edición -->
 {% for r in residentes %}
-<div class="modal fade" id="editarPerfilModal{{ r.id }}" tabindex="-1" aria-labelledby="editarPerfilLabel{{ r.id }}" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
+<div class="modal fade" id="editarPerfilModal{{ r.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
       <form action="{% url 'usuarios:editar_residente' r.id %}" method="post">
           {% csrf_token %}
-          <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="editarPerfilLabel{{ r.id }}"><i class="bi bi-person-lines-fill"></i> Actualizar Ficha de {{ r.nombre_completo }}</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <div class="bg-brand-dark p-8 md:p-10 text-white relative">
+            <div class="relative z-10 text-left">
+                <h5 class="text-2xl font-black tracking-tight italic uppercase leading-none">Actualizar Ficha</h5>
+                <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-2">{{ r.nombre_completo }}</p>
+            </div>
+            <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
           </div>
-          <div class="modal-body">
-            <div class="mb-3">
-                <label class="form-label fw-bold">Teléfono de Contacto</label>
-                <input type="text" name="telefono" class="form-control" value="{{ r.telefono }}">
+          
+          <div class="p-10 space-y-8 bg-white text-left">
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Teléfono de Contacto</label>
+                    <input type="text" name="telefono" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none" value="{{ r.telefono }}">
+                </div>
+                <div class="space-y-2">
+                    <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Correo Electrónico</label>
+                    <input type="email" name="email_personal" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none" value="{{ r.email_personal|default:'' }}">
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Correo (Email Registrado)</label>
-                <input type="email" name="email_personal" class="form-control" value="{{ r.email_personal|default:'' }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold mt-3 text-danger"><i class="bi bi-heart-pulse"></i> DATOS DE EMERGENCIA</label>
-                <hr class="mt-0 mb-2">
-                <label class="form-label small">Nombre del Contacto de Emergencia</label>
-                <input type="text" name="emergencia_nombre" class="form-control form-control-sm mb-2" value="{{ r.emergencia_nombre }}">
-                
-                <label class="form-label small">Teléfono</label>
-                <input type="text" name="emergencia_telefono" class="form-control form-control-sm" value="{{ r.emergencia_telefono }}">
+
+            <div class="p-8 bg-red-50/50 border border-red-100 rounded-3xl space-y-6">
+                <div class="flex items-center gap-2 text-red-500 text-[0.65rem] font-black uppercase tracking-widest italic leading-none">
+                    <i class="bi bi-heart-pulse-fill"></i> DATOS DE EMERGENCIA
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Nombre Contacto</label>
+                        <input type="text" name="emergencia_nombre" class="w-full px-4 py-3 bg-white border-none rounded-xl text-xs font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none shadow-sm" value="{{ r.emergencia_nombre }}">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Teléfono</label>
+                        <input type="text" name="emergencia_telefono" class="w-full px-4 py-3 bg-white border-none rounded-xl text-xs font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none shadow-sm" value="{{ r.emergencia_telefono }}">
+                    </div>
+                </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+
+          <div class="px-10 py-8 bg-gray-50 flex gap-4">
+            <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-bs-dismiss="modal">Cerrar</button>
+            <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl shadow-brand-primary/20 hover:bg-opacity-95 active:scale-95 transition-all uppercase tracking-[0.2em] italic">
+                GUARDAR CAMBIOS <i class="bi bi-check2-all ml-2 text-brand-lime"></i>
+            </button>
           </div>
       </form>
     </div>
   </div>
 </div>
 {% endfor %}
-        </div>
-    </div>
-</div>
-</div>
 
-<!-- Modal Registrar Nuevo Residente (Flujo Unificado) -->
-<div class="modal fade" id="registrarModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content border-0 shadow-lg">
+<!-- Modal Registrar Nuevo Residente -->
+<div class="modal fade" id="registrarModal" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
       <form action="{% url 'usuarios:registrar_residente' %}" method="post">
         {% csrf_token %}
-        <div class="modal-header text-white" style="background: linear-gradient(135deg,#4e73df,#224abe);">
-          <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Registrar Nuevo Residente</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="bg-brand-primary p-12 text-white relative">
+          <div class="relative z-10 text-left">
+            <h5 class="text-3xl font-black tracking-tight italic uppercase leading-none">Nuevo Registro</h5>
+            <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-3">Creación masiva de accesos institucionales</p>
+          </div>
+          <button type="button" class="absolute top-10 right-10 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i>
+          </button>
+          <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
         </div>
 
-        <div class="modal-body p-4">
-
-          <!-- Aviso de credenciales -->
-          <div class="alert alert-info border-0 rounded-3 mb-4" style="background:#e8f0fe;">
-            <i class="bi bi-info-circle-fill me-2 text-primary"></i>
-            <strong>¿Cómo inicia sesión el residente?</strong><br>
-            <span class="small">Su <strong>número de cédula (CC)</strong> será tanto su usuario como su contraseña inicial. Al ingresar por primera vez se le pedirá cambiarla.</span>
+        <div class="p-12 text-left space-y-12 bg-white">
+          <div class="p-8 bg-brand-primary/5 border border-brand-primary/10 rounded-[2rem] flex items-start gap-6">
+            <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-brand-primary text-2xl shrink-0 shadow-sm leading-none">
+              <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-black text-brand-dark uppercase tracking-widest mb-1 italic">Política de Acceso Electrónico</h4>
+              <p class="text-[0.65rem] text-brand-dark/60 font-medium leading-relaxed italic">
+                La <strong>cédula (CC)</strong> será la llave inicial. El sistema activará un flujo de seguridad para el cambio de contraseña en el primer inicio de sesión.
+              </p>
+            </div>
           </div>
 
-          <div class="row g-3">
-            <!-- Nombre -->
-            <div class="col-md-8">
-              <label class="form-label fw-bold">Nombre Completo <span class="text-danger">*</span></label>
-              <input type="text" name="nombre_completo" class="form-control" placeholder="Ej: Juan Pérez García" required>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="col-span-1 md:col-span-2 space-y-3">
+              <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Nombre Completo del Residente</label>
+              <input type="text" name="nombre_completo" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl text-lg font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm" placeholder="Ej: Juan Pérez García" required>
             </div>
-            <!-- Tipo de Persona -->
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Tipo de Persona <span class="text-danger">*</span></label>
-              <select name="tipo_ocupacion" class="form-select">
-                <option value="Propietario">🏠 Propietario</option>
-                <option value="Arrendatario">🔑 Inquilino</option>
+            <div class="space-y-3">
+              <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Tipo de Ocupante</label>
+              <select name="tipo_ocupacion" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark appearance-none focus:ring-4 focus:ring-brand-primary/5 outline-none cursor-pointer transition-all shadow-sm">
+                <option value="Propietario">🏠 PROPIETARIO</option>
+                <option value="Arrendatario">🔑 INQUILINO</option>
               </select>
             </div>
-            <!-- Cédula -->
-            <div class="col-md-6">
-              <label class="form-label fw-bold">Número de Cédula (CC) <span class="text-danger">*</span></label>
-              <input type="text" name="documento" class="form-control form-control-lg fw-bold text-primary" placeholder="Ej: 1234567890" required>
-              <div class="form-text"><i class="bi bi-key-fill text-warning"></i> Este número es su <strong>usuario</strong> y <strong>contraseña inicial</strong>.</div>
+            <div class="space-y-3">
+              <label class="px-1 text-[0.7rem] font-black text-brand-primary uppercase tracking-widest">Cédula de Ciudadanía (ID)</label>
+              <input type="text" name="documento" class="w-full px-6 py-4 bg-brand-primary/5 border-none rounded-2xl text-sm font-black text-brand-primary focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm" placeholder="1234567890" required>
             </div>
-            <!-- Teléfono -->
-            <div class="col-md-6">
-              <label class="form-label fw-bold">Teléfono / Celular</label>
-              <input type="text" name="telefono" class="form-control" placeholder="Ej: 3001234567">
+            <div class="space-y-3">
+              <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Teléfono Directo</label>
+              <input type="text" name="telefono" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm" placeholder="300 000 0000">
             </div>
-            <!-- Email -->
-            <div class="col-md-6">
-              <label class="form-label fw-bold">Correo Electrónico</label>
-              <input type="email" name="email" class="form-control" placeholder="correo@ejemplo.com">
-            </div>
-            <!-- Rol de sistema (solo para no-residentes) -->
-            <div class="col-md-6">
-              <label class="form-label fw-bold">Rol en el Sistema</label>
-              <select name="rol" class="form-select">
-                <option value="RESIDENTE">Residente</option>
-                <option value="VIGILANCIA">Vigilancia / Portería</option>
-                <option value="ADMIN_CONJUNTO">Administrador del Conjunto</option>
+            <div class="space-y-3">
+              <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Rol del Usuario</label>
+              <select name="rol" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark appearance-none focus:ring-4 focus:ring-brand-primary/5 outline-none cursor-pointer transition-all shadow-sm">
+                <option value="RESIDENTE">RESIDENTE</option>
+                <option value="VIGILANCIA">PORTERÍA / VIGILANCIA</option>
+                <option value="ADMIN_CONJUNTO">ADMINISTRADOR</option>
               </select>
             </div>
-
-            <!-- Separador -->
-            <div class="col-12"><hr class="my-1"></div>
-
-            <!-- Asignar Apartamento (opcional) -->
-            <div class="col-12">
-              <label class="form-label fw-bold">Asignar Apartamento <span class="text-muted small fw-normal">(Opcional — se puede hacer después)</span></label>
-              <select name="apto_id" class="form-select">
-                <option value="">— Seleccionar Apartamento —</option>
+            <div class="col-span-1 md:col-span-2 space-y-4 pt-4 border-t border-gray-100">
+              <label class="px-1 text-[0.7rem] font-black text-brand-primary uppercase tracking-widest italic">Vincular a Unidad de Vivienda</label>
+              <select name="apto_id" class="w-full select2-pro border-none rounded-2xl text-[0.7rem] font-black text-brand-dark appearance-none outline-none shadow-sm cursor-pointer">
+                <option value="">— SIN VINCULACIÓN ACTUAL —</option>
                 {% for apto in todos_apartamentos %}
                   <option value="{{ apto.id }}">
-                    Torre {{ apto.torre }} · Apto {{ apto.numero }}
-                    {% if apto.propietario %} [P: {{ apto.propietario.nombre_completo }}]{% endif %}
-                    {% if apto.inquilino %} [I: {{ apto.inquilino.nombre_completo }}]{% endif %}
+                    TORRE {{ apto.torre }} · APTO {{ apto.numero }}
+                    {% if apto.propietario %} [ACT: {{ apto.propietario.nombre_completo|truncatechars:8 }}]{% endif %}
                   </option>
                 {% endfor %}
               </select>
-              <div class="form-text">El sistema asignará al residente como Propietario o Inquilino según el "Tipo de Persona" seleccionado arriba.</div>
             </div>
           </div>
-
         </div>
 
-        <div class="modal-footer bg-light">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5">
-            <i class="bi bi-check-circle me-1"></i>Crear y Registrar
+        <div class="px-12 py-8 bg-gray-50 border-t border-gray-100 flex gap-4">
+          <button type="button" class="flex-1 py-5 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase tracking-widest" data-bs-dismiss="modal">CANCELAR</button>
+          <button type="submit" class="flex-[2] py-5 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase tracking-[0.2em] italic active:scale-95 transition-all">
+            <i class="bi bi-check-circle-fill mr-2 text-brand-lime text-lg"></i> CREAR Y REGISTRAR
           </button>
         </div>
       </form>
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // 1. Inicialización de Select2 (Prioridad Máxima y Búsqueda Forzada)
+        function aplicarSelect2() {
+            try {
+                const $modal = $(this);
+                const $select = $modal.find('.select2-pro');
+                
+                if ($select.length > 0) {
+                    $select.select2({
+                        placeholder: 'Busque y seleccione...',
+                        width: '100%',
+                        language: 'es',
+                        minimumResultsForSearch: 0, // Fuerza la aparición del buscador
+                        dropdownParent: $modal,
+                        dropdownCssClass: 'select2-brand-dropdown',
+                        selectionCssClass: 'select2-brand-selection'
+                    });
+                }
+            } catch (e) {
+                console.error("Error en Select2:", e);
+            }
+        }
+
+        // Activación inmediata en la apertura de modales
+        $(document).on('shown.bs.modal', '.modal', aplicarSelect2);
+
+        // 2. DataTables (Aislado para no afectar el resto)
+        setTimeout(function() {
+            try {
+                const $tabla = $('#tablaPerfiles');
+                if ($tabla.length > 0 && !$.fn.DataTable.isDataTable('#tablaPerfiles')) {
+                    $tabla.DataTable({
+                        language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+                        order: [[0, 'asc']],
+                        autoWidth: false,
+                        responsive: true,
+                        pageLength: 20,
+                        dom: 'ft<"flex flex-col md:flex-row justify-between items-center gap-4 p-8 border-t border-gray-50"ip>'
+                    });
+                }
+            } catch (e) {
+                console.warn("DataTables no se pudo cargar completamente:", e);
+            }
+        }, 100);
+    });
+    /* Fix para que el buscador de Select2 no flote arriba */
+    .select2-container--open {
+        z-index: 9999 !important;
+    }
+</style>
+<script>
+    // Parche global para el foco de Select2 en modales
+    $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+</script>
 {% endblock %}

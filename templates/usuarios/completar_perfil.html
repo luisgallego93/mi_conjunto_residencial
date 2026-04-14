@@ -1,130 +1,192 @@
 {% extends 'base.html' %}
 
-{% block title %}Completar mi Perfil - Mi Conjunto Gestión{% endblock %}
+{% comment %}Propósito: Wizard de bienvenida y censo para nuevos usuarios.
+    Descripción: Obliga al residente a completar sus datos de contacto, emergencia y censo familiar en su primer ingreso.{% endcomment %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-5">
-            <div class="card-header bg-primary py-4 text-center border-0">
-                <h3 class="text-white fw-bold mb-1">¡Bienvenido a tu Comunidad Digital!</h3>
-                <p class="text-white-50 small mb-0">Por favor, completa tu ficha de censo para habilitar todas las funciones del portal.</p>
+<div class="max-w-4xl mx-auto mb-20 px-4">
+    <div class="card-pro !p-0 overflow-hidden shadow-premium border-none">
+        <!-- Header con Gradiente Premium -->
+        <div class="bg-gradient-to-br from-brand-primary to-brand-dark p-10 md:p-14 text-center relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="w-20 h-20 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 backdrop-blur-md">
+                    <i class="bi bi-rocket-takeoff text-white text-3xl"></i>
+                </div>
+                <h3 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-2 italic uppercase">¡Bienvenido a Sauces!</h3>
+                <p class="text-white/60 text-sm md:text-base font-bold uppercase tracking-widest leading-relaxed">Complete su ficha de censo oficial para habilitar todas las funciones del portal institucional.</p>
             </div>
             
-            <div class="card-body p-4 p-md-5">
-                <form method="post" id="wizardForm">
-                    {% csrf_token %}
-                    
-                    <!-- SECCIÓN 1: DATOS DE CONTACTO -->
-                    <div class="mb-5">
-                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-4">
-                            <i class="bi bi-person-badge-fill me-2"></i>1. Verifica tus Datos de Contacto
-                        </h5>
-                        <div class="row g-3">
-                            <div class="col-md-6 text-center">
-                                <div class="p-3 bg-light rounded-3 border">
-                                    <div class="text-xs text-uppercase text-muted mb-1">Tu Apartamento</div>
-                                    <div class="h5 mb-0 fw-bold">
-                                        {% if apartamento %}
-                                            Apto {{ apartamento.numero }} - Torre {{ apartamento.torre }}
-                                        {% else %}
-                                            <span class="text-danger">Pendiente de asignación</span>
-                                        {% endif %}
-                                    </div>
+            <!-- Elementos Decorativos -->
+            <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-20 -left-20 w-60 h-60 bg-brand-lime/10 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div class="p-8 md:p-12 bg-white">
+            <form method="post" id="wizardForm" class="space-y-16">
+                {% csrf_token %}
+                
+                <!-- SECCIÓN 1: DATOS DE CONTACTO -->
+                <div class="space-y-10 group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary text-xl group-hover:scale-110 transition-transform">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h5 class="text-lg font-black text-brand-dark uppercase tracking-tight">1. Verificación de Contacto</h5>
+                            <div class="h-px bg-gray-100 mt-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="p-6 bg-brand-primary/5 rounded-3xl border border-brand-primary/10 flex items-center gap-5">
+                            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-brand-primary text-xl">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div>
+                                <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Apartamento Asignado</span>
+                                <span class="text-sm font-black text-brand-dark italic uppercase">
+                                    {% if apartamento %}
+                                        T{{ apartamento.torre }} · Apto {{ apartamento.numero }}
+                                    {% else %}
+                                        <span class="text-red-400">PENDIENTE DE ASIGNACIÓN</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-brand-lime/5 rounded-3xl border border-brand-lime/10 flex items-center gap-5">
+                            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-brand-dark text-xl">
+                                <i class="bi bi-person-check-fill"></i>
+                            </div>
+                            <div>
+                                <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Rol Institucional</span>
+                                <span class="text-sm font-black text-brand-dark italic uppercase">{{ perfil.tipo_ocupacion }}</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">WhatsApp / Celular <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300">
+                                    <i class="bi bi-telephone"></i>
                                 </div>
+                                <input type="text" name="telefono" class="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.telefono }}" required>
                             </div>
-                            <div class="col-md-6 text-center">
-                                <div class="p-3 bg-light rounded-3 border">
-                                    <div class="text-xs text-uppercase text-muted mb-1">Tu Rol</div>
-                                    <div class="h5 mb-0 fw-bold text-primary">{{ perfil.tipo_ocupacion }}</div>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Correo Electrónico <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300">
+                                    <i class="bi bi-envelope"></i>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Teléfono Celular</label>
-                                <input type="text" name="telefono" class="form-control form-control-lg" value="{{ perfil.telefono }}" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Email Personal</label>
-                                <input type="email" name="email_personal" class="form-control form-control-lg" value="{{ perfil.email_personal }}" required>
+                                <input type="email" name="email_personal" class="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.email_personal }}" required>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- SECCIÓN 2: CONTACTO DE EMERGENCIA -->
-                    <div class="mb-5">
-                        <h5 class="fw-bold text-danger border-bottom pb-2 mb-4">
-                            <i class="bi bi-heart-pulse-fill me-2"></i>2. Contacto de Emergencia
-                        </h5>
-                        <div class="row g-3">
-                            <div class="col-md-8">
-                                <label class="form-label fw-bold">Nombre Completo</label>
-                                <input type="text" name="emergencia_nombre" class="form-control" value="{{ perfil.emergencia_nombre }}" placeholder="Ej: Maria Perez" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Teléfono</label>
-                                <input type="text" name="emergencia_telefono" class="form-control" value="{{ perfil.emergencia_telefono }}" required>
-                            </div>
+                <!-- SECCIÓN 2: CONTACTO DE EMERGENCIA -->
+                <div class="space-y-10 group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-red-500 text-xl group-hover:scale-110 transition-transform">
+                            <i class="bi bi-heart-pulse-fill"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h5 class="text-lg font-black text-brand-dark uppercase tracking-tight">2. Contacto de Emergencia</h5>
+                            <div class="h-px bg-gray-100 mt-2"></div>
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 3: CENSO POBLACIONAL -->
-                    <div class="mb-5">
-                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
-                            <h5 class="fw-bold text-success mb-0">
-                                <i class="bi bi-people-fill me-2"></i>3. Censo Familiar (Habitantes)
-                            </h5>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addOcupante()">
-                                <i class="bi bi-plus-circle me-1"></i>Añadir Familiar
-                            </button>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+                        <div class="md:col-span-8 space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Nombre Completo <span class="text-red-500">*</span></label>
+                            <input type="text" name="emergencia_nombre" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.emergencia_nombre }}" placeholder="Ej: María Pérez" required>
                         </div>
-                        
-                        <p class="small text-muted mb-3">Registra a las personas que viven contigo en el apartamento (hijos, padres, hermanos, etc.) para el control de acceso.</p>
-                        
-                        <div id="ocupantesContainer">
-                            <!-- Los ocupantes se añadirán aquí dinámicamente -->
+                        <div class="md:col-span-4 space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Teléfono <span class="text-red-500">*</span></label>
+                            <input type="text" name="emergencia_telefono" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.emergencia_telefono }}" required>
                         </div>
                     </div>
+                </div>
 
-                    <!-- SECCIÓN 4: SEGURIDAD -->
-                    <div class="mb-5">
-                        <h5 class="fw-bold text-dark border-bottom pb-2 mb-4">
-                            <i class="bi bi-shield-lock-fill me-2"></i>4. Actualiza tu Contraseña
-                        </h5>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Nueva Contraseña</label>
-                                <input type="password" name="pass1" class="form-control" placeholder="Mínimo 8 caracteres">
+                <!-- SECCIÓN 3: CENSO FAMILIAR -->
+                <div class="space-y-10 group">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2 border-b border-gray-100">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-500 text-xl group-hover:scale-110 transition-transform">
+                                <i class="bi bi-people-fill"></i>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Confirmar Contraseña</label>
-                                <input type="password" name="pass2" class="form-control">
+                            <div>
+                                <h5 class="text-lg font-black text-brand-dark uppercase tracking-tight leading-none mb-1">3. Censo Familiar</h5>
+                                <p class="text-[0.6rem] text-gray-400 font-bold uppercase tracking-widest">Personas que habitan en el inmueble</p>
                             </div>
                         </div>
-                        <div class="form-text mt-3">
-                            <i class="bi bi-info-circle"></i> Tu contraseña actual es tu número de documento. Te recomendamos cambiarla por seguridad.
-                        </div>
-                    </div>
-
-                    <div class="d-grid mt-5">
-                        <button type="submit" class="btn btn-primary btn-lg fw-bold shadow">
-                            <i class="bi bi-check-circle-fill me-2"></i>Finalizar Registro y Entrar al Portal
+                        <button type="button" class="inline-flex items-center px-6 py-3 bg-brand-primary text-white text-[0.65rem] font-black uppercase tracking-widest rounded-xl hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95" onclick="addOcupante()">
+                            <i class="bi bi-plus-circle-fill mr-2"></i> Añadir Familiar
                         </button>
                     </div>
 
-                </form>
-            </div>
+                    <div id="ocupantesContainer" class="space-y-4">
+                        <!-- Los ocupantes se añadirán aquí dinámicamente -->
+                    </div>
+                    
+                    <div class="p-6 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100 text-center">
+                        <p class="text-xs text-gray-400 font-medium italic">Registre a todos los habitantes para garantizar el control de acceso y seguridad perimetral.</p>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 4: SEGURIDAD -->
+                <div class="space-y-10 group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-brand-dark/10 rounded-2xl flex items-center justify-center text-brand-dark text-xl group-hover:scale-110 transition-transform">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h5 class="text-lg font-black text-brand-dark uppercase tracking-tight">4. Actualice su Contraseña</h5>
+                            <div class="h-px bg-gray-100 mt-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Nueva Contraseña</label>
+                            <input type="password" name="pass1" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" placeholder="Escriba su clave segura">
+                        </div>
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Confirmar Contraseña</label>
+                            <input type="password" name="pass2" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none">
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-brand-primary/5 rounded-3xl border border-brand-primary/10 flex items-start gap-5">
+                        <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary shrink-0 leading-none">
+                            <i class="bi bi-info-circle-fill"></i>
+                        </div>
+                        <p class="text-xs text-brand-primary/70 font-bold leading-relaxed">
+                            Su contraseña actual es su número de identificación. Por seguridad institucional, <strong>es obligatorio actualizarla</strong> en este momento para activar su cuenta.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-10">
+                    <button type="submit" class="w-full py-6 bg-brand-primary text-white text-base font-black uppercase tracking-[0.2em] rounded-3xl hover:bg-opacity-90 shadow-2xl shadow-brand-primary/30 active:scale-95 transition-all">
+                         FINALIZAR REGISTRO E INGRESAR <i class="bi bi-chevron-right ml-4"></i>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <template id="ocupanteTemplate">
-    <div class="row g-2 mb-3 animate__animated animate__fadeIn">
-        <div class="col-md-7">
-            <input type="text" name="ocu_nombre" class="form-control" placeholder="Nombre completo del familiar">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-6 bg-gray-50/50 rounded-3xl border border-gray-100 mb-4 animate__animated animate__fadeInUp anim-duration-300">
+        <div class="md:col-span-7 space-y-2">
+            <label class="px-1 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Nombre Completo</label>
+            <input type="text" name="ocu_nombre" class="w-full px-5 py-3 bg-white border-none rounded-xl text-xs font-black text-brand-dark shadow-sm outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" placeholder="Nombre completo del familiar">
         </div>
-        <div class="col-md-4">
-            <select name="ocu_parentesco" class="form-select">
-                <option value="">Parentesco...</option>
+        <div class="md:col-span-4 space-y-2">
+            <label class="px-1 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Parentesco</label>
+            <select name="ocu_parentesco" class="w-full px-5 py-3 bg-white border-none rounded-xl text-xs font-black text-brand-dark shadow-sm outline-none cursor-pointer">
+                <option value="">Seleccione...</option>
                 <option value="Esposa/o">Esposa/o</option>
                 <option value="Hijo/a">Hijo/a</option>
                 <option value="Madre/Padre">Madre/Padre</option>
@@ -132,9 +194,9 @@
                 <option value="Otro">Otro</option>
             </select>
         </div>
-        <div class="col-md-1">
-            <button type="button" class="btn btn-outline-danger w-100" onclick="this.parentElement.parentElement.remove()">
-                <i class="bi bi-trash"></i>
+        <div class="md:col-span-1 flex items-end">
+            <button type="button" class="w-full h-[45px] bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-90 flex items-center justify-center leading-none" onclick="this.parentElement.parentElement.remove()">
+                <i class="bi bi-trash-fill"></i>
             </button>
         </div>
     </div>
@@ -157,12 +219,9 @@
 </script>
 
 <style>
-    .card-header {
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: #4e73df;
-        box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.1);
+    .anim-duration-300 {
+        animation-duration: 300ms;
     }
 </style>
+{% endblock %}
 {% endblock %}

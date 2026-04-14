@@ -6,7 +6,7 @@ class ComunicacionForm(forms.ModelForm):
         model = Comunicacion
         # Solo pediremos estos campos al usuario que radica la solicitud
         fields = ['tipo', 'titulo', 'descripcion', 'prioridad', 'solicitante', 'zona_afectada', 'ubicacion_especifica', 'imagen_evidencia']
-        
+
         widgets = {
             'tipo': forms.Select(attrs={'class': 'form-select'}),
             'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Fuga de agua en el baño'}),
@@ -21,7 +21,7 @@ class ComunicacionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        
+
         if user and hasattr(user, 'perfilusuario') and user.perfilusuario.rol == 'RESIDENTE':
             from usuarios.models import PerfilUsuario
             self.fields['solicitante'].queryset = PerfilUsuario.objects.filter(id=user.perfilusuario.id)

@@ -1,57 +1,153 @@
 {% extends 'base.html' %}
 
-{% block title %}Registrar Multa - Mi Conjunto Gestión{% endblock %}
+{% comment %}Propósito: Formulario de Registro de Multas.
+    Descripción: Permite a la administración imponer sanciones económicas a las unidades privas por infracción al manual de convivencia.{% endcomment %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800"><i class="bi bi-file-earmark-text text-danger"></i> Radicar Sanción/Multa</h2>
-    <a href="{% url 'finanzas:cartera' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
-        <i class="bi bi-arrow-left"></i> Volver a Cartera
-    </a>
-</div>
+<div class="max-w-4xl mx-auto mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">
+                <i class="bi bi-file-earmark-text text-red-500 mr-2"></i>Radicar Sanción
+            </h2>
+            <p class="text-gray-400 font-medium text-sm">Registro oficial de multas por infracción al manual de convivencia.</p>
+        </div>
+        <a href="{% url 'finanzas:cartera' %}" class="inline-flex items-center px-6 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-black text-gray-500 hover:text-brand-primary transition-all shadow-sm">
+            <i class="bi bi-arrow-left mr-2"></i> VOLVER A CARTERA
+        </a>
+    </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4 border-start border-4 border-danger">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-danger">Detalle de la Infracción</h6>
+    <div class="card-pro !p-0 overflow-hidden shadow-premium group">
+        <div class="h-2 bg-red-500 w-full"></div>
+        <div class="p-8 md:p-12">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 text-xl shadow-inner">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Detalle de la Infracción</h3>
+                    <p class="text-[0.7rem] text-gray-400 font-bold uppercase tracking-tight">Categorización comercial / convivencia</p>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Apartamento Infractor</label>
+
+            <form method="post" class="space-y-10">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Apartamento Infractor</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <!-- Django default widget styling handled in style block -->
                             {{ form.apartamento }}
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-300">
+                                <i class="bi bi-chevron-down text-xs"></i>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Tipo de Sanción</label>
+                        <p class="px-1 text-[0.65rem] text-gray-500 font-medium">Busque la unidad por número de torre o apartamento.</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Categoría de la Falta</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-primary">
+                                <i class="bi bi-tag"></i>
+                            </div>
                             {{ form.tipo }}
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-300">
+                                <i class="bi bi-chevron-down text-xs"></i>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="form-label fw-bold">Motivo Corto</label>
-                            {{ form.descripcion }}
-                        </div>
+                <div class="space-y-3">
+                    <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Descripción de los Hechos</label>
+                    <div class="relative group">
+                         {{ form.descripcion }}
                     </div>
+                    <p class="px-1 text-[0.65rem] text-gray-500 font-medium italic">Detalle fecha y hora del suceso, así como el artículo del reglamento infringido.</p>
+                </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-danger">Valor Base de Multa ($)</label>
+                <div class="flex justify-center">
+                    <div class="w-full max-w-sm p-8 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 text-center space-y-4">
+                        <label class="text-[0.7rem] font-black text-red-500 uppercase tracking-[0.2em]">VALOR DE LA SANCIÓN</label>
+                        <div class="relative flex items-center justify-center">
+                            <span class="text-3xl font-black text-gray-300 mr-2">$</span>
                             {{ form.valor }}
                         </div>
                     </div>
+                </div>
 
-                    <hr>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-danger btn-lg"><i class="bi bi-save"></i> Imponer y Facturar</button>
+                <div class="p-6 bg-brand-blue/5 border border-brand-blue/10 rounded-3xl flex items-start gap-4">
+                    <div class="w-10 h-10 bg-brand-blue/10 rounded-xl flex items-center justify-center text-brand-blue shrink-0">
+                        <i class="bi bi-info-circle-fill"></i>
                     </div>
-                </form>
-            </div>
+                    <div>
+                        <h6 class="text-sm font-black text-brand-dark tracking-tight mb-1">Impacto Administrativo</h6>
+                        <p class="text-xs text-gray-500 font-medium leading-relaxed">
+                            Esta multa se cargará automáticamente al histórico del apartamento y afectará su estado de <strong>Paz y Salvo</strong> inmediatamente una vez sea radicada.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-end gap-4 pt-4">
+                    <a href="{% url 'finanzas:cartera' %}" class="px-8 py-4 bg-gray-100 text-gray-500 text-sm font-black rounded-2xl hover:bg-gray-200 transition-all text-center">
+                        CANCELAR
+                    </a>
+                    <button type="submit" class="px-10 py-4 bg-red-500 text-white text-sm font-black rounded-2xl hover:bg-red-600 shadow-lg shadow-red-500/20 active:scale-95 transition-all uppercase tracking-tight">
+                        <i class="bi bi-shield-fill-check mr-2"></i>Imponer Sanción
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        // Estilización de los campos generados por Django
+        $('select').addClass('w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 appearance-none outline-none transition-all cursor-pointer');
+        $('textarea').addClass('w-full p-6 bg-gray-50 border-none rounded-2xl text-sm font-medium text-gray-600 focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all placeholder-gray-300').attr('rows', '4').attr('placeholder', 'Describa detalladamente lo sucedido...');
+        $('input[name="valor"]').addClass('w-32 bg-transparent text-4xl font-black text-brand-dark border-none focus:ring-0 p-0 text-center outline-none');
+
+        // Select2 for apartment search
+        $('select[name="apartamento"]').select2({
+            placeholder: 'Número de torre/apto...',
+            width: '100%'
+        }).on('select2:open', function() {
+            $('.select2-search__field').get(0).focus();
+        });
+    });
+</script>
+
+<style>
+    /* Forzar ocultamiento de flechas de número en valor si fuera necesario */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .select2-container--default .select2-selection--single {
+        border-radius: 1rem !important;
+        background-color: transparent !important;
+        height: 56px !important;
+        border: none !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        padding-left: 2.75rem !important;
+        font-weight: 700 !important;
+        color: var(--color-brand-dark) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        display: none !important;
+    }
+</style>
 {% endblock %}

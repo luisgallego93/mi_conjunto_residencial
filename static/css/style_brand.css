@@ -1,0 +1,141 @@
+/*
+Descripción General: Sistema de Diseño y Estilos de Marca Estandarizado.
+Módulo: Global - Estilos
+Propósito del archivo: Centralizar la identidad visual de "Sauces de Ciudad del Valle" 
+usando variables CSS, utilidades de color y componentes premium.
+*/
+
+:root {
+    /* Paleta de Colores Extraída del Logo */
+    --brand-primary: #148C44;         /* Verde Bosque (Sólido) */
+    --brand-primary-light: #e8f5e9;   /* Verde Bosque Opacidad */
+    --brand-lime: #9DC33D;            /* Verde Lima (Highlight) */
+    --brand-lime-light: #f1f8e9;      /* Verde Lima Opacidad */
+    --brand-blue-deep: #2E3192;       /* Azul/Púrpura Profundo */
+    --brand-accent: #DC3545;          /* Rojo para Alertas */
+    --brand-black: #1D1D1B;           /* Negro Carbón */
+    --brand-gray-light: #F8F9FA;      /* Fondo Claro */
+    --brand-gray-medium: #D1D3D4;     /* Gris Bordes */
+    
+    /* Configuración de Componentes */
+    --sidebar-bg: var(--brand-black);
+    --sidebar-text: #ffffff;
+    --sidebar-hover: rgba(255, 255, 255, 0.08);
+}
+
+/* Tipografía y Cuerpo */
+body {
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f7f6;
+    color: var(--brand-black);
+}
+
+/* Tipografía de Marca */
+.text-brand-primary { color: var(--brand-primary) !important; }
+.text-brand-secondary { color: var(--brand-blue-deep) !important; }
+.text-brand-lime { color: var(--brand-lime) !important; }
+.text-brand-accent { color: var(--brand-accent) !important; }
+
+/* Fondos de Marca */
+.bg-brand-primary { background-color: var(--brand-primary) !important; }
+.bg-brand-blue-deep { background-color: var(--brand-blue-deep) !important; }
+.bg-brand-lime { background-color: var(--brand-lime) !important; }
+.bg-brand-lime-light { background-color: var(--brand-lime-light) !important; }
+
+/* Bordes de Marca */
+.border-brand-primary { border-color: var(--brand-primary) !important; }
+.border-brand-primary-light { border-color: var(--brand-primary-light) !important; }
+
+/* Botones Premium */
+.btn-brand-primary {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-brand-primary:hover {
+    background-color: #0f6c34;
+    border-color: #0f6c34;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(20, 140, 68, 0.25);
+}
+
+.btn-brand-secondary {
+    background-color: var(--brand-blue-deep);
+    border-color: var(--brand-blue-deep);
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-brand-secondary:hover {
+    background-color: #232570;
+    border-color: #232570;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 49, 146, 0.2);
+}
+
+/* Sidebar & Navigation */
+.sidebar {
+    background-color: var(--sidebar-bg) !important;
+    min-height: 100vh;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.7) !important;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-left: 4px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.sidebar .nav-link:hover, 
+.sidebar .nav-link.active {
+    background-color: var(--sidebar-hover) !important;
+    color: var(--brand-lime) !important;
+    border-left: 4px solid var(--brand-lime);
+}
+
+.sidebar .nav-link i {
+    color: var(--brand-lime);
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+/* Tablas Estandarizadas (DataTables) */
+.datatable-brand thead th {
+    background-color: #f8fafc;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.datatable-brand tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.datatable-brand tbody tr:hover {
+    background-color: rgba(199, 218, 12, 0.05); /* Lime tint on hover */
+}
+
+/* Alertas de Marca */
+.alert-brand-info {
+    background-color: #e3f2fd;
+    border-left: 5px solid var(--brand-blue-deep);
+    color: #0d47a1;
+}
+
+.alert-brand-accent {
+    background-color: #fff5f5;
+    border-left: 5px solid var(--brand-accent);
+    color: #c53030;
+}

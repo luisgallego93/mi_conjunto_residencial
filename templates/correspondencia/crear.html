@@ -1,62 +1,127 @@
 {% extends 'base.html' %}
 
-{% block title %}Recibir Paquete - Mi Conjunto Gestión{% endblock %}
+{% comment %}Propósito: Formulario de Recepción de Correspondencia.
+Descripción: Permite a los operadores de portería registrar el ingreso de nuevos paquetes, sobres o encomiendas al
+conjunto residencial.{% endcomment %}
+
+{% block title %}Recibir Paquete - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Recepción de Correspondencia</h2>
-    <a href="{% url 'correspondencia:lista_paquetes' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
-        <i class="bi bi-arrow-left"></i> Volver al Inventario
+    <h2 class="h3 mb-0 text-brand-secondary fw-bold">Recepción de Correspondencia</h2>
+    <a href="{% url 'correspondencia:lista_paquetes' %}"
+        class="btn btn-sm btn-outline-brand-secondary rounded-pill px-3 shadow-sm">
+        <i class="bi bi-arrow-left me-1"></i> Volver al Inventario
     </a>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4 border-start border-4 border-info">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-info">Detalle del Envío entrante</h6>
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm mb-4 border-0"
+            style="border-radius: 15px; border-top: 5px solid var(--brand-primary) !important;">
+            <div class="card-header py-3 bg-white border-bottom border-light">
+                <h6 class="m-0 fw-bold text-brand-primary"><i class="bi bi-box-seam me-2"></i>Detalle del Envío Entrante
+                </h6>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4 bg-light" style="background-color: #f7f9fc !important;">
                 <form method="post">
                     {% csrf_token %}
-                    
-                    <div class="row mb-3">
+
+                    <div class="row g-4 mb-4">
                         <div class="col-md-5">
-                            <label class="form-label fw-bold text-primary">Apartamento Destino</label>
-                            {{ form.apartamento }}
+                            <label class="form-label fw-bold small text-brand-primary text-uppercase">Unidad de
+                                Destino</label>
+                            <div class="input-brand-wrapper">
+                                {{ form.apartamento }}
+                            </div>
                         </div>
                         <div class="col-md-7">
-                            <label class="form-label fw-bold">Destinatario (Nombre en el paquete)</label>
-                            {{ form.destinatario }}
+                            <label class="form-label fw-bold small text-brand-secondary text-uppercase">Destinatario
+                                (Nombre en el paquete)</label>
+                            <div class="input-brand-wrapper">
+                                {{ form.destinatario }}
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="row g-4 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Empresa Transportadora / Origen</label>
-                            {{ form.transportadora }}
+                            <label class="form-label fw-bold small text-brand-secondary text-uppercase">Empresa
+                                Transportadora / Origen</label>
+                            <div class="input-brand-wrapper">
+                                {{ form.transportadora }}
+                            </div>
+                            <div class="form-text x-small">Ej: Servientrega, Envía, Amazon, Mercado Libre.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Número de Guía</label>
-                            {{ form.guia }}
+                            <label class="form-label fw-bold small text-brand-secondary text-uppercase">Número de Guía /
+                                Referencia</label>
+                            <div class="input-brand-wrapper">
+                                {{ form.guia }}
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-4">
+                    <div class="row mb-5">
                         <div class="col-12">
-                            <label class="form-label fw-bold">Información Adicional (Observaciones)</label>
-                            {{ form.observaciones }}
+                            <label class="form-label fw-bold small text-brand-secondary text-uppercase">Notas
+                                Adicionales (Estado del empaque, fragilidad)</label>
+                            <div class="input-brand-wrapper">
+                                {{ form.observaciones }}
+                            </div>
                         </div>
                     </div>
 
-                    <hr>
-                    <div class="d-flex justify-content-end align-items-center">
-                        <span class="text-muted small me-3"><i class="bi bi-clock"></i> El sistema registrará tu usuario y la hora actual automáticamente al guardar.</span>
-                        <button type="submit" class="btn btn-info text-white font-weight-bold btn-lg px-4"><i class="bi bi-inbox-fill"></i> Sellar Recibido</button>
+                    <div class="alert alert-brand-info border-0 rounded-4 shadow-sm mb-4 py-3">
+                        <div class="d-flex align-items-center px-2">
+                            <i class="bi bi-info-circle-fill fs-3 text-brand-primary me-3"></i>
+                            <div class="small">
+                                <h6 class="fw-bold mb-1 text-brand-secondary">Registro Automático de Trazabilidad</h6>
+                                <p class="mb-0 opacity-75 text-dark">Al sellar este recibido, el sistema vinculará su
+                                    usuario <strong>({{ user.username }})</strong> y la estampa de tiempo real de
+                                    bodega.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 opacity-25">
+                    <div class="d-flex justify-content-end align-items-center flex-wrap gap-3">
+                        <button type="submit"
+                            class="btn btn-brand-primary text-white btn-lg rounded-pill px-5 fw-bold shadow">
+                            <i class="bi bi-clipboard-plus-fill me-2 text-brand-lime"></i>SELLAR RECIBIDO
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Estilización personalizada de inputs de Django */
+    select.form-select,
+    input.form-control,
+    textarea.form-control {
+        border-radius: 12px !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.75rem 1rem !important;
+        background-color: white !important;
+    }
+
+    textarea.form-control {
+        height: 100px;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+        border-color: var(--brand-lime) !important;
+        box-shadow: 0 0 0 0.25rem rgba(199, 218, 12, 0.1) !important;
+    }
+
+    .x-small {
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+</style>
 {% endblock %}

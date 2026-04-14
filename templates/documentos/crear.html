@@ -1,47 +1,94 @@
 {% extends 'base.html' %}
 
-{% block title %}Subir Documento - Mi Conjunto Gestión{% endblock %}
+{% comment %}Propósito: Formulario de Carga de Documentos Institucionales.
+    Descripción: Interfaz administrativa para publicar archivos PDF en la biblioteca digital del conjunto.{% endcomment %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Cargar Archivo PDF</h2>
-    <a href="{% url 'documentos:lista' %}" class="btn btn-sm btn-secondary shadow-sm">
-        <i class="bi bi-arrow-left"></i> Volver a Lista
-    </a>
-</div>
+<div class="max-w-4xl mx-auto mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">Publicar Documento</h2>
+            <p class="text-gray-400 font-medium text-sm">Cargue archivos oficiales al repositorio digital del conjunto.</p>
+        </div>
+        <a href="{% url 'documentos:lista' %}" class="inline-flex items-center px-6 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-black text-gray-500 hover:text-brand-primary transition-all shadow-sm">
+            <i class="bi bi-arrow-left mr-2"></i> VOLVER A LA LISTA
+        </a>
+    </div>
 
-<div class="row">
-    <div class="col-lg-6 col-md-8 mx-auto">
-        <div class="card shadow border-0">
-            <div class="card-header bg-white py-3">
-                <h6 class="m-0 fw-bold text-primary">Detalles del Documento</h6>
+    <div class="card-pro !p-0 overflow-hidden shadow-premium group">
+        <div class="h-2 bg-brand-primary w-full group-hover:bg-brand-lime transition-all duration-500"></div>
+        <div class="p-8 md:p-12">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary text-xl shadow-inner group-hover:scale-110 transition-transform">
+                    <i class="bi bi-file-earmark-arrow-up"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Detalles del Archivo</h3>
+                    <p class="text-[0.7rem] text-gray-400 font-bold uppercase tracking-tight">Información institucional obligatoria</p>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ field.label }}</label>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="space-y-3">
+                    <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">{{ field.label }}</label>
+                    <div class="relative group/input">
+                        {% if field.name == 'archivo' %}
+                        <div class="relative">
                             {{ field }}
-                            {% if field.help_text %}
-                                <div class="form-text">{{ field.help_text }}</div>
-                            {% endif %}
-                            {% for error in field.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
                         </div>
-                    {% endfor %}
-                    
-                    <hr class="mt-4 mb-3">
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary fw-bold text-white shadow-sm">
-                            <i class="bi bi-cloud-arrow-up"></i> Guardar Documento
-                        </button>
+                        {% else %}
+                        {{ field }}
+                        {% endif %}
+                        
+                        {% if field.errors %}
+                        <div class="mt-2 px-1 flex items-center gap-1.5 text-red-500 text-[0.65rem] font-black uppercase">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            {% for error in field.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
-                </form>
-            </div>
+                    {% if field.help_text %}
+                    <p class="px-1 text-[0.65rem] text-gray-400 font-medium italic"><i class="bi bi-info-circle mr-1"></i>{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div class="p-6 bg-brand-blue/5 border border-brand-blue/10 rounded-3xl flex items-start gap-4">
+                    <div class="w-10 h-10 bg-brand-blue/10 rounded-xl flex items-center justify-center text-brand-blue shrink-0">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-sm font-black text-brand-dark tracking-tight mb-1">Seguridad de Datos</h6>
+                        <p class="text-xs text-gray-500 font-medium leading-relaxed">
+                            Asegúrese de que el documento no contenga información personal sensible o privada antes de publicarlo en el repositorio público institucional.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-end gap-4 pt-4 border-t border-gray-50">
+                    <a href="{% url 'documentos:lista' %}" class="px-8 py-4 bg-gray-100 text-gray-500 text-sm font-black rounded-2xl hover:bg-gray-200 transition-all text-center">
+                        CANCELAR
+                    </a>
+                    <button type="submit" class="px-10 py-4 bg-brand-primary text-white text-sm font-black rounded-2xl hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 active:scale-95 transition-all uppercase tracking-widest">
+                        <i class="bi bi-cloud-check-fill mr-2"></i>GUARDAR Y PUBLICAR
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        // Estilización de los campos de Django
+        $('input:not([type="file"]), select, textarea').addClass('w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all placeholder-gray-300');
+        
+        $('input[type="file"]').addClass('w-full px-6 py-3.5 bg-gray-50 border-none rounded-2xl text-xs font-black text-gray-400 file:bg-brand-primary file:text-white file:border-none file:px-4 file:py-1 file:rounded-lg file:mr-4 file:text-[0.6rem] file:font-black focus:ring-4 focus:ring-brand-primary/5 outline-none cursor-pointer');
+
+        $('textarea').attr('rows', '3').attr('placeholder', 'Escriba una breve descripción del contenido...');
+    });
+</script>
 {% endblock %}

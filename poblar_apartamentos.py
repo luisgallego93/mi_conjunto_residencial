@@ -12,7 +12,7 @@ def generar_conjunto_real():
     torres = [chr(i) for i in range(ord('A'), ord('W') + 1)]
     pisos = range(1, 6)           # Pisos 1, 2, 3, 4, 5
     unidades = range(1, 5)        # Aptos 01, 02, 03, 04 por piso
-    
+
     contador = 0
     print(f"🚀 Iniciando construcción digital de {len(torres)} torres...")
 
@@ -22,7 +22,7 @@ def generar_conjunto_real():
                 # Formato solicitado: A101, A102... W504
                 # Usamos f"{letra}{piso}0{n}" para asegurar el cero intermedio
                 identificador_apto = f"{letra}{piso}0{n}"
-                
+
                 # Creamos el registro en MySQL
                 Apartamento.objects.get_or_create(
                     torre=letra,
@@ -30,7 +30,7 @@ def generar_conjunto_real():
                     piso=piso
                 )
                 contador += 1
-    
+
     print(f"✅ ¡Misión cumplida! Se crearon {contador} apartamentos con éxito.")
 
 if __name__ == '__main__':

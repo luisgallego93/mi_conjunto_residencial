@@ -1,152 +1,246 @@
 {% extends 'base.html' %}
 
-{% block title %}Detalle Comunicación - Mi Conjunto Gestión{% endblock %}
-
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="h3 mb-1 text-gray-800">{{ pqrs.titulo }}</h2>
-        <span class="badge fs-6 px-3 py-2" style="background-color:#1e3a5f;">
-            <i class="bi bi-ticket-perforated me-1"></i>
-            Radicado: {{ pqrs.numero_radicado|default:"Sin radicado" }}
-        </span>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div class="flex flex-col md:flex-row md:items-center gap-6">
+            <div class="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary text-2xl shadow-sm">
+                 <i class="bi bi-chat-left-text-fill"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-brand-dark tracking-tight uppercase leading-none mb-2">{{ pqrs.titulo }}</h2>
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 bg-brand-dark text-white text-[0.6rem] font-black uppercase tracking-[0.2em] rounded-lg">
+                         RADICADO #{{ pqrs.numero_radicado|default:"PENDIENTE" }}
+                    </span>
+                    <span class="text-gray-400 font-bold text-xs uppercase tracking-widest">{{ pqrs.fecha_creacion|date:"d M Y, H:i" }}</span>
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'comunicacion:lista_pqrs' %}" class="inline-flex items-center px-6 py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-gray-400 hover:text-brand-primary transition-all shadow-sm">
+            <i class="bi bi-arrow-left mr-2"></i> VOLVER AL BUZÓN
+        </a>
     </div>
-    <a href="{% url 'comunicacion:lista_pqrs' %}" class="btn btn-sm btn-outline-secondary shadow-sm">
-        <i class="bi bi-arrow-left"></i> Volver al Buzón
-    </a>
-</div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-white d-flex justify-content-between">
-                <h6 class="m-0 fw-bold text-primary">Cuerpo del Mensaje</h6>
-                <span class="badge bg-secondary">{{ pqrs.fecha_creacion|date:"d M Y, H:i" }}</span>
-            </div>
-            <div class="card-body">
-                <div class="mb-4">
-                    <p class="fs-5">{{ pqrs.descripcion|linebreaks }}</p>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- Cuerpo de la Comunicación -->
+        <div class="lg:col-span-8 space-y-12">
+            <!-- Solicitud Original -->
+            <div class="card-pro shadow-premium relative overflow-hidden group">
+                <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-8 bg-brand-primary rounded-full"></div>
+                        <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Contenido de la Solicitud</h3>
+                    </div>
+                    <span class="text-[0.6rem] font-black text-gray-300 uppercase tracking-widest group-hover:text-brand-primary transition-colors italic">Mensaje Original</span>
                 </div>
-                {% if pqrs.adjunto %}
-                <hr>
-                <div class="mb-2">
-                    <strong>Archivo Adjunto Inicial:</strong> <a href="{{ pqrs.adjunto.url }}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-paperclip"></i> Ver adjunto</a>
+                
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-gray-700 font-medium leading-relaxed italic border-l-4 border-gray-100 pl-6 py-2">
+                        {{ pqrs.descripcion|linebreaksbr }}
+                    </p>
+                </div>
+
+                {% if pqrs.imagen_evidencia %}
+                <div class="mt-10 p-6 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between group/img">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 shadow-sm">
+                            <i class="bi bi-image"></i>
+                        </div>
+                        <div>
+                            <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest block">Evidencia Adjunta</span>
+                            <span class="text-xs font-black text-brand-dark italic uppercase">Captura de Pantalla / Foto</span>
+                        </div>
+                    </div>
+                    <a href="{{ pqrs.imagen_evidencia.url }}" target="_blank" class="px-5 py-2 bg-brand-primary text-white text-[0.65rem] font-black uppercase tracking-widest rounded-lg hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 transition-all">
+                        <i class="bi bi-eye mr-2"></i> VER ARCHIVO
+                    </a>
                 </div>
                 {% endif %}
             </div>
-        </div>
 
-        <!-- Hilo de Respuestas -->
-        <h5 class="fw-bold text-secondary mb-3 mt-4"><i class="bi bi-chat-right-text"></i> Interacciones y Respuestas</h5>
-        
-        {% for r in pqrs.respuestas.all %}
-        <div class="card shadow-sm mb-3 border-0 border-start border-4 {% if r.autor == request.user %}border-primary ms-5{% else %}border-info me-5 bg-light{% endif %}">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <span class="fw-bold text-dark"><i class="bi bi-person-circle"></i> {{ r.autor.get_full_name|default:r.autor.username }}</span>
-                    <span class="text-muted small">{{ r.fecha_creacion|date:"d M, H:i" }}</span>
+            <!-- Hilo de Respuestas -->
+            <div class="space-y-8 relative">
+                <div class="flex items-center gap-4 mb-2">
+                    <h4 class="text-[0.7rem] font-black text-gray-400 uppercase tracking-[0.2em] flex-shrink-0">Trazabilidad de la Gestión</h4>
+                    <div class="h-px bg-gray-100 w-full"></div>
                 </div>
-                <hr class="my-2">
-                <p class="mb-2">{{ r.mensaje|linebreaks }}</p>
-                {% if r.evidencia %}
-                 <a href="{{ r.evidencia.url }}" target="_blank" class="badge bg-warning text-dark text-decoration-none">
-                     <i class="bi bi-camera"></i> Ver Evidencia Adjunta
-                 </a>
-                {% endif %}
-            </div>
-        </div>
-        {% empty %}
-        <div class="alert alert-light text-muted border text-center">
-            Aún no hay respuestas en este caso de PQRS.
-        </div>
-        {% endfor %}
 
-        <!-- Formulario para Nueva Respuesta -->
-        {% if pqrs.estado != 'Cerrado' %}
-        <div class="card shadow-sm mt-4 border-0 bg-light">
-            <div class="card-body">
-                <h6 class="fw-bold"><i class="bi bi-reply"></i> Escribir una Respuesta</h6>
-                <form method="post" enctype="multipart/form-data">
+                {% for r in pqrs.respuestas.all %}
+                <div class="flex flex-col {% if r.autor == request.user %}items-end{% endif %} animate__animated animate__fadeInUp">
+                    <div class="max-w-[85%] {% if r.autor == request.user %}text-right{% endif %}">
+                        <div class="flex items-center gap-2 mb-2 {% if r.autor == request.user %}justify-end{% endif %}">
+                            <span class="text-[0.6rem] font-black uppercase tracking-widest {% if r.autor.perfilusuario.rol == 'RESIDENTE' %}text-brand-primary{% else %}text-brand-lime{% endif %}">
+                                {% if r.autor.perfilusuario.rol == 'RESIDENTE' %}RESIDENTE{% else %}ADMINISTRACIÓN{% endif %}
+                            </span>
+                            <span class="text-[0.6rem] font-bold text-gray-300 italic">{{ r.fecha_creacion|date:"d M, H:i" }}</span>
+                        </div>
+                        
+                        <div class="p-6 rounded-[2rem] shadow-sm border {% if r.autor == request.user %}rounded-tr-none bg-brand-primary text-white border-brand-primary/10{% else %}rounded-tl-none bg-white text-gray-700 border-gray-100{% endif %}">
+                            <p class="text-sm font-medium leading-relaxed">{{ r.mensaje|linebreaksbr }}</p>
+                        </div>
+
+                        {% if r.evidencia %}
+                        <div class="mt-2 text-right">
+                            <a href="{{ r.evidencia.url }}" target="_blank" class="inline-flex items-center gap-2 text-[0.6rem] font-black uppercase tracking-widest {% if r.autor == request.user %}text-brand-primary{% else %}text-brand-lime{% endif %} hover:underline">
+                                <i class="bi bi-paperclip"></i> Ver Soporte Adjunto
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="py-16 text-center">
+                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                        <i class="bi bi-chat-dots text-2xl"></i>
+                    </div>
+                    <p class="text-xs font-black text-gray-400 uppercase tracking-widest italic">Esperando gestión administrativa...</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Formulario de Respuesta -->
+            {% if pqrs.estado != 'Cerrado' %}
+            <div class="card-pro !p-0 overflow-hidden shadow-2xl border-none">
+                <div class="bg-brand-dark p-6 text-center border-b border-white/5">
+                    <h5 class="text-xs font-black text-brand-lime uppercase tracking-[0.2em] mb-1 italic">Panel de Interacción</h5>
+                    <p class="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest">Registrar nueva actualización</p>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" class="bg-white p-8 space-y-8">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="responder">
-                    <textarea class="form-control mb-2" name="mensaje" rows="3" placeholder="Escribe tu comentario o respuesta al caso..." required></textarea>
                     
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <label class="form-label small text-muted mb-0"><i class="bi bi-paperclip"></i> Evidencia (Opcional)</label>
-                            <input class="form-control form-control-sm" type="file" name="evidencia" accept="image/*,.pdf">
+                    <div class="space-y-4">
+                        <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Escriba su Mensaje</label>
+                        <textarea class="w-full p-6 bg-gray-50 border-none rounded-3xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none min-h-[140px] placeholder-gray-300" name="mensaje" placeholder="Describa su respuesta o solicitud de información extra..." required></textarea>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6 pt-4">
+                        <div class="flex flex-col w-full md:w-auto">
+                            <label class="px-1 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest mb-2 italic">¿Anexar Soporte?</label>
+                            <input class="text-[0.65rem] font-black text-brand-primary uppercase file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[0.6rem] file:font-black file:bg-brand-primary/5 file:text-brand-primary hover:file:bg-brand-primary/10 transition-all cursor-pointer" type="file" name="evidencia">
                         </div>
-                        <button type="submit" class="btn btn-primary fw-bold px-4"><i class="bi bi-send"></i> Enviar</button>
+                        <button type="submit" class="w-full md:w-auto px-12 py-4 bg-brand-primary text-white text-[0.65rem] font-black uppercase tracking-[0.15em] rounded-2xl hover:bg-opacity-90 shadow-xl shadow-brand-primary/20 active:scale-95 transition-all outline-none italic">
+                            ENVIAR ACTUALIZACIÓN <i class="bi bi-send-fill ml-2"></i>
+                        </button>
                     </div>
                 </form>
             </div>
-        </div>
-        {% else %}
-        <div class="alert alert-dark text-center mt-4 border-0 shadow-sm">
-            <i class="bi bi-lock-fill me-2"></i> Este caso ha sido <strong>CERRADO</strong>. No se permiten más respuestas.
-        </div>
-        {% endif %}
-    </div>
-    
-    <div class="col-lg-4">
-        <div class="card shadow mb-4 border-start border-4 border-warning">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-dark">Información del Caso</h6>
+            {% else %}
+            <div class="p-8 bg-gray-900 border border-gray-800 rounded-[2.5rem] text-center shadow-xl">
+                <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 text-brand-lime text-2xl">
+                    <i class="bi bi-lock-fill"></i>
+                </div>
+                <h4 class="text-sm font-black text-white uppercase tracking-[0.2em] mb-2 italic">CASO CERRADO</h4>
+                <p class="text-xs text-white/40 font-bold uppercase tracking-widest leading-relaxed">Este radicado ha finalizado su ciclo institucional. El historial se mantiene como registro legal.</p>
             </div>
-            <div class="card-body">
-                <p><strong>Tipo:</strong> {{ pqrs.get_tipo_display }}</p>
-                <p><strong>Prioridad:</strong> <span class="badge bg-danger">{{ pqrs.prioridad }}</span></p>
-                <p><strong>Remitente:</strong> {{ pqrs.solicitante.nombre_completo }}</p>
-                <div class="mb-3 p-2 bg-light border rounded">
-                    <div class="small fw-bold text-muted mb-1 text-uppercase"><i class="bi bi-geo-alt"></i> Ubicación vinculada:</div>
-                    <div class="fs-6">
+            {% endif %}
+        </div>
+
+        <!-- Sidebar de Control y Metadatos -->
+        <div class="lg:col-span-4 space-y-10">
+            <!-- Estado Actual -->
+            <div class="card-pro !border-l-4 !border-l-brand-primary shadow-premium">
+                <div class="flex flex-col items-center text-center p-4">
+                    <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest mb-4 italic">Situación del Proceso</span>
+                    
+                    {% if pqrs.estado == 'Abierto' %}
+                        <div class="w-20 h-20 bg-brand-lime/10 rounded-full flex items-center justify-center text-brand-lime text-3xl mb-4 animate-pulse">
+                            <i class="bi bi-broadcast"></i>
+                        </div>
+                        <h4 class="text-lg font-black text-brand-dark uppercase tracking-tighter">RECIBIDO</h4>
+                    {% elif pqrs.estado == 'En Proceso' %}
+                         <div class="w-20 h-20 bg-brand-primary/10 rounded-full flex items-center justify-center text-brand-primary text-3xl mb-4">
+                            <i class="bi bi-gear-wide-connected animate-spin-slow"></i>
+                        </div>
+                        <h4 class="text-lg font-black text-brand-dark uppercase tracking-tighter">EN TRÁMITE</h4>
+                    {% elif pqrs.estado == 'Resuelto' or pqrs.estado == 'Cerrado' %}
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-3xl mb-4">
+                            <i class="bi bi-check-all"></i>
+                        </div>
+                        <h4 class="text-lg font-black text-gray-400 uppercase tracking-tighter">FINALIZADO</h4>
+                    {% endif %}
+                    
+                    <p class="text-[0.65rem] text-gray-400 font-bold uppercase tracking-widest mt-2">{{ pqrs.estado }}</p>
+                </div>
+
+                {% if user.perfilusuario.rol != 'RESIDENTE' %}
+                <div class="mt-8 pt-8 border-t border-gray-50 space-y-6">
+                    <form method="post" class="space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="cambiar_estado">
+                        <label class="px-1 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Modificar Radar</label>
+                        <select name="estado" class="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-xs font-black text-brand-dark outline-none cursor-pointer">
+                            <option value="Abierto" {% if pqrs.estado == 'Abierto' %}selected{% endif %}>ABIERTO</option>
+                            <option value="En Proceso" {% if pqrs.estado == 'En Proceso' %}selected{% endif %}>EN PROCESO</option>
+                            <option value="Resuelto" {% if pqrs.estado == 'Resuelto' %}selected{% endif %}>RESUELTO</option>
+                            <option value="Cerrado" {% if pqrs.estado == 'Cerrado' %}selected{% endif %}>CERRADO</option>
+                        </select>
+                        <button class="w-full py-4 bg-brand-dark text-white text-[0.6rem] font-black rounded-xl hover:bg-opacity-90 shadow-lg active:scale-95 transition-all uppercase tracking-widest" type="submit">
+                            Actualizar Transición
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Detalles Sidebar -->
+            <div class="card-pro shadow-premium space-y-8">
+                <div>
+                    <span class="text-[0.6rem] font-black text-gray-300 uppercase tracking-widest block mb-1">Categorización</span>
+                    <h5 class="text-sm font-black text-brand-dark uppercase tracking-tight italic">{{ pqrs.get_tipo_display }}</h5>
+                </div>
+                
+                <div>
+                    <span class="text-[0.6rem] font-black text-gray-300 uppercase tracking-widest block mb-2">Impacto / Prioridad</span>
+                    <span class="inline-flex px-4 py-1.5 rounded-full text-[0.65rem] font-black uppercase tracking-widest shadow-sm {% if pqrs.prioridad == 'Alta' or pqrs.prioridad == 'Urgente' %}bg-red-500 text-white animate-pulse{% else %}bg-brand-blue text-white{% endif %}">
+                        {{ pqrs.prioridad }}
+                    </span>
+                </div>
+
+                <div class="p-6 bg-brand-lime/5 rounded-3xl border border-brand-lime/10">
+                    <span class="text-[0.6rem] font-black text-brand-dark uppercase tracking-widest block mb-2 opacity-50">Origen de Ubicación</span>
+                    <div class="text-xs font-black text-brand-dark leading-relaxed">
                         {% for apto in pqrs.solicitante.apartamentos_asignados.all %}
-                            Torre {{ apto.torre }} - Apto {{ apto.numero }}<br>
+                            <div class="flex items-center gap-2 mb-1">
+                                <i class="bi bi-building text-brand-lime text-base"></i>
+                                T{{ apto.torre }} · Apto {{ apto.numero }}
+                            </div>
                         {% empty %}
-                            {% for apto in pqrs.solicitante.propiedades_asignadas.all %}
-                                Torre {{ apto.torre }} - Apto {{ apto.numero }}<br>
-                            {% empty %}
-                                {% for apto in pqrs.solicitante.arrendamientos_asignados.all %}
-                                    Torre {{ apto.torre }} - Apto {{ apto.numero }}<br>
-                                {% empty %}
-                                    Ubicación no registrada
-                                {% endfor %}
-                            {% endfor %}
+                            <div class="flex items-center gap-2">
+                                <i class="bi bi-geo-alt-fill text-brand-lime text-base"></i>
+                                {{ pqrs.ubicacion_especifica|default:"ZONA COMÚN" }}
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
-                <p><strong>Teléfono:</strong> {{ pqrs.solicitante.telefono }}</p>
-            </div>
-        </div>
-        
-        <div class="card shadow mb-4 border-start border-4 border-success">
-            <div class="card-header py-3 bg-white">
-                <h6 class="m-0 fw-bold text-success">Gestión / Avance</h6>
-            </div>
-            <div class="card-body">
-                <p><strong>Estado Actual:</strong> <span class="badge bg-primary fs-6">{{ pqrs.estado }}</span></p>
-                {% if user.perfilusuario.rol != 'RESIDENTE' %}
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="cambiar_estado">
-                    <label class="form-label fw-bold mt-2">Actualizar Estado:</label>
-                    <div class="input-group">
-                        <select name="estado" class="form-select">
-                            <option value="Abierto" {% if pqrs.estado == 'Abierto' %}selected{% endif %}>Abierto</option>
-                            <option value="En Proceso" {% if pqrs.estado == 'En Proceso' %}selected{% endif %}>En Proceso</option>
-                            <option value="Resuelto" {% if pqrs.estado == 'Resuelto' %}selected{% endif %}>Resuelto</option>
-                            <option value="Cerrado" {% if pqrs.estado == 'Cerrado' %}selected{% endif %}>Cerrado</option>
-                        </select>
-                        <button class="btn btn-success" type="submit">Guardar</button>
+
+                <div class="pt-6 border-t border-gray-50">
+                    <span class="text-[0.6rem] font-black text-gray-300 uppercase tracking-widest block mb-3 italic">Remitente Institucional</span>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 font-black text-sm uppercase">
+                            {{ pqrs.solicitante.nombre_completo|slice:":2" }}
+                        </div>
+                        <div class="overflow-hidden">
+                            <h5 class="text-xs font-black text-brand-dark truncate leading-none mb-1 uppercase">{{ pqrs.solicitante.nombre_completo }}</h5>
+                            <p class="text-[0.65rem] text-brand-primary font-bold">{{ pqrs.solicitante.telefono|default:"SIN TELÉFONO" }}</p>
+                        </div>
                     </div>
-                </form>
-                {% else %}
-                <div class="alert alert-info small mt-2 py-2">
-                    <i class="bi bi-info-circle"></i> Solo la administración puede cambiar el estado legal del radicado.
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+        animation: spin-slow 8s linear infinite;
+    }
+    textarea::placeholder { font-style: italic; opacity: 0.3; }
+</style>
 {% endblock %}

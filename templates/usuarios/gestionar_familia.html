@@ -1,66 +1,99 @@
 {% extends 'base.html' %}
 
-{% block title %}Gestionar Familia - Mi Conjunto{% endblock %}
+{% block title %}Mi Grupo Familiar - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Mi Grupo Familiar</h2>
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Mi Familia</li>
-        </ol>
-    </nav>
-</div>
-
-<div class="row">
-    <!-- Listado de Ocupantes -->
-    <div class="col-lg-8 mb-4">
-        <div class="card shadow border-0 h-100">
-            <div class="card-header bg-white py-3">
-                <h6 class="m-0 fw-bold text-primary"><i class="bi bi-people-fill me-2"></i>Personas que viven conmigo</h6>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Mi Grupo Familiar</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full shadow-inner">Gestión de Censo</span>
+                <span class="text-gray-400 font-medium text-sm italic">Control de residentes y ocupantes autorizados en la unidad</span>
             </div>
-            <div class="card-body">
-                <div class="alert alert-info border-0 small mb-4" style="background:#e8f0fe;">
-                    <i class="bi bi-info-circle-fill me-2 text-primary"></i>
-                    Esta información es vital para el censo del conjunto y para autorizar ingresos en portería de forma rápida.
+        </div>
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3 text-[0.6rem] font-black uppercase tracking-widest">
+                <li>
+                    <a href="{% url 'dashboard:index' %}" class="text-gray-400 hover:text-brand-primary transition-colors">DASHBOARD</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="bi bi-chevron-right text-[0.5rem] text-gray-300 mx-1"></i>
+                        <span class="text-brand-primary">MI FAMILIA</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- Listado de Integrantes -->
+        <div class="lg:col-span-8 space-y-8">
+            <div class="card-pro overflow-hidden border-none shadow-premium !p-0">
+                <div class="p-8 border-b border-gray-50 flex items-center justify-between bg-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary text-xl shadow-inner">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest italic leading-none">Residentes Registrados</h3>
+                    </div>
+                    <span class="text-[0.6rem] font-black text-white px-3 py-1 bg-brand-dark rounded-lg uppercase tracking-widest shadow-sm">
+                        {{ ocupantes|length }} Integrante{% if ocupantes|length != 1 %}s{% endif %}
+                    </span>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nombre Completo</th>
-                                <th>Parentesco</th>
-                                <th>Documento</th>
-                                <th>Edad</th>
-                                <th class="text-center">Acción</th>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Identidad</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Parentesco</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-center">Documento</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-center">Edad</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Acción</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-50">
                             {% for o in ocupantes %}
-                            <tr>
-                                <td class="fw-bold">
-                                    {{ o.nombre_completo }}
-                                    {% if o.es_menor_edad %}
-                                        <span class="badge bg-warning text-dark ms-1 small">Menor</span>
-                                    {% endif %}
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-8 py-6 align-middle">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-brand-primary font-black text-sm uppercase italic border border-gray-100 shadow-sm group-hover:bg-brand-primary group-hover:text-white transition-all">
+                                            {{ o.nombre_completo|slice:":2" }}
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-black text-brand-dark italic leading-snug">{{ o.nombre_completo }}</div>
+                                            {% if o.es_menor_edad %}
+                                                <span class="inline-flex px-2 py-0.5 bg-brand-lime text-brand-dark text-[0.55rem] font-black uppercase tracking-tighter rounded-md mt-1 italic shadow-sm">MENOR</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </td>
-                                <td>{{ o.parentesco }}</td>
-                                <td class="text-muted">{{ o.documento|default:"-" }}</td>
-                                <td>{{ o.edad|default:"-" }}</td>
-                                <td class="text-center">
+                                <td class="px-8 py-6 align-middle">
+                                    <span class="text-[0.65rem] font-black text-gray-500 bg-gray-100 px-3 py-1 rounded-lg uppercase tracking-widest italic shadow-sm border border-gray-100">{{ o.parentesco }}</span>
+                                </td>
+                                <td class="px-8 py-6 align-middle text-center">
+                                    <span class="text-xs font-black text-brand-primary tracking-widest">{{ o.documento|default:"--" }}</span>
+                                </td>
+                                <td class="px-8 py-6 align-middle text-center text-sm font-black text-gray-700 italic">
+                                    {{ o.edad|default:"--" }} <span class="text-[0.6rem] text-gray-300 uppercase italic">años</span>
+                                </td>
+                                <td class="px-8 py-6 align-middle text-right">
                                     <a href="{% url 'usuarios:eliminar_ocupante' o.id %}" 
-                                       class="btn btn-sm btn-outline-danger" 
-                                       onclick="return confirm('¿Eliminar a {{ o.nombre_completo }} del censo familiar?')">
-                                        <i class="bi bi-trash"></i>
+                                       class="w-10 h-10 inline-flex items-center justify-center bg-gray-50 text-red-200 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-95"
+                                       onclick="return confirm('¿Confirma la eliminación de {{ o.nombre_completo }} del censo familiar?')">
+                                        <i class="bi bi-trash3 text-lg"></i>
                                     </a>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-muted fst-italic">
-                                    Aún no has registrado a tu grupo familiar. Usa el formulario de la derecha.
+                                <td colspan="5" class="px-8 py-32 text-center">
+                                    <div class="w-20 h-20 bg-gray-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 text-gray-200 shadow-inner">
+                                        <i class="bi bi-person-x text-4xl"></i>
+                                    </div>
+                                    <p class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">Núcleo familiar vacío. Por favor registre a los integrantes de su unidad.</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -68,62 +101,109 @@
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Formulario para Agregar -->
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow border-0 overflow-hidden" style="border-radius: 12px;">
-            <div class="modal-header text-white p-3" style="background: linear-gradient(135deg,#4e73df,#224abe); border:none;">
-                <h6 class="modal-title fw-bold m-0"><i class="bi bi-person-plus-fill me-2"></i>Agregar Familiar</h6>
+            <div class="p-10 bg-brand-primary/5 rounded-[3rem] border border-brand-primary/10 flex items-start gap-6 shadow-sm">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-brand-primary text-2xl shrink-0 shadow-lg shadow-brand-primary/10 leading-none">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div>
+                    <h4 class="text-[0.7rem] font-black text-brand-primary uppercase tracking-[0.2em] mb-2 italic">Seguridad y Censo Residencial</h4>
+                    <p class="text-[0.7rem] text-brand-primary/60 font-medium leading-relaxed italic">
+                        Mantener actualizado su grupo familiar permite un control de acceso robusto en portería y una gestión eficiente de brigadas de emergencia institucional.
+                    </p>
+                </div>
             </div>
-            <div class="card-body p-4 bg-light">
-                <form action="{% url 'usuarios:gestionar_familia' %}" method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Nombre Completo</label>
-                        <input type="text" name="nombre" class="form-control" placeholder="Ej: Diana Pérez" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Parentesco</label>
-                        <select name="parentesco" class="form-select" required>
-                            <option value="">Seleccione...</option>
-                            <option value="Esposo(a)">Esposo(a)</option>
-                            <option value="Hijo(a)">Hijo(a)</option>
-                            <option value="Padre/Madre">Padre/Madre</option>
-                            <option value="Hermano(a)">Hermano(a)</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-8">
-                            <label class="form-label fw-bold small">Documento (Opcional)</label>
-                            <input type="text" name="documento" class="form-control" placeholder="Opcional">
+        </div>
+
+        <!-- Sidebar Administrativo -->
+        <div class="lg:col-span-4 space-y-8">
+            <div class="card-pro !p-0 overflow-hidden shadow-premium border-none relative">
+                <div class="bg-brand-dark p-10 text-white relative z-10 overflow-hidden">
+                    <h3 class="text-sm font-black uppercase tracking-[0.25em] mb-1 italic leading-none">Vincular Integrante</h3>
+                    <p class="text-[0.6rem] text-brand-lime font-black uppercase tracking-widest mt-2 italic shadow-brand-lime/10">Censo Residencial v3.1</p>
+                    <!-- Decoración -->
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/30 rounded-full blur-3xl pointer-events-none"></div>
+                </div>
+
+                <div class="p-10 bg-white">
+                    <form action="{% url 'usuarios:gestionar_familia' %}" method="post" class="space-y-8">
+                        {% csrf_token %}
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">Nombre Completo</label>
+                            <input type="text" name="nombre" placeholder="Nombre y Apellidos..." required>
                         </div>
-                        <div class="col-4">
-                            <label class="form-label fw-bold small">Edad</label>
-                            <input type="number" name="edad" class="form-control" placeholder="Años">
+                        
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">Vínculo Familiar</label>
+                            <select name="parentesco" required>
+                                <option value="">Seleccione parentesco...</option>
+                                <option value="Esposo(a)">Esposo(a)</option>
+                                <option value="Hijo(a)">Hijo(a)</option>
+                                <option value="Padre/Madre">Padre/Madre</option>
+                                <option value="Hermano(a)">Hermano(a)</option>
+                                <option value="Otro">Otro residente</option>
+                            </select>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Teléfono (Opcional)</label>
-                        <input type="text" name="telefono" class="form-control" placeholder="Opcional">
-                    </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="es_menor" id="switchMenor">
-                        <label class="form-check-label fw-bold small" for="switchMenor">¿Es menor de edad?</label>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
-                        <i class="bi bi-plus-circle me-1"></i>Registrar en Censo
-                    </button>
-                </form>
-            </div>
-            <div class="card-footer bg-white text-muted small py-3">
-                <i class="bi bi-house-check me-1"></i> Registrado en Apto {{ apartamento.numero }}
+
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">Documento</label>
+                                <input type="text" name="documento" placeholder="Opcional">
+                            </div>
+                            <div class="space-y-3">
+                                <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">Edad Actual</label>
+                                <input type="number" name="edad" placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic">Contacto Directo</label>
+                            <input type="text" name="telefono" placeholder="3XX 000 0000">
+                        </div>
+
+                        <div class="flex items-center justify-between p-5 bg-gray-50 rounded-2xl border border-gray-100 shadow-inner">
+                            <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic leading-none">¿Protección Menor?</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="es_menor" id="switchMenor" class="sr-only peer">
+                                <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="w-full py-5 bg-brand-primary text-white text-[0.65rem] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-opacity-95 shadow-2xl shadow-brand-primary/20 active:scale-95 transition-all outline-none italic leading-none">
+                            REGISTRAR EN CENSO <i class="bi bi-plus-circle ml-2 text-brand-lime"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="p-8 bg-brand-dark text-center border-t border-white/5">
+                    <p class="text-[0.6rem] font-black text-white/40 uppercase tracking-[0.3em] leading-none">
+                         UNIDAD ACTUAL: <span class="text-brand-lime italic">APTO {{ apartamento.numero }}</span>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Premium Form Controls */
+    select, input[type="text"], input[type="number"] {
+        width: 100%;
+        padding: 1.15rem 1.5rem !important;
+        background-color: #f8fafc !important;
+        border: none !important;
+        border-radius: 1.25rem !important;
+        font-size: 0.8rem !important;
+        font-weight: 800 !important;
+        color: #1e293b !important;
+        outline: none !important;
+        transition: all 0.4s ease !important;
+    }
+    select:focus, input:focus {
+        background-color: white !important;
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05) !important;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}

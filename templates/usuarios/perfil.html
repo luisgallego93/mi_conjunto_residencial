@@ -1,115 +1,165 @@
 {% extends 'base.html' %}
 
-{% block title %}Mi Perfil - Mi Conjunto{% endblock %}
+{% comment %}Propósito: Interfaz de autogestión de perfil de usuario.
+    Descripción: Permite al residente ver y actualizar su información de contacto y de emergencia.{% endcomment %}
+
+{% block title %}Mi Perfil - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-gray-800">Mi Perfil Personal</h2>
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Mi Perfil</li>
-        </ol>
-    </nav>
-</div>
-
-<div class="row">
-    <div class="col-lg-4 mb-4">
-        <!-- Profile Card -->
-        <div class="card shadow border-0 overflow-hidden" style="border-radius: 15px;">
-            <div class="card-header bg-primary py-5 text-center position-relative">
-                <div class="position-absolute w-100 start-0" style="bottom: -40px;">
-                    <div class="rounded-circle bg-white shadow-sm mx-auto d-flex align-items-center justify-content-center border border-4 border-white" style="width: 100px; height: 100px;">
-                        <i class="bi bi-person-bounding-box text-primary fs-1"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body pt-5 text-center">
-                <h4 class="fw-bold mt-2 mb-1">{{ perfil.nombre_completo }}</h4>
-                <p class="text-muted"><i class="bi bi-person-check me-1"></i>{{ perfil.tipo_ocupacion }}</p>
-                <div class="alert alert-light border small text-start">
-                    <div class="mb-1"><strong><i class="bi bi-building me-2"></i>Apartamento:</strong> 
-                        <span class="badge bg-primary px-2 fs-6">
-                            {% if apartamento %}Torre {{ apartamento.torre }} - Apto {{ apartamento.numero }}{% else %}Sin asignar{% endif %}
-                        </span>
-                    </div>
-                    <div class="mb-1"><strong><i class="bi bi-card-text me-2"></i>Documento:</strong> {{ perfil.documento }}</div>
-                    <div class="mb-1"><strong><i class="bi bi-shield-lock me-2"></i>Usuario:</strong> {{ user.username }}</div>
-                    <div><strong><i class="bi bi-calendar-event me-2"></i>Desde:</strong> {{ user.date_joined|date:"d M, Y" }}</div>
-                </div>
-            </div>
-            <div class="card-footer bg-white border-0 py-4 text-center">
-                <a href="{% url 'dashboard:index' %}" class="btn btn-outline-primary btn-sm rounded-pill px-4">
-                    <i class="bi bi-house me-1"></i> Volver al Inicio
-                </a>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">Mi Perfil Personal</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Gestión de Cuenta</span>
+                <span class="text-gray-400 font-medium text-sm">Actualice su información de contacto y emergencia</span>
             </div>
         </div>
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-black uppercase tracking-widest">
+                <li>
+                    <a href="{% url 'dashboard:index' %}" class="text-gray-400 hover:text-brand-primary transition-colors">DASHBOARD</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="bi bi-chevron-right text-[0.6rem] text-gray-300 mx-2"></i>
+                        <span class="text-brand-primary">MI PERFIL</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
     </div>
 
-    <div class="col-lg-8 mb-4">
-        <!-- Edit Form -->
-        <div class="card shadow border-0" style="border-radius: 15px;">
-            <div class="card-header bg-white py-3">
-                <h6 class="m-0 fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Actualizar Información de Contacto</h6>
-            </div>
-            <div class="card-body p-4">
-                <form action="{% url 'usuarios:mi_perfil' %}" method="post">
-                    {% csrf_token %}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- Panel Izquierdo: Tarjeta de Identidad -->
+        <div class="lg:col-span-4 space-y-8">
+            <div class="card-pro !p-0 overflow-hidden shadow-premium group">
+                <div class="h-24 bg-brand-primary relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-lime/20 rounded-full blur-2xl"></div>
+                </div>
+                
+                <div class="px-8 pb-8 text-center -mt-12 relative z-10">
+                    <div class="w-24 h-24 bg-white rounded-[2rem] shadow-xl mx-auto flex items-center justify-center text-brand-primary text-4xl border-4 border-white mb-6 group-hover:scale-110 transition-transform duration-500">
+                        <i class="bi bi-person-bounding-box"></i>
+                    </div>
                     
-                    <div class="row g-3">
-                        <!-- Restricted Fields -->
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Nombre Completo (Bloqueado por Admin)</label>
-                            <input type="text" class="form-control bg-light" value="{{ perfil.nombre_completo }}" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Cédula (Bloqueado por Admin)</label>
-                            <input type="text" class="form-control bg-light" value="{{ perfil.documento }}" readonly>
-                        </div>
+                    <h3 class="text-xl font-black text-brand-dark tracking-tight mb-1">{{ perfil.nombre_completo }}</h3>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-8">{{ perfil.tipo_ocupacion }}</p>
 
-                        <!-- Editable Fields -->
-                        <div class="col-md-6 mt-4">
-                            <label class="form-label fw-bold">Teléfono / WhatsApp <span class="text-danger">*</span></label>
-                            <input type="text" name="telefono" class="form-control border-primary" value="{{ perfil.telefono }}" required>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                            <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Apartamento</span>
+                            <span class="px-3 py-1 bg-brand-lime text-brand-dark text-[0.65rem] font-black rounded-lg">
+                                {% if apartamento %}T{{ apartamento.torre }} - {{ apartamento.numero }}{% else %}SIN ASIGNAR{% endif %}
+                            </span>
                         </div>
-                        <div class="col-md-6 mt-4">
-                            <label class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
-                            <input type="email" name="email_personal" class="form-control border-primary" value="{{ perfil.email_personal|default:'' }}" required>
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                            <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Cédula / ID</span>
+                            <span class="text-xs font-black text-brand-dark">{{ perfil.documento }}</span>
                         </div>
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                            <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Usuario</span>
+                            <span class="text-xs font-black text-brand-primary truncate max-w-[120px]">{{ user.username }}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                            <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Miembro Desde</span>
+                            <span class="text-xs font-black text-gray-500 uppercase">{{ user.date_joined|date:"d M, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6 border-t border-gray-50 bg-gray-50/30">
+                    <a href="{% url 'dashboard:index' %}" class="w-full inline-flex items-center justify-center px-6 py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-gray-500 hover:text-brand-primary transition-all shadow-sm">
+                        <i class="bi bi-house mr-2"></i> VOLVER AL INICIO
+                    </a>
+                </div>
+            </div>
+        </div>
 
-                        <div class="col-12 mt-5">
-                            <h6 class="fw-bold text-danger"><i class="bi bi-heart-pulse-fill me-2"></i>Contactos de Emergencia</h6>
-                            <hr class="mt-0">
-                        </div>
+        <!-- Panel Derecho: Formulario de Perfil -->
+        <div class="lg:col-span-8 space-y-10">
+            <div class="card-pro shadow-premium">
+                <div class="flex items-center gap-4 mb-10 pb-6 border-b border-gray-50">
+                    <div class="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary text-xl">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-brand-dark tracking-tight">Información de Contacto</h3>
+                        <p class="text-[0.65rem] text-gray-400 font-bold uppercase tracking-widest">Actualice su ficha de residente</p>
+                    </div>
+                </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Contacto de Emergencia (Nombre)</label>
-                            <input type="text" name="emergencia_nombre" class="form-control" value="{{ perfil.emergencia_nombre|default:'' }}">
+                <form action="{% url 'usuarios:mi_perfil' %}" method="post" class="space-y-10">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Nombre Completo <span class="text-[0.6rem] text-brand-primary font-bold">(Solo lectura)</span></label>
+                            <input type="text" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-gray-400 outline-none" value="{{ perfil.nombre_completo }}" readonly>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Teléfono de Emergencia</label>
-                            <input type="text" name="emergencia_telefono" class="form-control" value="{{ perfil.emergencia_telefono|default:'' }}">
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Identificación / Documento <span class="text-[0.6rem] text-brand-primary font-bold">(Solo lectura)</span></label>
+                            <input type="text" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-gray-400 outline-none" value="{{ perfil.documento }}" readonly>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Teléfono / WhatsApp <span class="text-red-500">*</span></label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
+                                    <i class="bi bi-telephone"></i>
+                                </div>
+                                <input type="text" name="telefono" class="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.telefono }}" required>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="px-1 text-[0.7rem] font-black text-gray-400 uppercase tracking-widest">Correo Electrónico <span class="text-red-500">*</span></label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <input type="email" name="email_personal" class="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.email_personal|default:'' }}" required>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mt-5 d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm rounded-pill">
-                            <i class="bi bi-save me-1"></i> Guardar Cambios
+                    <div>
+                        <div class="flex items-center gap-4 mb-8">
+                            <h4 class="text-[0.7rem] font-black text-red-500 uppercase tracking-widest"><i class="bi bi-heart-pulse-fill mr-2"></i>Contactos de Emergencia</h4>
+                            <div class="h-px bg-red-100 flex-grow"></div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-red-50/30 rounded-3xl border border-red-50">
+                            <div class="space-y-3">
+                                <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Nombre del Contacto</label>
+                                <input type="text" name="emergencia_nombre" class="w-full px-6 py-4 bg-white border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none shadow-sm" value="{{ perfil.emergencia_nombre|default:'' }}" placeholder="Ej: Maria Lopez">
+                            </div>
+                            <div class="space-y-3">
+                                <label class="px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest">Teléfono de Emergencia</label>
+                                <input type="text" name="emergencia_telefono" class="w-full px-6 py-4 bg-white border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none shadow-sm" value="{{ perfil.emergencia_telefono|default:'' }}" placeholder="Ej: 300 000 0000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-50 flex justify-end">
+                        <button type="submit" class="w-full md:w-auto px-10 py-4 bg-brand-primary text-white text-sm font-black rounded-2xl hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 active:scale-95 transition-all tracking-widest">
+                            <i class="bi bi-save2-fill mr-2"></i> GUARDAR CAMBIOS
                         </button>
                     </div>
                 </form>
             </div>
-        </div>
 
-        <!-- Password Change Card -->
-        <div class="card shadow border-0 mt-4 bg-light" style="border-radius: 15px;">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <h6 class="fw-bold mb-1">Seguridad de la Cuenta</h6>
-                    <p class="small text-muted mb-0">Se recomienda cambiar la contraseña periódicamente.</p>
+            <!-- Seguridad -->
+            <div class="p-8 bg-brand-dark rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-premium">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white text-xl">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-[0.7rem] font-black text-white uppercase tracking-widest">Seguridad de la Cuenta</h4>
+                        <p class="text-xs text-white/50 font-medium">Actualice su contraseña periódicamente</p>
+                    </div>
                 </div>
-                <a href="/accounts/password_change/" class="btn btn-outline-dark btn-sm rounded-pill">
-                    <i class="bi bi-key me-1"></i> Cambiar Contraseña
+                <a href="/accounts/password_change/" class="w-full md:w-auto px-8 py-3 bg-white/10 text-white hover:bg-white hover:text-brand-dark text-[0.65rem] font-black rounded-xl transition-all uppercase tracking-widest text-center">
+                    <i class="bi bi-key mr-2"></i> Cambiar Contraseña
                 </a>
             </div>
         </div>

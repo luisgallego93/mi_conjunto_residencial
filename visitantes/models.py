@@ -1,10 +1,18 @@
+"""
+Descripción General: Definición de modelos para el control de acceso y visitantes.
+Módulo: visitantes
+Propósito del archivo: Estructurar la base de datos para la bitácora de portería, autorizaciones de residentes y seguimiento de vehículos.
+"""
+
 from django.db import models
 from usuarios.models import Apartamento, PerfilUsuario
 from django.utils import timezone
 from django.contrib.auth.models import User
 
 class Visitante(models.Model):
-    # Estados y Tipos mejorados para trazabilidad
+    """
+    Bitácora de seguridad para el registro de personas ajenas al conjunto.
+    """
     ESTADOS = [
         ('Programado', 'Programado'),
         ('Dentro', 'En Sitio / Dentro'),
@@ -12,7 +20,7 @@ class Visitante(models.Model):
         ('Cancelado', 'Cancelado'),
         ('No llegó', 'No llegó'),
     ]
-    
+
     TIPOS = [
         ('Familiar', 'Familiar'),
         ('Domiciliario', 'Domiciliario'),
@@ -21,38 +29,39 @@ class Visitante(models.Model):
         ('Ocasional', 'Visitante Ocasional'),
     ]
 
-    # Datos del Visitante
+    # Datos de Identificación
     nombre = models.CharField(max_length=150, verbose_name="Nombre Completo")
     documento = models.CharField(max_length=20, verbose_name="Documento/ID")
     tipo_visitante = models.CharField(max_length=20, choices=TIPOS, default='Ocasional')
     motivo_visita = models.CharField(max_length=100, blank=True, help_text="Ej: Reparación, Entrega paquete")
     foto_visitante = models.ImageField(upload_to='visitantes/', null=True, blank=True, verbose_name="Fotografía")
 
-    # Destino
+    # Destino y Autorización
     apartamento_destino = models.ForeignKey(Apartamento, on_delete=models.CASCADE)
     autorizado_por = models.ForeignKey(PerfilUsuario, on_delete=models.SET_NULL, null=True, blank=True)
     autorizado_por_nombre = models.CharField(max_length=150, blank=True, verbose_name="Voz de Autorización (Nombre)")
-    
-    # Vehículo
+
+    # Registro de Vehículo
     tipo_vehiculo = models.CharField(
-        max_length=20, 
+        max_length=20,
         choices=[('Ninguno', 'Ninguno'), ('Carro', 'Carro'), ('Moto', 'Moto'), ('Bicicleta', 'Bicicleta')],
         default='Ninguno'
     )
     placa = models.CharField(max_length=10, blank=True)
     cupo_asignado = models.CharField(max_length=10, blank=True)
 
-    # Control de Tiempos Reales
+    # Control Cronológico
     fecha_programada = models.DateField(default=timezone.now)
     hora_ingreso_real = models.DateTimeField(null=True, blank=True)
     hora_salida_real = models.DateTimeField(null=True, blank=True)
-    
-    # Seguridad y Auditoría
+
+    # Gestión de Seguridad
     estado = models.CharField(max_length=20, choices=ESTADOS, default='Programado')
     registrado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='registros_porteria')
     observaciones_vigilancia = models.TextField(blank=True)
 
     def __str__(self):
+        """Retorna el nombre del visitante y su unidad de destino."""
         return f"{self.nombre} - {self.apartamento_destino}"
 
     class Meta:

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Auditoría: Apto {{ apto.numero }} - Sauces{% endblock %}
+
+{% block content %}
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div class="flex items-center gap-6">
+            <div class="w-16 h-16 bg-brand-dark rounded-2xl flex items-center justify-center text-brand-lime text-2xl shadow-xl">
+                <i class="bi bi-bank2"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-brand-dark tracking-tighter uppercase leading-none mb-2">Expediente Financiero</h2>
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 bg-brand-primary text-white text-[0.6rem] font-black uppercase tracking-[0.2em] rounded-lg">
+                        APARTAMENTO {{ apto.numero }} — TORRE {{ apto.torre }}
+                    </span>
+                    <span class="text-gray-400 font-bold text-xs uppercase tracking-widest italic">Visibilidad Administrativa</span>
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'usuarios:directorio_apartamentos' %}" class="inline-flex items-center px-6 py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-gray-400 hover:text-brand-primary transition-all shadow-sm italic uppercase tracking-widest">
+            <i class="bi bi-arrow-left mr-2"></i> Volver al Censo
+        </a>
+    </div>
+
+    <!-- Resumen de Saldos -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="card-pro !bg-brand-dark !text-white">
+            <span class="text-[0.6rem] font-black text-brand-lime uppercase tracking-widest block mb-1">Saldo a Favor</span>
+            <div class="text-2xl font-black italic">$ {{ apto.saldo_a_favor|intcomma }}</div>
+        </div>
+        {% for m in multas_pendientes %}
+        <!-- Logic for summary can go here -->
+        {% endfor %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- Listado de Movimientos -->
+        <div class="lg:col-span-12 space-y-10">
+            <div class="card-pro shadow-premium !p-0 overflow-hidden">
+                <div class="bg-gray-50 p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest flex items-center gap-3">
+                        <i class="bi bi-list-check text-brand-primary text-lg"></i> Historial de Carteras y Sanciones
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full datatable-brand">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Fecha/Periodo</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Concepto</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Valor Base</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Abonado</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-center">Estado</th>
+                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            {% for c in cuentas %}
+                            <tr>
+                                <td class="px-8 py-6 font-black text-brand-dark italic">{{ c.mes_referencia }}/{{ c.anio }}</td>
+                                <td class="px-8 py-6 text-sm font-bold text-gray-500 uppercase">Administración Ordinaria</td>
+                                <td class="px-8 py-6 font-black text-brand-dark">$ {{ c.valor_base|intcomma }}</td>
+                                <td class="px-8 py-6 font-black text-brand-blue">$ {{ c.valor_abonado|intcomma }}</td>
+                                <td class="px-8 py-6 text-center">
+                                    {% if c.estado == 'Pagado' %}
+                                        <span class="px-3 py-1 bg-brand-lime text-brand-dark text-[0.55rem] font-black rounded-full italic uppercase">PAGADO</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-red-100 text-red-500 text-[0.55rem] font-black rounded-full italic uppercase tracking-widest">PENDIENTE</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <span class="text-gray-300 text-[0.6rem] font-black uppercase tracking-widest group-hover:block transition-all italic">Fijo</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                            {% for m in multas %}
+                            <tr class="bg-red-50/30">
+                                <td class="px-8 py-6 font-black text-red-500 italic">{{ m.fecha_suceso|date:"d M Y" }}</td>
+                                <td class="px-8 py-6">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-black text-red-600 uppercase">MULTA: {{ m.tipo|upper }}</span>
+                                        <span class="text-[0.65rem] text-gray-400 italic truncate max-w-xs">{{ m.descripcion }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 font-black text-red-500">$ {{ m.valor|intcomma }}</td>
+                                <td class="px-8 py-6 font-black text-gray-300">-</td>
+                                <td class="px-8 py-6 text-center">
+                                    {% if m.aplicada_en_cobro %}
+                                        <span class="px-3 py-1 bg-gray-200 text-gray-500 text-[0.55rem] font-black rounded-full italic uppercase">CONCILIADA</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-red-500 text-white text-[0.55rem] font-black rounded-full italic shadow-sm uppercase tracking-widest">ACTIVA</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <form action="{% url 'finanzas:eliminar_multa' m.id %}" method="post" class="m-0" onsubmit="return confirm('¿Eliminar esta sanción del historial?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                                            <i class="bi bi-trash3 text-xs"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
