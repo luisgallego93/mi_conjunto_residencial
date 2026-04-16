@@ -25,7 +25,7 @@ def _get_apartamento_del_usuario(user):
         Apartamento/None: Instancia del apartamento si se encuentra.
     """
     try:
-        from usuarios.models import Apartamento, PerfilUsuario
+        from usuarios.models import Apartamento
         perfil = user.perfilusuario
         return Apartamento.objects.filter(
             Q(propietario=perfil) | Q(inquilino=perfil) | Q(residente_principal=perfil)

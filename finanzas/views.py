@@ -14,9 +14,9 @@ import calendar as cal_module
 import csv
 import io
 
-from django.db.models import Q, F, Sum
+from django.db.models import Q, F
 from .models import CuentaCobro, Multa, GestionCartera, Recaudo
-from usuarios.models import Apartamento, PerfilUsuario
+from usuarios.models import Apartamento
 from reservas.models import Reserva
 from .forms import MultaForm
 

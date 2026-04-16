@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import Q
 from django.contrib.auth import update_session_auth_hash
 from .models import PerfilUsuario, Apartamento, Ocupante
 

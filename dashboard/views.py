@@ -4,17 +4,16 @@ Módulo: dashboard
 Propósito del archivo: Gestionar la lógica de negocio para la visualización de métricas en tiempo real y generación de informes de morosidad.
 """
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from datetime import date, datetime, timedelta
-from django.db.models import Sum, Q
+from datetime import date
+from django.db.models import Sum
 import calendar as cal_module
 
 # Importaciones de modelos de otros módulos para consolidación de datos
 from comunicacion.models import Comunicacion
 from reservas.models import Reserva
 from finanzas.models import CuentaCobro, Multa, Recaudo
-from django.db.models.functions import TruncMonth
 from visitantes.models import Visitante
 from correspondencia.models import Paquete
 from usuarios.models import Apartamento, PerfilUsuario

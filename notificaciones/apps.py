@@ -6,4 +6,4 @@ class NotificacionesConfig(AppConfig):
 
     def ready(self):
         # IMPORTANTE: Aquí es donde se conecta el cable de las señales
-        import notificaciones.signals
+        pass
