@@ -9,13 +9,13 @@
 <div class="mb-10">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Directorio de Perfiles</h2>
+            <h2 class="page-title">Directorio de Perfiles</h2>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Base de Datos Humana</span>
                 <span class="text-gray-400 font-medium text-sm italic">Residentes, personal y administración</span>
             </div>
         </div>
-        <button class="inline-flex items-center px-6 py-3 bg-brand-primary text-white rounded-2xl text-[0.65rem] font-black hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95 uppercase tracking-widest italic" data-bs-toggle="modal" data-bs-target="#registrarModal">
+        <button class="inline-flex items-center px-6 py-3 bg-brand-primary text-white rounded-2xl text-[0.65rem] font-black hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95 uppercase tracking-widest italic" data-modal-target="registrarModal">
             <i class="bi bi-person-plus-fill mr-2"></i> NUEVO RESIDENTE
         </button>
     </div>
@@ -25,20 +25,20 @@
             <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary text-xl shadow-inner">
                 <i class="bi bi-people-fill"></i>
             </div>
-            <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Registros Institucionales</h3>
+            <h3 class="section-title">Registros Institucionales</h3>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full datatable-brand datatable-manual" id="tablaPerfiles">
                 <thead>
                     <tr class="bg-gray-50/50">
-                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Residente</th>
-                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Cédula</th>
-                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Rol / Tipo</th>
-                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Inmueble(s)</th>
-                        <th class="text-left py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Contacto</th>
-                        <th class="text-center py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Estado</th>
-                        <th class="text-right py-5 px-8 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Acciones</th>
+                        <th class="text-left">Residente</th>
+                        <th class="text-left">Cédula</th>
+                        <th class="text-left">Rol / Tipo</th>
+                        <th class="text-left">Inmueble(s)</th>
+                        <th class="text-left">Contacto</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-right">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -90,14 +90,14 @@
                         </td>
                         <td class="text-center align-middle py-6 px-8">
                             {% if r.activo %}
-                                <span class="inline-flex px-3 py-1 bg-brand-lime text-brand-dark text-[0.55rem] font-black uppercase rounded-lg italic tracking-widest shadow-sm">ACTIVO</span>
+                                <span class="badge-pro-success">ACTIVO</span>
                             {% else %}
-                                <span class="inline-flex px-3 py-1 bg-red-100 text-red-500 text-[0.55rem] font-black uppercase rounded-lg italic tracking-widest">INACTIVO</span>
+                                <span class="badge-pro-danger">INACTIVO</span>
                             {% endif %}
                         </td>
                         <td class="text-right align-middle py-6 px-8">
                             <div class="flex items-center justify-end gap-3">
-                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-brand-dark hover:text-white transition-all active:scale-95 shadow-sm" data-bs-toggle="modal" data-bs-target="#editarPerfilModal{{ r.id }}" title="Editar Perfil">
+                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-brand-dark hover:text-white transition-all active:scale-95 shadow-sm" data-modal-target="editarPerfilModal{{ r.id }}" title="Editar Perfil">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
                                 <a href="{% url 'usuarios:alternar_estado_residente' r.id %}" 
@@ -118,9 +118,8 @@
 
 <!-- Modales de Edición -->
 {% for r in residentes %}
-<div class="modal fade" id="editarPerfilModal{{ r.id }}" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+<div class="modal-overlay" id="editarPerfilModal{{ r.id }}">
+    <div class="modal-content">
       <form action="{% url 'usuarios:editar_residente' r.id %}" method="post">
           {% csrf_token %}
           <div class="bg-brand-dark p-8 md:p-10 text-white relative">
@@ -128,7 +127,7 @@
                 <h5 class="text-2xl font-black tracking-tight italic uppercase leading-none">Actualizar Ficha</h5>
                 <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-2">{{ r.nombre_completo }}</p>
             </div>
-            <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+            <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-modal-close>
                 <i class="bi bi-x-lg"></i>
             </button>
             <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
@@ -164,7 +163,7 @@
           </div>
 
           <div class="px-10 py-8 bg-gray-50 flex gap-4">
-            <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-modal-close>Cerrar</button>
             <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl shadow-brand-primary/20 hover:bg-opacity-95 active:scale-95 transition-all uppercase tracking-[0.2em] italic">
                 GUARDAR CAMBIOS <i class="bi bi-check2-all ml-2 text-brand-lime"></i>
             </button>
@@ -176,9 +175,8 @@
 {% endfor %}
 
 <!-- Modal Registrar Nuevo Residente -->
-<div class="modal fade" id="registrarModal" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+<div class="modal-overlay" id="registrarModal">
+    <div class="modal-content">
       <form action="{% url 'usuarios:registrar_residente' %}" method="post">
         {% csrf_token %}
         <div class="bg-brand-primary p-12 text-white relative">
@@ -186,7 +184,7 @@
             <h5 class="text-3xl font-black tracking-tight italic uppercase leading-none">Nuevo Registro</h5>
             <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-3">Creación masiva de accesos institucionales</p>
           </div>
-          <button type="button" class="absolute top-10 right-10 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+          <button type="button" class="absolute top-10 right-10 text-white/30 hover:text-white transition-colors" data-modal-close>
             <i class="bi bi-x-lg"></i>
           </button>
           <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
@@ -198,7 +196,7 @@
               <i class="bi bi-shield-lock-fill"></i>
             </div>
             <div>
-              <h4 class="text-xs font-black text-brand-dark uppercase tracking-widest mb-1 italic">Política de Acceso Electrónico</h4>
+              <h4 class="section-title">Política de Acceso Electrónico</h4>
               <p class="text-[0.65rem] text-brand-dark/60 font-medium leading-relaxed italic">
                 La <strong>cédula (CC)</strong> será la llave inicial. El sistema activará un flujo de seguridad para el cambio de contraseña en el primer inicio de sesión.
               </p>
@@ -249,7 +247,7 @@
         </div>
 
         <div class="px-12 py-8 bg-gray-50 border-t border-gray-100 flex gap-4">
-          <button type="button" class="flex-1 py-5 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase tracking-widest" data-bs-dismiss="modal">CANCELAR</button>
+          <button type="button" class="flex-1 py-5 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase tracking-widest" data-modal-close>CANCELAR</button>
           <button type="submit" class="flex-[2] py-5 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase tracking-[0.2em] italic active:scale-95 transition-all">
             <i class="bi bi-check-circle-fill mr-2 text-brand-lime text-lg"></i> CREAR Y REGISTRAR
           </button>

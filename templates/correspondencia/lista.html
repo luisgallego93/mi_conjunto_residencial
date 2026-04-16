@@ -15,8 +15,8 @@
         </div>
     </div>
     {% if not es_residente %}
-    <a href="{% url 'correspondencia:recibir_paquete' %}" class="btn-pro-primary flex items-center gap-3">
-        <i class="bi bi-plus-lg"></i> REGISTRAR PAQUETE
+    <a href="{% url 'correspondencia:recibir_paquete' %}" class="btn-pro-primary">
+        <i class="bi bi-box-fill text-lg text-brand-lime"></i> REGISTRAR PAQUETE
     </a>
     {% endif %}
 </div>
@@ -28,7 +28,7 @@
                 <i class="bi bi-boxes"></i>
             </div>
             <div>
-                <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest leading-none">Inventario Activo</h3>
+                <h3 class="section-title">Inventario Activo</h3>
                 <p class="text-[0.6rem] text-gray-400 font-bold uppercase tracking-tighter mt-1 italic">Mostrando paquetes pendientes por retirar</p>
             </div>
         </div>
@@ -38,7 +38,7 @@
                 <i class="bi bi-search"></i>
             </div>
             <input type="text" id="filtroPaquetes" 
-                   class="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm" 
+                   class="w-full !pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm" 
                    placeholder="BUSCAR POR APTO, GUÍA O REMITENTE...">
         </div>
     </div>
@@ -47,11 +47,11 @@
         <table class="w-full datatable-brand" id="tablaPaquetes">
             <thead>
                 <tr class="bg-gray-50/50">
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Origen / Empresa</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Residente / Unidad</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Recepción</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Estado</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Detalle</th>
+                    <th class="text-left">Origen / Empresa</th>
+                    <th class="text-left">Residente / Unidad</th>
+                    <th class="text-left">Recepción</th>
+                    <th class="text-left">Estado</th>
+                    <th class="text-right">Detalle</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
@@ -92,14 +92,13 @@
                     </td>
                     <td class="px-8 py-5 align-middle text-right">
                         {% if not es_residente and p.estado != 'Entregado' %}
-                            <button type="button" class="btn-pro-primary !py-2 !px-4 text-[0.6rem] shadow-none flex items-center gap-2 ml-auto" data-bs-toggle="modal" data-bs-target="#entregaModal{{ p.id }}">
+                            <button type="button" class="btn-pro-primary !py-2 !px-4 text-[0.6rem] shadow-none flex items-center gap-2 ml-auto" data-modal-target="entregaModal{{ p.id }}">
                                 CONFIRMAR <i class="bi bi-arrow-right-short text-lg"></i>
                             </button>
                             
                             <!-- Modal de Entrega -->
-                            <div class="modal fade" id="entregaModal{{ p.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+                            <div class="modal-overlay" id="entregaModal{{ p.id }}">
+    <div class="modal-content">
                                         <form action="{% url 'correspondencia:entregar_paquete' p.id %}" method="post">
                                             {% csrf_token %}
                                             <div class="bg-brand-dark p-8 md:p-10 text-white relative">
@@ -107,7 +106,7 @@
                                                     <h5 class="text-2xl font-black tracking-tight italic uppercase">Confirmar Salida</h5>
                                                     <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-1">APARTAMENTO {{ p.apartamento }}</p>
                                                 </div>
-                                                <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                                <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-modal-close>
                                                     <i class="bi bi-x-lg"></i>
                                                 </button>
                                             </div>
@@ -128,7 +127,7 @@
                                                 </div>
                                             </div>
                                             <div class="px-10 py-8 bg-gray-50 flex gap-4">
-                                                <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-colors uppercase tracking-widest" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-colors uppercase tracking-widest" data-modal-close>Cancelar</button>
                                                 <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl shadow-brand-primary/20 hover:bg-opacity-95 active:scale-95 transition-all uppercase tracking-[0.2em] italic">
                                                     REGISTRAR SALIDA <i class="bi bi-check2-all ml-2 text-brand-lime"></i>
                                                 </button>

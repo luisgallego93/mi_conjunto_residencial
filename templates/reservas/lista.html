@@ -14,11 +14,11 @@
     </div>
     <div class="flex items-center gap-3">
         {% if not es_residente %}
-        <a href="{% url 'reservas:tarifario' %}" class="px-5 py-3 bg-white border border-gray-200 text-gray-600 font-black rounded-2xl hover:bg-gray-50 transition-colors shadow-sm text-[0.65rem] uppercase tracking-widest italic">
-            <i class="bi bi-gear-fill mr-2 text-brand-primary"></i> Tarifas
+        <a href="{% url 'reservas:tarifario' %}" class="btn-pro-secondary">
+            <i class="bi bi-gear-fill text-brand-primary text-lg"></i> Tarifas
         </a>
         {% endif %}
-        <a href="{% url 'reservas:crear_reserva' %}" class="btn-pro-primary flex items-center gap-3 !px-8 !py-4 shadow-xl active:scale-95 text-[0.65rem] uppercase tracking-widest italic">
+        <a href="{% url 'reservas:crear_reserva' %}" class="btn-pro-primary">
             <i class="bi bi-calendar-plus text-lg"></i> Nueva Reserva
         </a>
     </div>
@@ -56,8 +56,8 @@
                 </select>
             </div>
             <div class="md:col-span-2">
-                <button type="submit" class="w-full py-3 bg-brand-dark text-white font-black rounded-2xl hover:bg-opacity-90 transition-all shadow-lg text-[0.65rem] flex items-center justify-center gap-2 uppercase tracking-widest italic">
-                    <i class="bi bi-funnel"></i> Filtrar
+                <button type="submit" class="btn-pro-primary !py-4 w-full">
+                    <i class="bi bi-funnel text-lg"></i> Filtrar
                 </button>
             </div>
         </form>
@@ -67,14 +67,14 @@
         <table id="tableReservas" class="w-full datatable-brand">
             <thead>
                 <tr class="bg-gray-50/50">
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Solicitud</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Fecha Reserva</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Zona</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Solicitante</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Horario</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Estado</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Pago</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Acción</th>
+                    <th>Solicitud</th>
+                    <th>Fecha Reserva</th>
+                    <th>Zona</th>
+                    <th>Solicitante</th>
+                    <th>Horario</th>
+                    <th>Estado</th>
+                    <th>Pago</th>
+                    <th class="text-right">Acción</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
@@ -111,11 +111,11 @@
                                 <i class="bi bi-x-circle mr-1.5"></i> RECHAZADO
                             </span>
                         {% elif res.estado_reserva == 'Cancelado' %}
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-gray-100 text-gray-400 uppercase tracking-widest">
+                            <span class="badge-pro-neutral">
                                 CANCELADO
                             </span>
                         {% else %}
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-brand-lime text-brand-dark shadow-sm uppercase italic tracking-widest">
+                            <span class="badge-pro-success">
                                 <i class="bi bi-clock-history mr-1.5"></i> PENDIENTE
                             </span>
                         {% endif %}
@@ -132,7 +132,7 @@
                                     <i class="bi bi-eye mr-1.5"></i> SOPORTE
                                 </a>
                             {% else %}
-                                <button class="px-3 py-1 bg-brand-lime/10 text-brand-dark text-[0.55rem] font-black rounded-lg border border-brand-lime/20 hover:bg-brand-lime transition-all uppercase tracking-widest italic" data-bs-toggle="modal" data-bs-target="#pagoModal{{ res.id }}">
+                                <button class="px-3 py-1 bg-brand-lime/10 text-brand-dark text-[0.55rem] font-black rounded-lg border border-brand-lime/20 hover:bg-brand-lime transition-all uppercase tracking-widest italic" data-modal-target="pagoModal{{ res.id }}">
                                     SUBIR PAGO
                                 </button>
                             {% endif %}
@@ -141,26 +141,25 @@
                     <td class="px-8 py-6 align-middle text-right">
                         <div class="flex items-center justify-end gap-2">
                              {% if res.estado_reserva == 'Pendiente' and not es_residente %}
-                                <button type="button" class="w-9 h-9 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:bg-brand-dark hover:text-white transition-all shadow-sm" data-bs-toggle="modal" data-bs-target="#gestionModal{{ res.id }}">
+                                <button type="button" class="w-9 h-9 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:bg-brand-dark hover:text-white transition-all shadow-sm" data-modal-target="gestionModal{{ res.id }}">
                                     <i class="bi bi-shield-lock-fill"></i>
                                 </button>
                             {% endif %}
 
                             {% if res.estado_reserva != 'Cancelado' and res.estado_reserva != 'Rechazado' %}
-                                <button type="button" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-300 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm" data-bs-toggle="modal" data-bs-target="#cancelarModal{{ res.id }}">
+                                <button type="button" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-300 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm" data-modal-target="cancelarModal{{ res.id }}">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             {% endif %}
                         </div>
 
                         <!-- Modals logically placed here -->
-                        <div class="modal fade" id="gestionModal{{ res.id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl text-left">
+                        <div class="modal-overlay" id="gestionModal{{ res.id }}">
+    <div class="modal-content">
                                     <div class="bg-brand-primary p-10 text-white relative">
                                         <h5 class="text-2xl font-black tracking-tight italic uppercase leading-none">Aprobar Reserva</h5>
                                         <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-2">Validación Administrativa</p>
-                                        <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                        <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-modal-close>
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
@@ -183,11 +182,10 @@
                             </div>
                         </div>
 
-                        <div class="modal fade" id="cancelarModal{{ res.id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl text-center">
+                        <div class="modal-overlay" id="cancelarModal{{ res.id }}">
+    <div class="modal-content">
                                     <div class="p-10 space-y-6 relative">
-                                        <button type="button" class="absolute top-8 right-8 text-gray-300 hover:text-gray-500 transition-colors" data-bs-dismiss="modal">
+                                        <button type="button" class="absolute top-8 right-8 text-gray-300 hover:text-gray-500 transition-colors" data-modal-close>
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                         <div class="w-20 h-20 bg-red-50 text-red-500 rounded-[2rem] flex items-center justify-center mx-auto text-3xl shadow-inner">
@@ -199,22 +197,21 @@
                                         </div>
                                     </div>
                                     <div class="p-8 bg-gray-50 flex gap-4">
-                                        <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Mantener</button>
+                                        <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-modal-close>Mantener</button>
                                         <a href="{% url 'reservas:cancelar_reserva' res.id %}" class="flex-[2] py-4 bg-red-500 text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest flex items-center justify-center">SÍ, CANCELAR</a>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="modal fade" id="pagoModal{{ res.id }}" tabindex="-1">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl text-left">
+                        <div class="modal-overlay" id="pagoModal{{ res.id }}">
+    <div class="modal-content">
                                     <form action="{% url 'reservas:subir_comprobante' res.id %}" method="post" enctype="multipart/form-data">
                                         {% csrf_token %}
                                         <div class="bg-brand-lime p-10 text-brand-dark relative">
                                             <h5 class="text-2xl font-black italic uppercase leading-none">Reportar Consignación</h5>
                                             <p class="text-brand-dark/50 font-black text-[0.65rem] tracking-widest uppercase mt-2">{{ res.get_zona_comun_display }}</p>
-                                            <button type="button" class="absolute top-8 right-8 text-brand-dark/30 hover:text-brand-dark transition-colors" data-bs-dismiss="modal">
+                                            <button type="button" class="absolute top-8 right-8 text-brand-dark/30 hover:text-brand-dark transition-colors" data-modal-close>
                                                 <i class="bi bi-x-lg"></i>
                                             </button>
                                         </div>
@@ -231,7 +228,7 @@
                                             </div>
                                         </div>
                                         <div class="p-8 bg-gray-50 flex gap-4">
-                                            <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Cerrar</button>
+                                            <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-modal-close>Cerrar</button>
                                             <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">ENVIAR COMPROBANTE</button>
                                         </div>
                                     </form>
@@ -260,7 +257,15 @@
     <div class="p-10 bg-brand-dark text-white flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div>
             <h3 class="text-2xl font-black uppercase italic tracking-tight leading-none">Ocupación de Zonas</h3>
-            <p class="text-white/40 font-black text-[0.65rem] uppercase tracking-widest mt-2">{{ nombre_mes }} {{ anio_actual }}</p>
+            <div class="flex items-center gap-4 mt-2">
+                <a href="?mes={{ mes_anterior }}&anio={{ anio_anterior }}" class="w-6 h-6 flex items-center justify-center bg-white/10 hover:bg-brand-lime hover:text-brand-dark rounded-full transition-colors text-[0.6rem]">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                <p class="text-white/40 font-black text-[0.65rem] uppercase tracking-widest">{{ nombre_mes }} {{ anio_actual }}</p>
+                <a href="?mes={{ mes_siguiente }}&anio={{ anio_siguiente }}" class="w-6 h-6 flex items-center justify-center bg-white/10 hover:bg-brand-lime hover:text-brand-dark rounded-full transition-colors text-[0.6rem]">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
         </div>
         <div class="flex flex-wrap gap-6 bg-white/5 p-4 rounded-2xl border border-white/5 shadow-inner">
             <div class="flex items-center gap-2">
@@ -311,7 +316,7 @@
                                                     <div class="px-3 py-1.5 rounded-xl text-[0.55rem] font-black text-white shadow-xl truncate italic
                                                                {% if r.zona == 'salon' %}bg-green-500 shadow-green-500/10{% elif r.zona == 'bbq' %}bg-orange-500 shadow-orange-500/10{% else %}bg-brand-blue shadow-brand-blue/10{% endif %}"
                                                          title="{{ r.solicitante }} - {{ r.zona_display }}">
-                                                        #{{ r.apto }}
+                                                        {% if r.apto == '—' %}OCUPADO{% else %}#{{ r.apto }}{% endif %}
                                                     </div>
                                                 {% endfor %}
                                             {% endif %}

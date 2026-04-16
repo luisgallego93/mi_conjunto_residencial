@@ -45,11 +45,11 @@
 
         <!-- Acciones -->
         <div class="flex items-end gap-3 h-full pt-6">
-            <button type="submit" class="btn-pro-primary h-12 px-8 flex items-center justify-center gap-2">
-                <i class="bi bi-funnel-fill"></i> Filtrar
+            <button type="submit" class="btn-pro-primary !h-12 !py-0">
+                <i class="bi bi-funnel-fill text-lg"></i> Filtrar
             </button>
-            <a href="{{ request.path }}" class="h-12 px-6 bg-white border border-gray-200 text-gray-400 rounded-xl flex items-center justify-center transition-all hover:bg-gray-50 hover:text-gray-600">
-                <i class="bi bi-x-circle"></i>
+            <a href="{{ request.path }}" class="btn-pro-secondary !h-12 !px-4 !py-0">
+                <i class="bi bi-x-circle text-lg text-gray-400"></i>
             </a>
         </div>
     </form>

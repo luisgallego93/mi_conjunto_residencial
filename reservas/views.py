@@ -55,8 +55,22 @@ def lista_reservas(request):
 
     # Generación de Calendario Mensual
     hoy = date.today()
-    mes_actual = hoy.month
-    anio_actual = hoy.year
+    try:
+        mes_actual = int(request.GET.get('mes', hoy.month))
+        anio_actual = int(request.GET.get('anio', hoy.year))
+    except ValueError:
+        mes_actual = hoy.month
+        anio_actual = hoy.year
+
+    if mes_actual == 1:
+        mes_anterior, anio_anterior = 12, anio_actual - 1
+    else:
+        mes_anterior, anio_anterior = mes_actual - 1, anio_actual
+
+    if mes_actual == 12:
+        mes_siguiente, anio_siguiente = 1, anio_actual + 1
+    else:
+        mes_siguiente, anio_siguiente = mes_actual + 1, anio_actual
 
     MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
@@ -110,6 +124,10 @@ def lista_reservas(request):
         'nombre_mes': nombre_mes,
         'anio_actual': anio_actual,
         'mes_actual': mes_actual,
+        'mes_anterior': mes_anterior,
+        'anio_anterior': anio_anterior,
+        'mes_siguiente': mes_siguiente,
+        'anio_siguiente': anio_siguiente,
         'hoy_dia': hoy.day,
         'reservas_por_dia': reservas_por_dia,
         'es_residente': es_residente,

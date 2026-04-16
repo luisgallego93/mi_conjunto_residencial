@@ -13,7 +13,7 @@
             <span class="text-gray-400 font-medium text-sm italic">Requerimientos y solicitudes de residentes</span>
         </div>
     </div>
-    <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn-pro-primary flex items-center justify-center gap-3 !px-8 !py-4 shadow-xl active:scale-95 text-[0.65rem] uppercase tracking-widest italic">
+    <a href="{% url 'comunicacion:crear_pqrs' %}" class="btn-pro-primary">
         <i class="bi bi-plus-circle-fill text-lg"></i> Nueva Solicitud
     </a>
 </div>
@@ -48,7 +48,7 @@
                         <i class="bi bi-search text-sm"></i>
                     </div>
                     <input type="text" name="search" value="{{ filtros.search|default:'' }}"
-                           class="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none" 
+                           class="w-full !pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none" 
                            placeholder="RADICADO O TÍTULO...">
                 </div>
             </div>
@@ -64,12 +64,12 @@
         <table class="w-full datatable-brand" id="tablaPQRS">
             <thead>
                 <tr class="bg-gray-50/50">
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Radicado</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Prioridad</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Asunto / Fecha</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Solicitante</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Estado</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Detalle</th>
+                    <th>Radicado</th>
+                    <th>Prioridad</th>
+                    <th>Asunto / Fecha</th>
+                    <th>Solicitante</th>
+                    <th>Estado</th>
+                    <th class="text-right">Detalle</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
@@ -105,11 +105,11 @@
                     </td>
                     <td class="px-8 py-6 align-middle">
                         {% if item.estado == 'Abierto' %}
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-brand-lime text-brand-dark shadow-sm uppercase italic tracking-widest">
+                            <span class="badge-pro-success">
                                 <span class="w-1.5 h-1.5 rounded-full bg-brand-dark/20 mr-2"></span> RECIBIDO
                             </span>
                         {% elif item.estado == 'Resuelto' or item.estado == 'Cerrado' %}
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[0.55rem] font-black bg-gray-100 text-gray-400 uppercase tracking-widest">
+                            <span class="badge-pro-neutral">
                                 FINALIZADO
                             </span>
                         {% elif item.estado == 'En Proceso' %}

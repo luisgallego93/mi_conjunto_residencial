@@ -7,7 +7,7 @@
 <div class="mb-10">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">Censo de Apartamentos</h2>
+            <h2 class="page-title">Censo de Apartamentos</h2>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Gestión de Inmuebles</span>
                 <span class="text-gray-400 font-medium text-sm">Inventario maestro de unidades y residentes</span>
@@ -32,18 +32,18 @@
             <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary text-xl">
                 <i class="bi bi-grid-3x3-gap-fill"></i>
             </div>
-            <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Inventario General de Bienes Privados</h3>
+            <h3 class="section-title">Inventario General de Bienes Privados</h3>
         </div>
 
         <div class="overflow-x-auto -mx-6">
             <table class="w-full datatable-brand datatable-manual">
                 <thead>
                     <tr>
-                        <th class="text-left py-4 px-6">UNIDAD</th>
-                        <th class="text-left py-4 px-6">ESTADO</th>
-                        <th class="text-left py-4 px-6">PROPIETARIO</th>
-                        <th class="text-left py-4 px-6">RESIDENTE</th>
-                        <th class="text-center py-4 px-6">ACCIONES</th>
+                        <th class="text-left">UNIDAD</th>
+                        <th class="text-left">ESTADO</th>
+                        <th class="text-left">PROPIETARIO</th>
+                        <th class="text-left">RESIDENTE</th>
+                        <th class="text-center">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -52,20 +52,20 @@
                         <td class="align-middle py-4 px-6">
                             <div class="flex flex-col">
                                 <span class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest mb-1">TORRE {{ apto.torre }}</span>
-                                <span class="text-lg font-black text-brand-primary group-hover:scale-105 transition-transform origin-left">Apto {{ apto.numero }}</span>
+                                <span class="text-xl font-black text-brand-dark italic group-hover:scale-105 transition-transform origin-left">Apto {{ apto.numero }}</span>
                             </div>
                         </td>
                         <td class="align-middle py-4 px-6">
                             {% if apto.inquilino %}
-                                <span class="inline-flex items-center px-3 py-1 bg-brand-lime text-brand-dark text-[0.65rem] font-black uppercase rounded-lg">
+                                <span class="badge-pro-success">
                                     ARRENDADO
                                 </span>
                             {% elif apto.propietario %}
-                                <span class="inline-flex items-center px-3 py-1 bg-brand-primary text-white text-[0.65rem] font-black uppercase rounded-lg">
+                                <span class="inline-flex items-center px-3 py-1 badge-pro-neutral !bg-brand-primary !text-white">
                                     PROPIETARIO
                                 </span>
                             {% else %}
-                                <span class="inline-flex items-center px-3 py-1 bg-red-100 text-red-500 text-[0.65rem] font-black uppercase rounded-lg">
+                                <span class="badge-pro-danger">
                                     VACÍO
                                 </span>
                             {% endif %}
@@ -94,27 +94,26 @@
                         </td>
                         <td class="text-center align-middle py-4 px-6">
                             <div class="flex items-center justify-center gap-3">
-                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-brand-dark hover:text-white transition-all active:scale-90" data-bs-toggle="modal" data-bs-target="#censoModal{{ apto.id }}" title="Ver Censo">
+                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-brand-dark hover:text-white transition-all active:scale-90" data-modal-target="censoModal{{ apto.id }}" title="Ver Censo">
                                     <i class="bi bi-people-fill"></i>
                                 </button>
                                 <a href="{% url 'finanzas:historial_apartamento_admin' apto.id %}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-brand-lime hover:text-brand-dark transition-all active:scale-90" title="Historial Financiero">
                                     <i class="bi bi-cash-stack"></i>
                                 </a>
-                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-brand-primary text-white hover:bg-opacity-90 transition-all active:scale-90 shadow-lg shadow-brand-primary/20" data-bs-toggle="modal" data-bs-target="#vincularModal{{ apto.id }}" title="Vincular Nuevo">
+                                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-brand-primary text-white hover:bg-opacity-90 transition-all active:scale-90 shadow-lg shadow-brand-primary/20" data-modal-target="vincularModal{{ apto.id }}" title="Vincular Nuevo">
                                     <i class="bi bi-person-plus-fill"></i>
                                 </button>
                             </div>
 
                             <!-- Modal Ver Censo -->
-                            <div class="modal fade" id="censoModal{{ apto.id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content overflow-hidden border-none rounded-[2rem] shadow-2xl">
+                            <div class="modal-overlay" id="censoModal{{ apto.id }}">
+    <div class="modal-content">
                                         <div class="bg-brand-dark p-8 text-white relative">
                                             <div class="relative z-10 text-left">
                                                 <h5 class="text-2xl font-black tracking-tight mb-1">Censo Habitantes</h5>
                                                 <p class="text-white/50 text-sm font-bold uppercase tracking-widest">Unidad {{ apto.numero }} · Torre {{ apto.torre }}</p>
                                             </div>
-                                            <button type="button" class="absolute top-8 right-8 text-white/50 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                            <button type="button" class="absolute top-8 right-8 text-white/50 hover:text-white transition-colors" data-modal-close>
                                                 <i class="bi bi-x-lg"></i>
                                             </button>
                                             <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
@@ -154,16 +153,15 @@
                                             </div>
                                         </div>
                                         <div class="p-8 bg-gray-50 border-t border-gray-100 flex justify-end">
-                                            <button type="button" class="px-8 py-3 bg-white border border-gray-100 text-gray-500 text-xs font-black rounded-xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-bs-dismiss="modal">CERRAR DETALLE</button>
+                                            <button type="button" class="px-8 py-3 bg-white border border-gray-100 text-gray-500 text-xs font-black rounded-xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-modal-close>CERRAR DETALLE</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Modal Vincular Residente -->
-                            <div class="modal fade" id="vincularModal{{ apto.id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content overflow-hidden border-none rounded-[2rem] shadow-2xl">
+                            <div class="modal-overlay" id="vincularModal{{ apto.id }}">
+    <div class="modal-content">
                                         <form action="{% url 'usuarios:vincular_residente' apto.id %}" method="post">
                                             {% csrf_token %}
                                             <div class="bg-brand-primary p-10 text-white relative overflow-hidden">
@@ -171,7 +169,7 @@
                                                     <h5 class="text-3xl font-black tracking-tight mb-1">Vincular Residente</h5>
                                                     <p class="text-white/60 text-sm font-bold uppercase tracking-widest">Unidad {{ apto.numero }} · T{{ apto.torre }}</p>
                                                 </div>
-                                                <button type="button" class="absolute top-10 right-10 text-white/50 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                                <button type="button" class="absolute top-10 right-10 text-white/50 hover:text-white transition-colors" data-modal-close>
                                                     <i class="bi bi-x-lg"></i>
                                                 </button>
                                                 <div class="absolute -bottom-20 -left-20 w-60 h-60 bg-white/5 rounded-full blur-3xl"></div>
@@ -204,7 +202,7 @@
                                                 </div>
                                             </div>
                                             <div class="p-10 bg-gray-50 border-t border-gray-100 flex flex-col md:flex-row gap-4">
-                                                <button type="button" class="flex-1 py-4 bg-white border border-gray-100 text-gray-400 text-xs font-black rounded-2xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-bs-dismiss="modal">CANCELAR</button>
+                                                <button type="button" class="flex-1 py-4 bg-white border border-gray-100 text-gray-400 text-xs font-black rounded-2xl hover:bg-gray-100 transition-all uppercase tracking-widest" data-modal-close>CANCELAR</button>
                                                 <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-xs font-bold font-black rounded-2xl hover:bg-opacity-90 shadow-lg shadow-brand-primary/20 active:scale-95 transition-all tracking-widest">
                                                     VINCULAR AHORA
                                                 </button>

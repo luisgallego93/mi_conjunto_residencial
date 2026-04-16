@@ -6,7 +6,7 @@
 <div class="mb-10">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Mi Grupo Familiar</h2>
+            <h2 class="page-title">Mi Grupo Familiar</h2>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full shadow-inner">Gestión de Censo</span>
                 <span class="text-gray-400 font-medium text-sm italic">Control de residentes y ocupantes autorizados en la unidad</span>
@@ -36,7 +36,7 @@
                         <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary text-xl shadow-inner">
                             <i class="bi bi-people-fill"></i>
                         </div>
-                        <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest italic leading-none">Residentes Registrados</h3>
+                        <h3 class="section-title">Residentes Registrados</h3>
                     </div>
                     <span class="text-[0.6rem] font-black text-white px-3 py-1 bg-brand-dark rounded-lg uppercase tracking-widest shadow-sm">
                         {{ ocupantes|length }} Integrante{% if ocupantes|length != 1 %}s{% endif %}
@@ -47,11 +47,11 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-50/50">
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Identidad</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Parentesco</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-center">Documento</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-center">Edad</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Acción</th>
+                                <th>Identidad</th>
+                                <th>Parentesco</th>
+                                <th class="text-center">Documento</th>
+                                <th class="text-center">Edad</th>
+                                <th class="text-right">Acción</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -65,7 +65,7 @@
                                         <div>
                                             <div class="text-sm font-black text-brand-dark italic leading-snug">{{ o.nombre_completo }}</div>
                                             {% if o.es_menor_edad %}
-                                                <span class="inline-flex px-2 py-0.5 bg-brand-lime text-brand-dark text-[0.55rem] font-black uppercase tracking-tighter rounded-md mt-1 italic shadow-sm">MENOR</span>
+                                                <span class="badge-pro-success">MENOR</span>
                                             {% endif %}
                                         </div>
                                     </div>

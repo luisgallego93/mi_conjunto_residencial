@@ -6,7 +6,7 @@
 <!-- Header Row -->
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
     <div>
-        <h1 class="text-4xl font-black text-brand-dark tracking-tighter">Panel de Comando</h1>
+        <h1 class="page-title">Panel de Comando</h1>
         <p class="text-gray-500 font-medium">Monitoreo ejecutivo en tiempo real para Sauces</p>
     </div>
     <div class="flex gap-3">
@@ -140,7 +140,7 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <a href="{% url 'finanzas:generar_facturacion' %}" class="card-pro bg-white p-6 hover:bg-red-50 hover:border-red-100 transition-all text-center group">
+            <a href="{% url 'finanzas:cartera' %}" class="card-pro bg-white p-6 hover:bg-red-50 hover:border-red-100 transition-all text-center group">
                 <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                     <i class="bi bi-file-earmark-spreadsheet text-xl"></i>
                 </div>
@@ -165,7 +165,7 @@
 {% else %}
 <!-- RESIDENT VIEW -->
 <div class="mb-12">
-    <h1 class="text-4xl font-black text-brand-dark tracking-tighter">Hola, {{ user.perfilusuario.nombre_completo|truncatewords:1 }}</h1>
+    <h1 class="page-title">Hola, {{ user.perfilusuario.nombre_completo|truncatewords:1 }}</h1>
     <p class="text-gray-500 font-medium">Bienvenido a tu panel de residencia en Sauces</p>
 </div>
 

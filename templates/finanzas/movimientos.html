@@ -44,7 +44,7 @@
     {% if vista_admin %}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic">Extracto de Cuenta</h2>
+            <h2 class="page-title">Extracto de Cuenta</h2>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Auditoría Financiera</span>
             </div>
@@ -88,7 +88,7 @@
         <div class="w-24 h-24 bg-brand-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-lg shadow-brand-primary/5 group">
             <i class="bi bi-person-workspace text-4xl text-brand-primary group-hover:scale-110 transition-transform duration-500"></i>
         </div>
-        <h2 class="text-3xl md:text-4xl font-black text-brand-dark mb-4 tracking-tight uppercase italic">Auditoría de Movimientos</h2>
+        <h2 class="page-title">Auditoría de Movimientos</h2>
         <p class="text-gray-400 font-medium mb-12 max-w-xl mx-auto leading-relaxed">Seleccione una unidad para visualizar su historial financiero consolidado y verificar su estado de cartera en tiempo real.</p>
         
         <form method="get" class="card-pro p-8 md:p-12 text-left space-y-8 shadow-2xl border-none">
@@ -98,7 +98,7 @@
                     <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
                         <i class="bi bi-building"></i>
                     </div>
-                    <select name="apartamento_id" id="selectAptoAdmin" class="w-full pl-14 pr-12 py-5 bg-gray-50 border-none rounded-3xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 appearance-none cursor-pointer outline-none transition-all shadow-sm" required>
+                    <select name="apartamento_id" id="selectAptoAdmin" class="w-full !pl-14 pr-12 py-5 bg-gray-50 border-none rounded-3xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 appearance-none cursor-pointer outline-none transition-all shadow-sm" required>
                         <option value="">Escriba número de torre o apartamento...</option>
                         {% for a in apartamentos_lista %}
                         <option value="{{ a.id }}">Torre {{ a.torre }} - Apto {{ a.numero }} ({{ a.residente_principal.nombre_completo|default:"Sin censo" }})</option>
@@ -121,7 +121,7 @@
                         <i class="bi bi-house-door"></i>
                     </div>
                     <div>
-                        <h3 class="text-3xl font-black text-brand-dark tracking-tighter uppercase italic">Apto {{ apartamento.numero }}</h3>
+                        <h3 class="page-title">Apto {{ apartamento.numero }}</h3>
                         <span class="text-[0.65rem] font-black text-brand-primary uppercase tracking-[0.3em]">Torre {{ apartamento.torre }}</span>
                     </div>
                 </div>
@@ -216,12 +216,12 @@
                     <table id="adminTable" class="w-full datatable-brand datatable-manual">
                         <thead>
                             <tr class="bg-gray-50/50">
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Periodo</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Concepto Detallado</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Facturado</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Abonos</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Pendiente</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Estado</th>
+                                <th>Periodo</th>
+                                <th>Concepto Detallado</th>
+                                <th class="text-right">Facturado</th>
+                                <th class="text-right">Abonos</th>
+                                <th class="text-right">Pendiente</th>
+                                <th class="text-right">Estado</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -241,18 +241,16 @@
                                 <td class="px-8 py-5 text-right font-black {% if c.saldo_pendiente > 0 %}text-red-500{% else %}text-gray-300{% endif %}">$ {{ c.saldo_pendiente|intcomma }}</td>
                                 <td class="px-8 py-5 text-right">
                                     {% if c.estado == 'Pagado' %}
-                                        <span class="inline-flex px-3 py-1 bg-brand-lime text-brand-dark text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Pagado</span>
+                                        <span class="badge-pro-success">Pagado</span>
                                     {% else %}
                                         {% if c.anio < anio_actual or c.anio == anio_actual and c.mes_referencia < mes_actual %}
-                                            <span class="inline-flex px-3 py-1 bg-red-100 text-red-600 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">En Mora</span>
+                                            <span class="badge-pro-danger">En Mora</span>
                                         {% else %}
                                             <span class="inline-flex px-3 py-1 bg-yellow-100 text-yellow-700 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Vigente</span>
                                         {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
-                            {% empty %}
-                            <tr><td colspan="6" class="py-24 text-center text-gray-400 text-xs font-black uppercase tracking-[0.2em] italic">No hay registros de facturación generados.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -265,13 +263,13 @@
                     <table id="multasTable" class="w-full datatable-brand datatable-manual">
                         <thead>
                             <tr class="bg-gray-50/50">
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Fecha Suceso</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Tipo de Infracción</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Descripción Técnica</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Valor Sanción</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Estatus</th>
+                                <th>Fecha Suceso</th>
+                                <th>Tipo de Infracción</th>
+                                <th>Descripción Técnica</th>
+                                <th class="text-right">Valor Sanción</th>
+                                <th class="text-right">Estatus</th>
                                 {% if vista_admin %}
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Acciones</th>
+                                <th class="text-right">Acciones</th>
                                 {% endif %}
                             </tr>
                         </thead>
@@ -286,9 +284,9 @@
                                 <td class="px-8 py-5 text-right font-black text-brand-dark">$ {{ m.valor|intcomma }}</td>
                                 <td class="px-8 py-5 text-right">
                                     {% if m.aplicada_en_cobro %}
-                                        <span class="inline-flex px-3 py-1 bg-brand-lime text-brand-dark text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Liquidado</span>
+                                        <span class="badge-pro-success">Liquidado</span>
                                     {% else %}
-                                        <span class="inline-flex px-3 py-1 bg-gray-100 text-gray-400 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Pendiente de Cruce</span>
+                                        <span class="badge-pro-neutral">Pendiente de Cruce</span>
                                     {% endif %}
                                 </td>
                                 {% if vista_admin %}
@@ -302,8 +300,6 @@
                                 </td>
                                 {% endif %}
                             </tr>
-                            {% empty %}
-                            <tr><td colspan="{% if vista_admin %}6{% else %}5{% endif %}" class="py-24 text-center text-gray-400 text-xs font-black uppercase tracking-[0.2em] italic">No registra sanciones en el periodo consultado.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -316,11 +312,11 @@
                     <table id="reservasTable" class="w-full datatable-brand datatable-manual">
                         <thead>
                             <tr class="bg-gray-50/50">
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Día y Franja</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Espacio Común</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest">Propósito</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Costo Uso</th>
-                                <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Estado Recaudo</th>
+                                <th>Día y Franja</th>
+                                <th>Espacio Común</th>
+                                <th>Propósito</th>
+                                <th class="text-right">Costo Uso</th>
+                                <th class="text-right">Estado Recaudo</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -340,12 +336,10 @@
                                     {% if r.estado_pago %}
                                          <span class="inline-flex px-3 py-1 bg-brand-primary text-white text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic shadow-sm">Facturado</span>
                                     {% else %}
-                                         <span class="inline-flex px-3 py-1 bg-gray-100 text-gray-400 text-[0.55rem] font-black rounded-lg uppercase tracking-widest italic">Por Liquidar</span>
+                                         <span class="badge-pro-neutral">Por Liquidar</span>
                                     {% endif %}
                                 </td>
                             </tr>
-                            {% empty %}
-                            <tr><td colspan="5" class="py-24 text-center text-gray-400 text-xs font-black uppercase tracking-[0.2em] italic">Sin reservas de zonas comunes registradas.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

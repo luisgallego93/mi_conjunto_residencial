@@ -9,7 +9,7 @@
 <div class="mb-10">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">Mi Perfil Personal</h2>
+            <h2 class="page-title">Mi Perfil Personal</h2>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Gestión de Cuenta</span>
                 <span class="text-gray-400 font-medium text-sm">Actualice su información de contacto y emergencia</span>
@@ -107,7 +107,7 @@
                                 <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
                                     <i class="bi bi-telephone"></i>
                                 </div>
-                                <input type="text" name="telefono" class="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.telefono }}" required>
+                                <input type="text" name="telefono" class="w-full !pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.telefono }}" required>
                             </div>
                         </div>
                         <div class="space-y-3">
@@ -116,7 +116,7 @@
                                 <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300 group-focus-within:text-brand-primary transition-colors">
                                     <i class="bi bi-envelope"></i>
                                 </div>
-                                <input type="email" name="email_personal" class="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.email_personal|default:'' }}" required>
+                                <input type="email" name="email_personal" class="w-full !pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 focus:bg-white transition-all outline-none" value="{{ perfil.email_personal|default:'' }}" required>
                             </div>
                         </div>
                     </div>

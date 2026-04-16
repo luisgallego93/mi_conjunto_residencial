@@ -1,127 +1,88 @@
 {% extends 'base.html' %}
 
-{% comment %}Propósito: Formulario de Recepción de Correspondencia.
-Descripción: Permite a los operadores de portería registrar el ingreso de nuevos paquetes, sobres o encomiendas al
-conjunto residencial.{% endcomment %}
-
 {% block title %}Recibir Paquete - Sauces de Ciudad del Valle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0 text-brand-secondary fw-bold">Recepción de Correspondencia</h2>
-    <a href="{% url 'correspondencia:lista_paquetes' %}"
-        class="btn btn-sm btn-outline-brand-secondary rounded-pill px-3 shadow-sm">
-        <i class="bi bi-arrow-left me-1"></i> Volver al Inventario
-    </a>
-</div>
-
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card shadow-sm mb-4 border-0"
-            style="border-radius: 15px; border-top: 5px solid var(--brand-primary) !important;">
-            <div class="card-header py-3 bg-white border-bottom border-light">
-                <h6 class="m-0 fw-bold text-brand-primary"><i class="bi bi-box-seam me-2"></i>Detalle del Envío Entrante
-                </h6>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="page-title">Recepción de Correspondencia</h2>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Portería</span>
+                <span class="page-subtitle">Ingreso de encomiendas y correo físico</span>
             </div>
-            <div class="card-body p-4 bg-light" style="background-color: #f7f9fc !important;">
-                <form method="post">
-                    {% csrf_token %}
+        </div>
+        <a href="{% url 'correspondencia:lista_paquetes' %}" class="btn-pro-secondary">
+            <i class="bi bi-arrow-left text-lg"></i> VOLVER AL INVENTARIO
+        </a>
+    </div>
 
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold small text-brand-primary text-uppercase">Unidad de
-                                Destino</label>
-                            <div class="input-brand-wrapper">
-                                {{ form.apartamento }}
-                            </div>
-                        </div>
-                        <div class="col-md-7">
-                            <label class="form-label fw-bold small text-brand-secondary text-uppercase">Destinatario
-                                (Nombre en el paquete)</label>
-                            <div class="input-brand-wrapper">
-                                {{ form.destinatario }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-brand-secondary text-uppercase">Empresa
-                                Transportadora / Origen</label>
-                            <div class="input-brand-wrapper">
-                                {{ form.transportadora }}
-                            </div>
-                            <div class="form-text x-small">Ej: Servientrega, Envía, Amazon, Mercado Libre.</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-brand-secondary text-uppercase">Número de Guía /
-                                Referencia</label>
-                            <div class="input-brand-wrapper">
-                                {{ form.guia }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-5">
-                        <div class="col-12">
-                            <label class="form-label fw-bold small text-brand-secondary text-uppercase">Notas
-                                Adicionales (Estado del empaque, fragilidad)</label>
-                            <div class="input-brand-wrapper">
-                                {{ form.observaciones }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-brand-info border-0 rounded-4 shadow-sm mb-4 py-3">
-                        <div class="d-flex align-items-center px-2">
-                            <i class="bi bi-info-circle-fill fs-3 text-brand-primary me-3"></i>
-                            <div class="small">
-                                <h6 class="fw-bold mb-1 text-brand-secondary">Registro Automático de Trazabilidad</h6>
-                                <p class="mb-0 opacity-75 text-dark">Al sellar este recibido, el sistema vinculará su
-                                    usuario <strong>({{ user.username }})</strong> y la estampa de tiempo real de
-                                    bodega.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-4 opacity-25">
-                    <div class="d-flex justify-content-end align-items-center flex-wrap gap-3">
-                        <button type="submit"
-                            class="btn btn-brand-primary text-white btn-lg rounded-pill px-5 fw-bold shadow">
-                            <i class="bi bi-clipboard-plus-fill me-2 text-brand-lime"></i>SELLAR RECIBIDO
-                        </button>
-                    </div>
-                </form>
+    <div class="card-pro shadow-premium overflow-hidden max-w-5xl mx-auto !p-0 border-none">
+        <div class="bg-brand-dark p-8 md:p-10 text-white relative">
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-4">
+                <div class="w-12 h-12 bg-brand-primary/20 rounded-2xl flex items-center justify-center text-brand-lime text-xl">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black uppercase tracking-[0.2em] italic leading-tight">Detalle del Envío Entrante</h3>
+                    <p class="text-[0.65rem] text-brand-lime font-bold uppercase tracking-widest mt-1"><i class="bi bi-clock-history mr-1"></i> Auditoría: {{ user.username }}</p>
+                </div>
             </div>
+            <!-- Decoración -->
+            <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-primary/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="p-8 md:p-12">
+            <form method="post" class="space-y-10">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-3">
+                        <label class="form-label-pro">Unidad de Destino</label>
+                        {{ form.apartamento }}
+                    </div>
+                    <div class="space-y-3">
+                        <label class="form-label-pro">Destinatario (Nombre en el paquete)</label>
+                        {{ form.destinatario }}
+                    </div>
+                </div>
+
+                <div class="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-3">
+                        <label class="form-label-pro">Empresa Transportadora / Origen</label>
+                        {{ form.transportadora }}
+                        <div class="text-[0.6rem] font-bold text-gray-400 uppercase tracking-widest mt-2 px-1">Ej: Servientrega, Envía, Amazon, Mercado Libre.</div>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="form-label-pro">Número de Guía / Referencia</label>
+                        {{ form.guia }}
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="form-label-pro">Notas Adicionales (Estado del empaque, fragilidad)</label>
+                    {{ form.observaciones }}
+                </div>
+
+                <div class="p-8 bg-brand-primary/5 rounded-[2.5rem] border border-brand-primary/10 flex flex-col md:flex-row md:items-center gap-6 shadow-sm">
+                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-brand-primary text-2xl shadow-sm shrink-0">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black text-brand-primary uppercase tracking-widest mb-1 italic">Registro Automático de Trazabilidad</h4>
+                        <p class="text-xs text-brand-dark/60 font-medium leading-relaxed italic max-w-2xl">
+                            Al sellar este recibido, el sistema vinculará su usuario <strong>({{ user.username }})</strong> y la estampa de tiempo real de bodega para notificación.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-end items-center pt-6 border-t border-gray-50">
+                    <button type="submit" class="w-full md:w-auto px-12 py-4 bg-brand-primary text-white text-[0.7rem] font-black rounded-2xl hover:bg-opacity-90 shadow-xl shadow-brand-primary/20 active:scale-95 transition-all uppercase tracking-[0.15em] italic">
+                        SELLAR RECIBIDO <i class="bi bi-clipboard-check-fill ml-2 text-brand-lime text-lg"></i>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-<style>
-    /* Estilización personalizada de inputs de Django */
-    select.form-select,
-    input.form-control,
-    textarea.form-control {
-        border-radius: 12px !important;
-        border: 1px solid #cbd5e1 !important;
-        padding: 0.75rem 1rem !important;
-        background-color: white !important;
-    }
-
-    textarea.form-control {
-        height: 100px;
-    }
-
-    select:focus,
-    input:focus,
-    textarea:focus {
-        border-color: var(--brand-lime) !important;
-        box-shadow: 0 0 0 0.25rem rgba(199, 218, 12, 0.1) !important;
-    }
-
-    .x-small {
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-</style>
 {% endblock %}

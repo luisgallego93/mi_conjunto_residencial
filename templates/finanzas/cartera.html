@@ -14,17 +14,17 @@
         </div>
     </div>
     <div class="flex flex-wrap items-center gap-3">
-        <button class="px-5 py-3 bg-brand-primary text-white font-black rounded-2xl hover:bg-opacity-90 transition-all shadow-lg active:scale-95 text-[0.65rem] uppercase tracking-widest" data-bs-toggle="modal" data-bs-target="#facturacionModal">
-            <i class="bi bi-magic mr-2 text-brand-lime"></i> Facturación
+        <button class="btn-pro-primary !py-4" data-modal-target="facturacionModal">
+            <i class="bi bi-magic text-brand-lime text-lg"></i> Facturación
         </button>
-        <button class="px-5 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-colors shadow-sm text-[0.65rem] uppercase tracking-widest" data-bs-toggle="modal" data-bs-target="#cargarCsvModal">
-            <i class="bi bi-cloud-arrow-up mr-2 text-brand-primary"></i> Cargar CSV
+        <button class="btn-pro-secondary !py-4" data-modal-target="cargarCsvModal">
+            <i class="bi bi-cloud-arrow-up text-brand-primary text-lg"></i> Cargar CSV
         </button>
-        <a href="{% url 'finanzas:registrar_multa' %}" class="px-5 py-3 bg-red-500 text-white font-black rounded-2xl hover:bg-opacity-90 transition-all shadow-lg active:scale-95 text-[0.65rem] uppercase tracking-widest">
-            <i class="bi bi-file-earmark-text mr-2"></i> Nueva Multa
+        <a href="{% url 'finanzas:registrar_multa' %}" class="btn-pro-danger !py-4">
+            <i class="bi bi-file-earmark-text text-lg"></i> Nueva Multa
         </a>
-        <button class="w-12 h-12 flex items-center justify-center bg-gray-50 text-gray-400 rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all shadow-sm" data-bs-toggle="modal" data-bs-target="#eliminarPeriodoModal">
-            <i class="bi bi-trash3"></i>
+        <button class="btn-pro-secondary !px-4" data-modal-target="eliminarPeriodoModal">
+            <i class="bi bi-trash3 text-lg text-red-500"></i>
         </button>
     </div>
 </div>
@@ -85,7 +85,7 @@
                 <i class="bi bi-search text-sm"></i>
             </div>
             <input type="text" name="q" value="{{ query }}" 
-                   class="w-full pl-10 pr-12 py-3 bg-gray-50 border-none rounded-2xl text-xs font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none" 
+                   class="w-full !pl-10 pr-12 py-3 bg-gray-50 border-none rounded-2xl text-xs font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none" 
                    placeholder="Apto o Residente...">
             {% if query %}
                 <a href="?filtro={{ filtro_estado }}" class="absolute inset-y-0 right-0 pr-4 flex items-center text-red-400 hover:text-red-600 transition-colors">
@@ -99,11 +99,11 @@
         <table class="w-full datatable-brand" id="tablaCartera">
             <thead>
                 <tr class="bg-gray-50/50">
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Inmueble</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Residente</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-left">Detalle Deuda</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Balance Total</th>
-                    <th class="px-8 py-5 text-[0.6rem] font-black text-gray-400 uppercase tracking-widest text-right">Gestiones</th>
+                    <th class="text-left">Inmueble</th>
+                    <th class="text-left">Residente</th>
+                    <th class="text-left">Detalle Deuda</th>
+                    <th class="text-right">Balance Total</th>
+                    <th class="text-right">Gestiones</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
@@ -118,8 +118,8 @@
                     <td class="px-8 py-6 align-middle">
                         {% if item.apartamento.residente_principal %}
                             <div class="flex flex-col">
-                                <span class="text-sm font-black text-gray-700 leading-tight">{{ item.apartamento.residente_principal.nombre_completo }}</span>
-                                <span class="text-[0.65rem] text-brand-primary font-black mt-1 uppercase tracking-tighter"><i class="bi bi-telephone mr-1"></i>{{ item.apartamento.residente_principal.telefono }}</span>
+                                <span class="text-sm font-black text-brand-dark leading-tight">{{ item.apartamento.residente_principal.nombre_completo }}</span>
+                                <span class="text-[0.65rem] text-gray-400 font-bold mt-1 tracking-widest"><i class="bi bi-telephone mr-1"></i>{{ item.apartamento.residente_principal.telefono }}</span>
                             </div>
                         {% else %}
                             <span class="text-xs text-gray-300 font-bold italic uppercase">Sin censo</span>
@@ -161,7 +161,7 @@
                             </div>
                             <div class="text-[0.55rem] text-gray-400 font-black uppercase tracking-widest italic">{{ item.detalles|length }} Pendiente(s)</div>
                         {% else %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-[0.55rem] font-black bg-brand-lime text-brand-dark shadow-sm italic tracking-widest">
+                            <span class="badge-pro-success">
                                 <i class="bi bi-shield-check mr-1"></i>PAZ Y SALVO
                             </span>
                         {% endif %}
@@ -172,21 +172,20 @@
                                 class="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:bg-brand-primary hover:text-white transition-all shadow-sm" title="Expediente CV">
                                 <i class="bi bi-journal-text"></i>
                             </a>
-                            <button type="button" class="btn-pro-primary !py-2.5 !px-5 text-[0.65rem] !rounded-xl italic tracking-widest flex items-center gap-2" data-bs-toggle="modal" data-bs-target="#pagoModal{{ item.apartamento.id }}">
+                            <button type="button" class="btn-pro-primary !py-2.5 !px-5 text-[0.65rem] !rounded-xl italic tracking-widest flex items-center gap-2" data-modal-target="pagoModal{{ item.apartamento.id }}">
                                 <i class="bi bi-cash"></i> PAGAR
                             </button>
                         </div>
 
                         <!-- Modal Recibir Pago -->
-                        <div class="modal fade" id="pagoModal{{ item.apartamento.id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+                        <div class="modal-overlay" id="pagoModal{{ item.apartamento.id }}">
+    <div class="modal-content">
                                     <div class="bg-brand-dark p-8 md:p-10 text-white relative">
                                         <div class="relative z-10 text-left">
                                             <h5 class="text-2xl font-black tracking-tight italic uppercase">Recaudar Pago</h5>
                                             <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-1">APARTAMENTO {{ item.apartamento.numero }}</p>
                                         </div>
-                                        <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-bs-dismiss="modal">
+                                        <button type="button" class="absolute top-8 right-8 text-white/30 hover:text-white transition-colors" data-modal-close>
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
@@ -229,7 +228,7 @@
                                             </div>
                                         </div>
                                         <div class="px-10 py-8 bg-gray-50 flex gap-4">
-                                            <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-colors uppercase tracking-widest" data-bs-dismiss="modal">Cerrar</button>
+                                            <button type="button" class="flex-1 py-4 bg-white text-gray-500 text-[0.65rem] font-black rounded-2xl hover:bg-gray-100 transition-colors uppercase tracking-widest" data-modal-close>Cerrar</button>
                                             <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl shadow-brand-primary/20 hover:bg-opacity-95 active:scale-95 transition-all uppercase tracking-[0.2em] italic">
                                                 CONFIRMAR RECAUDO <i class="bi bi-check2-all ml-2 text-brand-lime"></i>
                                             </button>
@@ -256,9 +255,8 @@
 </div>
 
 <!-- Modales Secundarios Rediseñados -->
-<div class="modal fade" id="facturacionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+<div class="modal-overlay" id="facturacionModal">
+    <div class="modal-content">
             <div class="bg-brand-primary p-10 text-white relative">
                 <h5 class="text-2xl font-black tracking-tight italic uppercase leading-none">Generación Masiva</h5>
                 <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-2">Facturación Ordinaria 460 Unidades</p>
@@ -290,7 +288,7 @@
                     </div>
                 </div>
                 <div class="px-10 py-8 bg-gray-50 flex gap-4">
-                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-modal-close>Cancelar</button>
                     <button type="submit" class="flex-[2] py-4 bg-brand-primary text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">INICIAR CIERRE MENSUAL</button>
                 </div>
             </form>
@@ -298,9 +296,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="cargarCsvModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+<div class="modal-overlay" id="cargarCsvModal">
+    <div class="modal-content">
             <div class="bg-brand-dark p-10 text-white text-left">
                 <h5 class="text-2xl font-black tracking-tight italic uppercase">Conciliación Bancaria</h5>
                 <p class="text-brand-lime font-black text-[0.65rem] tracking-widest uppercase mt-2">Carga Masiva de Recaudos (CSV)</p>
@@ -320,7 +317,7 @@
                     </div>
                 </div>
                 <div class="px-10 py-8 bg-gray-50 flex gap-4">
-                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-modal-close>Cerrar</button>
                     <button type="submit" class="flex-[2] py-4 bg-brand-dark text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">PROCESAR EXTRACTO</button>
                 </div>
             </form>
@@ -329,9 +326,8 @@
 </div>
 
 <!-- Modal Eliminar Periodo -->
-<div class="modal fade" id="eliminarPeriodoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content overflow-hidden border-none rounded-[2.5rem] shadow-2xl">
+<div class="modal-overlay" id="eliminarPeriodoModal">
+    <div class="modal-content">
             <div class="bg-red-500 p-10 text-white text-center">
                 <h5 class="text-2xl font-black tracking-tight italic uppercase">Acción Crítica</h5>
                 <div class="text-[0.65rem] font-black text-white/70 uppercase tracking-widest mt-2 italic">Borrado de Historial de Facturación</div>
@@ -363,7 +359,7 @@
                     </div>
                 </div>
                 <div class="px-10 py-8 bg-gray-50 flex gap-4">
-                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="flex-1 py-4 bg-white text-gray-400 text-[0.65rem] font-black rounded-2xl uppercase" data-modal-close>Cancelar</button>
                     <button type="submit" class="flex-[2] py-4 bg-red-500 text-white text-[0.65rem] font-black rounded-2xl shadow-xl uppercase italic tracking-widest">EJECUTAR PURGA</button>
                 </div>
             </form>

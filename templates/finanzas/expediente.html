@@ -8,7 +8,7 @@
 <div class="mb-10">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-            <h2 class="text-3xl font-black text-brand-dark tracking-tight mb-2">Expediente de Cobranza</h2>
+            <h2 class="page-title">Expediente de Cobranza</h2>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[0.65rem] font-black uppercase tracking-widest rounded-full">Apto {{ apto.numero }}</span>
                 <span class="text-gray-400 font-medium text-sm">Bitácora de gestión y acuerdos</span>
@@ -81,7 +81,7 @@
                     <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary">
                         <i class="bi bi-person-lines-fill"></i>
                     </div>
-                    <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">Información del Deudor</h3>
+                    <h3 class="section-title">Información del Deudor</h3>
                 </div>
 
                 {% if apto.residente_principal %}
@@ -229,7 +229,7 @@
                             
                             <div class="flex flex-wrap items-center justify-between gap-4">
                                 {% if an.acuerdo_pago %}
-                                <div class="inline-flex items-center px-4 py-2 bg-brand-lime text-brand-dark text-[0.65rem] font-black rounded-lg shadow-sm border border-brand-lime/20 animate-pulse-subtle">
+                                <div class="badge-pro-success">
                                     <i class="bi bi-calendar-check-fill mr-2 text-xs"></i>COMPROMISO: {{ an.fecha_compromiso|date:"d M, Y"|default:"Sin definir" }}
                                 </div>
                                 {% else %}

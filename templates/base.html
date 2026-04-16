@@ -11,8 +11,7 @@
 
     <!-- Sistema de Gestión de Marca y Estilos -->
     
-    <!-- Librerías de Estilo Base -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Librerías de Estilo Base (100% Tailwind) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     
@@ -52,21 +51,67 @@
     </script>
 
     <style type="text/tailwindcss">
+        @layer base {
+            select, input[type="text"], input[type="number"], input[type="email"], input[type="password"], textarea, input[type="file"] {
+                @apply w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/10 hover:bg-white outline-none transition-all shadow-sm;
+            }
+            select {
+                @apply appearance-none cursor-pointer;
+            }
+        }
         @layer components {
+            /* Títulos y Tipografías Estandarizadas */
+            .page-title {
+                @apply text-3xl font-black text-brand-dark tracking-tight mb-2 uppercase italic leading-none;
+            }
+            .section-title {
+                @apply text-sm font-black text-brand-dark uppercase tracking-widest italic;
+            }
+            .form-label-pro {
+                @apply px-1 text-[0.65rem] font-black text-gray-400 uppercase tracking-widest italic mb-2 block;
+            }
+            .input-pro {
+                @apply w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-[0.7rem] font-black text-brand-dark focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all shadow-sm;
+            }
+            
+            /* Sistema de Badges Oficial */
+            .badge-pro-success {
+                @apply inline-flex items-center px-3 py-1 bg-brand-lime text-brand-dark text-[0.6rem] font-black uppercase rounded-lg tracking-widest shadow-sm italic;
+            }
+            .badge-pro-neutral {
+                @apply inline-flex items-center px-3 py-1 bg-gray-100 text-gray-500 text-[0.6rem] font-black uppercase rounded-lg tracking-widest shadow-sm italic;
+            }
+            .badge-pro-danger {
+                @apply inline-flex items-center px-3 py-1 bg-red-100/50 border border-red-200 text-red-500 text-[0.6rem] font-black uppercase rounded-lg tracking-widest shadow-sm italic;
+            }
+
             .btn-pro-primary {
-                @apply bg-brand-primary text-white font-semibold py-2 px-6 rounded-xl transition-all duration-300 hover:bg-opacity-90 hover:-translate-y-0.5 shadow-brand active:scale-95;
+                @apply bg-brand-primary text-white font-bold py-3 px-6 rounded-xl transition-all hover:bg-opacity-90 shadow-lg active:scale-95 flex items-center justify-center gap-2 text-[0.65rem] uppercase tracking-widest italic;
+            }
+            .btn-pro-secondary {
+                @apply bg-white border border-gray-200 text-gray-700 font-bold py-3 px-6 rounded-xl transition-all hover:bg-gray-50 shadow-sm active:scale-95 flex items-center justify-center gap-2 text-[0.65rem] uppercase tracking-widest italic;
             }
             .btn-pro-lime {
-                @apply bg-brand-lime text-brand-dark font-semibold py-2 px-6 rounded-xl transition-all duration-300 hover:bg-opacity-90 hover:-translate-y-0.5 active:scale-95;
+                @apply bg-brand-lime text-brand-dark font-bold py-3 px-6 rounded-xl transition-all hover:bg-opacity-90 active:scale-95 flex items-center justify-center gap-2 text-[0.65rem] uppercase tracking-widest italic;
+            }
+            .btn-pro-danger {
+                @apply bg-brand-accent text-white font-bold py-3 px-6 rounded-xl transition-all hover:bg-opacity-90 shadow-lg active:scale-95 flex items-center justify-center gap-2 text-[0.65rem] uppercase tracking-widest italic;
             }
             .card-pro {
-                @apply bg-white rounded-2xl border border-gray-100 shadow-premium p-6;
+                @apply bg-white rounded-2xl border border-gray-100 shadow-premium p-8;
             }
             .sidebar-link {
                 @apply flex items-center px-6 py-3 text-gray-400 font-medium transition-all duration-200 border-l-4 border-transparent hover:bg-white/5 hover:text-brand-lime;
             }
             .sidebar-link.active {
                 @apply bg-white/10 text-brand-lime border-brand-lime;
+            }
+            /* Native Modal System */
+            .modal-overlay {
+                @apply fixed inset-0 z-[100] hidden items-center justify-center bg-brand-dark/60 backdrop-blur-sm transition-all duration-300;
+            }
+            .modal-content {
+                @apply relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 m-4 max-h-[90vh] flex flex-col;
             }
         }
     </style>
@@ -76,8 +121,7 @@
     
     <!-- Librerías de Componentes Específicos -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -202,10 +246,8 @@
 
     <!-- Scripts Globales -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
@@ -239,10 +281,53 @@
 
             // Inicialización de Select2 Premium
             $('.form-select').select2({
-                theme: 'bootstrap-5',
                 width: '100%',
                 language: 'es'
             });
+
+            // ==========================================
+            // NATIVE TAILWIND MODAL CONTROLLER
+            // ==========================================
+            const openModal = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    // Small delay to allow CSS transition to trigger
+                    setTimeout(() => {
+                        const content = modal.querySelector('.modal-content');
+                        if (content) {
+                            content.classList.remove('scale-95', 'opacity-0');
+                            content.classList.add('scale-100', 'opacity-100');
+                        }
+                    }, 10);
+                }
+            };
+            
+            const closeModal = (modal) => {
+                if (modal) {
+                    const content = modal.querySelector('.modal-content');
+                    if (content) {
+                        content.classList.remove('scale-100', 'opacity-100');
+                        content.classList.add('scale-95', 'opacity-0');
+                    }
+                    setTimeout(() => {
+                        modal.classList.remove('flex');
+                        modal.classList.add('hidden');
+                    }, 300);
+                }
+            };
+
+            $(document).on('click', '[data-modal-target]', function(e) {
+                e.preventDefault();
+                openModal($(this).data('modal-target'));
+            });
+
+            $(document).on('click', '[data-modal-close]', function(e) {
+                e.preventDefault();
+                closeModal($(this).closest('.modal-overlay')[0]);
+            });
+            // ==========================================
 
             // Sidebar Toggle Logic
             const sidebar = document.getElementById('sidebar');
@@ -328,18 +413,27 @@
 
     <style>
         body { background-color: #f8fafc; }
-        .datatable-brand_wrapper .dataTables_length select,
-        .datatable-brand_wrapper .dataTables_filter input {
-            @apply border-gray-200 rounded-lg text-sm focus:ring-brand-primary focus:border-brand-primary !important;
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            @apply border border-gray-200 bg-white rounded-lg text-sm focus:ring-brand-primary focus:border-brand-primary px-3 py-1 outline-none ml-2 !important;
+        }
+        .datatable-brand {
+            @apply w-full text-left border-collapse !important;
         }
         .datatable-brand thead th {
-             @apply bg-gray-50 text-gray-500 uppercase text-[0.65rem] font-black tracking-widest border-b border-gray-100 px-6 py-4 !important;
+             @apply bg-gray-50 text-gray-500 uppercase text-[0.65rem] font-black tracking-widest border-b border-gray-100 px-8 py-5 !important;
         }
         .datatable-brand tbody td {
-            @apply px-6 py-4 text-sm text-gray-600 border-b border-gray-50 !important;
+            @apply px-8 py-5 text-sm font-medium text-gray-600 border-b border-gray-50 !important;
         }
-        .select2-container--bootstrap-5 .select2-selection {
-            @apply border-gray-200 rounded-xl focus:ring-brand-primary focus:border-brand-primary !important;
+        table.dataTable.no-footer {
+            @apply border-b-0 !important;
+        }
+        .select2-container .select2-selection--single {
+            @apply h-[3rem] px-5 bg-white border border-gray-100 rounded-2xl flex items-center shadow-sm !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            @apply h-full right-4 !important;
         }
     </style>
     
